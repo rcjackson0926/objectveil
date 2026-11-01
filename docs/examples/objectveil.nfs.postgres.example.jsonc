@@ -1,0 +1,68 @@
+{
+  // Production-oriented NFS + Postgres example.
+  //
+  // Cache:
+  //   - local cache root: /p4/1/cache
+  //   - cache size: 4 TiB
+  //
+  // Storage:
+  //   - primary backend: NFS rooted at /srv/objectveil-objects
+  //   - a separate empty native object-store root, never the Perforce archive tree
+  //   - path_prefix intentionally omitted; the writer creates native identity
+  //     before publishing content-addressed objects under this root
+  //
+  // Access logging:
+  //   - PostgreSQL sink
+  //   - bounded on-disk spool enabled for sink outages
+
+  "format": "objectveil/1", "namespace_id": "00000000-0000-0000-0000-000000000000", "depot_path": "/p4/1/cache",
+  "read_only": false,
+
+  "max_cache_gb": 4096,
+  "low_watermark_gb": 3276,
+
+  // Starting thread settings; validate capacity and latency for your workload.
+  "upload_threads": 12,
+  "restore_threads": 48,
+  "restore_chunk_threshold_mb": 4,
+  "restore_chunk_threads": 8,
+
+  "primary": {
+    "type": "nfs",
+    "path": "/srv/objectveil-objects"
+  },
+
+  "skip_startup_scan": false,
+  "stats_interval_secs": 60,
+
+  "daemon": true,
+  "verbose": false,
+
+  "pid_file": "/run/objectveil/objectveil.pid",
+  "log_file": "/var/log/objectveil/objectveil.log",
+
+  "metrics_file": "/var/lib/node_exporter/textfile_collector/objectveil.prom",
+  "metrics_interval_secs": 15,
+
+  "access_log_enabled": true,
+  "access_batch_size": 10000,
+  "access_max_pending_entries": 200000,
+  "access_flush_interval_secs": 5,
+
+  "access_pg_url": "postgresql://objectveil:replace-me@db.example.com:5432/objectveil?sslmode=verify-full",
+  // Provision this exact schema/table before enabling the sink.
+  "access_pg_table": "ops.objectveil_access",
+  "access_pg_ca_cert": "/etc/objectveil/postgres-ca.pem",
+
+  "access_failure_warn_interval_secs": 60,
+  "access_failure_backoff_initial_secs": 1,
+  "access_failure_backoff_max_secs": 60,
+  "access_disable_after_failures": 100,
+
+  "access_spool_dir": "/p4/1/cache/.objectveil/access-spool",
+  "access_spool_max_bytes": 1073741824,
+
+  // JSON does not allow octal integer literals. 432 decimal == 0660.
+  "shim_socket_mode": 432,
+  "access_socket_mode": 432
+}

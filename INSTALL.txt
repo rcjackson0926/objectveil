@@ -1,0 +1,260 @@
+ObjectVeil 7.0.0 — Linux installation and migration
+====================================================
+
+This release includes the cache daemon, its matching Perforce preload shim,
+the upload/download migration command, and all operator utilities. Start here;
+docs/OPERATIONS.md, docs/migration.md and docs/disaster-recovery.md contain the
+full deployment, migration and recovery procedures.
+For an existing installation, read docs/upgrading.md BEFORE
+installing; incompatible persisted formats require verified conversion.
+
+Requirements
+------------
+* Linux x86_64 with glibc 2.39 or newer. Check `uname -m` and
+  `getconf GNU_LIBC_VERSION`. This build does not support musl/Alpine,
+  older glibc installations, ARM, Windows or macOS.
+* A signed license valid for your deployment. No license, credentials or
+  private configuration is included. Use a vendor-signed version 2 license, or
+  request an evaluation license at https://rcjacksonconsulting.com/objectveil-product.html.
+* Access to the physical Perforce archive tree and the configured storage.
+  S3, Azure and GCS need separate data and keystore buckets/containers.
+* Write-mode caching needs fanotify/CAP_SYS_ADMIN and coordinated archive
+  writers using the matching libobjectveil_shim.so. Read-only caches reject managed
+  archive writes; do not use read-only mode on an active submit server.
+* Live migration needs a supported local Linux filesystem, working file
+  leases, archive-owner permissions (or CAP_LEASE), and private staging space.
+  See docs/migration.md for the supported filesystem and capacity limits.
+
+Download and verify
+-------------------
+Use a new empty download directory. The release page is:
+  https://github.com/rcjackson0926/objectveil/releases/tag/v7.0.0
+
+Download SHA256SUMS and either the .deb or tar.gz asset from that release.
+Download all assets listed in SHA256SUMS to check them together, or verify
+only the files you downloaded:
+
+  sha256sum --ignore-missing -c SHA256SUMS
+
+Require an OK result for every selected asset. Do not proceed on a mismatch.
+Only checksum files downloaded from the expected release establish this
+comparison; checksums are not a detached signature or a hosted attestation.
+
+Debian/Ubuntu package (preferred where supported)
+-------------------------------------------------
+The .deb includes all eight executables, the matching shim, a systemd unit,
+an example configuration and documentation. Its dependency check enforces
+the required glibc version. From the download directory:
+
+  sudo apt install ./objectveil_7.0.0_amd64.deb
+
+For BOTH a first package installation and an upgrade, complete the
+coordinated stop described below BEFORE running apt. The package refuses
+installation while p4d or objectveil is running; it does not stop services or
+restart Perforce for you. To add the migration tool to a server that must
+remain online, use the verified tar bundle side by side and run only its
+bin/objectveil-migrate. Defer package installation and cache writer activation
+until the coordinated handoff; copying archives itself can remain online.
+
+Executables: /usr/bin/objectveil and /usr/bin/objectveil-*
+Shim:        /usr/lib/objectveil/libobjectveil_shim.so
+Docs:        /usr/share/doc/objectveil/
+
+The package does not create a new Perforce account or enable the cache.
+Its unit uses the existing `perforce` account by default; adjust the unit
+if your server uses a different archive-owner account. The service expects
+/etc/objectveil/config.json, with daemon=false. A license.lic beside that
+configuration is an accepted search path. Protect configuration and license
+permissions while allowing the service account to read them.
+
+Fresh default cache state is private (0700); the packaged same-UID deployment
+works with this default. Run serving applications under the same UID
+as the daemon: restored files remain daemon-owned and private. Socket groups
+and UID allowlists alone do not support cross-UID archive serving. Existing
+and precreated state modes/groups are preserved. Follow "Socket access across Linux users" in
+docs/OPERATIONS.md and verify an actual cold read as the application's UID.
+Do not broaden all state/license permissions to fix socket access.
+
+Tar installation
+----------------
+Verify the tarball first, then unpack it into a new directory:
+
+  tar -xzf objectveil-7.0.0-linux-x86_64.tar.gz
+  cd objectveil-7.0.0
+  sha256sum -c SHA256SUMS
+
+Run bin/objectveil-migrate --help to confirm the migration command is present.
+For a system installation, keep each release in its own directory, for
+example /opt/objectveil/7.0.0. Copy this verified bundle there only if that
+destination does not already contain another installation. Use absolute
+paths to that release's executables and shim in your service configuration.
+
+The supplied packaging/systemd/objectveil.service is the Debian unit. For a
+tar installation, adapt its ExecStart to your versioned daemon path and
+your service account. Keep daemon=false under process supervision. The
+writer unit supplies CAP_SYS_ADMIN; a manual writer launch needs equivalent
+privileges (see docs/OPERATIONS.md). Do not mix binaries or shims from
+different releases.
+
+Configure and start a cache
+---------------------------
+
+Set format to "objectveil/1" and replace the nil namespace_id in templates with
+a generated UUID. Use that same UUID on every client of the shared namespace.
+Before starting the daemon, as the archive-owner account, run:
+
+  objectveil-initialize /etc/objectveil/config.json
+
+The default requires an empty archive root. A reviewed existing archive-only
+root requires --existing-archives. This attests its scope; it does not establish
+a consistent server snapshot or convert incompatible control state. Remote
+read-only clients require identity markers already created by a native writer.
+
+1. Select a backend example from docs/examples/. Replace every REPLACE-ME
+   value. Examples ending in .jsonc contain comments for documentation;
+   produce a valid JSON configuration before launching the tools.
+2. Set depot_path to the physical archive-only root. Establish explicit
+   cloud prefixes and separate data/key namespaces. Follow the keystore
+   retention requirements in docs/disaster-recovery.md and docs/LICENSING.md.
+3. For an existing populated server, follow the migration procedure below
+   before handing the namespace to a cache writer. Do not start another
+   writer against a namespace owned by an active migration job.
+4. BEFORE enabling a write-mode daemon, stop and fence existing p4d and
+   every other archive writer, including automatic restarts. Hold that
+   fence while the cache starts and until every writer is started with
+   this release's matching shim. This also applies to FIRST enablement
+   after an online migration, not just an upgrade. A separately owned
+   read-only reader cache must not be used as an active submit server.
+5. Start the daemon as the configured archive-owner account. For .deb,
+   place the readable license beside the configuration and use the unit:
+
+     sudo systemctl daemon-reload
+     sudo systemctl start objectveil
+
+   The unit supplies the service account and required writer capability.
+   For a tar installation, use the adapted service described above. A manual
+   launch must also use the archive owner and appropriate capabilities; do
+   not launch as root merely to bypass permissions, since restored files
+   would then be owned by root.
+   Confirm readiness using the mode protocol in docs/OPERATIONS.md; the
+   existence of a socket alone does not establish readiness.
+6. With the configured cache role ready, start/restart every managed p4d
+   with this release's matching shim, then release the writer fence:
+
+     LD_PRELOAD=/usr/lib/objectveil/libobjectveil_shim.so \
+     OBJECTVEIL_DEPOT=/p4/1/depots \
+     OBJECTVEIL_SOCK=/p4/1/depots/.objectveil/shim.sock \
+     OBJECTVEIL_ACCESS_SOCK=/p4/1/depots/.objectveil/access.sock \
+     p4d <your existing server arguments>
+
+   The socket paths above assume the default depot_path/.objectveil state
+   directory. If config.state_dir is different, set BOTH socket variables
+   to its actual shim.sock and access.sock paths; the packaged config uses
+   its own state directory. For a tar install use your versioned shim path.
+   Preserve your existing
+   p4d settings, user and arguments; the placeholder above is not a complete
+   server command. Coordinate all archive writers before enabling eviction.
+   Hidden serverRoot information on Perforce 2026.1 is supported; do not
+   lower dm.info.hide to install the cache.
+
+Upload archives from a running server
+-------------------------------------
+The migration command copies directly from a running archive tree. It does
+not require a full local copy of that tree. Files open for writing, changed
+during capture or removed during the pass are skipped and reported.
+The original files are preserved. Run as their owner or with CAP_LEASE.
+
+Use a dedicated empty data/key namespace and a private job directory whose
+parent already exists outside the archive and cache trees. Provision actual
+free staging space for the chosen budget. These examples use the existing
+archive-owner account `perforce`; substitute your actual account if different.
+Prepare its private job parent once:
+
+  sudo install -d -o perforce -g perforce -m 0700 /var/lib/objectveil-migration
+
+Then run the tool as that account (Debian install example):
+
+  sudo -u perforce objectveil-migrate /etc/objectveil/config.json --license /secure/license.lic \
+    --archive-root /p4/1/depots --source-kind live \
+    --source-id existing-server-import \
+    --state-dir /var/lib/objectveil-migration/job-001 --jobs 4 --spool-budget-gb 64 --plan
+
+Inspect the plan, then repeat without --plan. Use the same job directory to
+retry skipped files, discover later changes or resume after interruption.
+Exit 0 means the pass completed without skips; exit 2 means a live pass
+completed with skips; exit 1 means error/refusal. Inspect the JSON report.
+
+Small eligible archives use the cache's normal packed chunks, compression,
+encryption and deduplication rules. Large stored objects use four parallel
+8 MiB multipart transfers, as the cache does. --jobs controls archive work;
+it does not change that per-object multipart policy.
+
+The copy verifies captured file generations, not a transactionally
+consistent Perforce backup or a continuous replication stream. Repeat
+passes and complete the verified writer handoff in docs/migration.md.
+Do not delete original archives based on a successful migration report.
+
+Download archives from cloud storage
+-------------------------------------
+Use a separate, stopped and privately owned destination archive tree and
+a separate private job directory. Keep it away from an active server and
+the configured live cache root. For an unused restore destination:
+
+  sudo install -d -o perforce -g perforce -m 0700 /restore/depots
+
+Then, using the private job parent prepared above:
+
+  sudo -u perforce objectveil-migrate /etc/objectveil/config.json --license /secure/license.lic \
+    --download --archive-root /restore/depots \
+    --state-dir /var/lib/objectveil-migration/download-001 --jobs 4 --spool-budget-gb 64
+
+The command reads the current catalog and restores packed, standalone and
+deduplicated archives. Rerunning the same job verifies matching existing
+files. Conflicting files are preserved and cause a refusal. No cloud data
+or keys are deleted by this operation. Legacy namespaces outside the
+supported current catalog are refused explicitly; see docs/migration.md.
+
+The archive-root argument names physical Perforce version files, not a
+client workspace, a logical //depot/... path or the entire P4ROOT database.
+Custom depot Maps and shelves need explicit coverage checks.
+
+Upgrade an existing installation
+-------------------------------------------
+Version 7 requires native configuration, state, storage identity markers and
+version 2 signed licenses. Read docs/upgrading.md for the complete procedure.
+Preserve all source data and entitlement identities. Package installation does
+not convert incompatible formats and must never be used to reset recovery state
+or trials. Do not manually rename or edit signed or authenticated metadata.
+
+Compatible updates preserve namespace_id, resolved prefixes, local state,
+licenses and authenticated clock/trial anchors. Fence writers and automatic
+restarts, install the complete matching artifact set, then verify warm/cold
+reads and recovery before re-enabling eviction. An incompatible format requires
+a separately verified conversion into new namespaces while retaining its source.
+
+Coordinated upgrades and rollback
+----------------------------------
+Back up your configuration and retain the complete previous executable/shim
+set. Stop and fence Perforce writers/p4d and objectveil, including automatic
+restarts, before replacing binaries or the shim. Keep them stopped through
+the entire installation. The Debian guard conservatively checks all p4d
+processes on the host.
+
+Install the complete new release, start objectveil, confirm its configured
+role/readiness, and then restart EVERY p4d with the new shim. A daemon-only
+restart or a library replacement on disk does not update a shim already
+mapped into a running p4d. Rollback also requires a coordinated stop and
+the complete matching prior set. Never roll back remote keys, poison
+history, writer tickets or catalog history, and do not assume every older
+release understands state created by a newer release. Consult the recovery
+guide before selecting a rollback version.
+
+Durability and recovery
+------------------------
+Uploads are asynchronous: a successful Perforce submit does not prove that
+the newest bytes are already durable remotely. Preserve independent
+Perforce checkpoints/journals and the required archive recovery point.
+Retain primary data/catalog history and current keystore state according
+to the policies in docs/disaster-recovery.md. A secondary is a read fallback,
+not synchronous replication. The download command restores archive bytes;
+it does not restore Perforce databases, checkpoints or journals.

@@ -1,0 +1,25 @@
+[Unit]
+Description=ObjectVeil depot cache daemon
+Documentation=file:/usr/share/doc/objectveil/OPERATIONS.md
+After=network-online.target local-fs.target
+Wants=network-online.target
+ConditionPathExists=/etc/objectveil/config.json
+
+[Service]
+Type=simple
+User=perforce
+Group=perforce
+ExecStart=/usr/bin/objectveil /etc/objectveil/config.json
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=5
+AmbientCapabilities=CAP_SYS_ADMIN
+CapabilityBoundingSet=CAP_SYS_ADMIN
+NoNewPrivileges=true
+RuntimeDirectory=objectveil
+StateDirectory=objectveil
+LogsDirectory=objectveil
+LimitNOFILE=1048576
+
+[Install]
+WantedBy=multi-user.target

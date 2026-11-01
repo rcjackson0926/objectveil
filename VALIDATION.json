@@ -1,0 +1,220 @@
+{
+  "format": "objectveil-release-validation/1",
+  "product": "ObjectVeil",
+  "version": "7.0.0",
+  "status": "passed",
+  "scope": "Functional and artifact acceptance for the named runtime. Provider-retained test history and verification limits are reported separately.",
+  "source_commit": "a575b57c83cae2c120eb38799c396411d12bf666",
+  "packaging_commit": "8bfa8a0fe11fd38a24575d5b42283d67603718e2",
+  "platform": "Linux x86-64",
+  "minimum_glibc": "2.39",
+  "runtime_sha256": {
+    "objectveil-initialize": "d6d89b4a5accde44908e4cf2e9ebdac86a982604f4970a9d0a63ecbc6c9222a8",
+    "objectveil-migrate": "d2dceb0d5ba558af063175885f625e2bea04367d46ac2c68b4bf750479b4a6f5",
+    "objectveil-manifest-summary": "62d92b0fd251fcbfe90ad39dbd45170f1db5911dfb7dc57f3acda08814032573",
+    "objectveil-rescan": "8f4b0bb0898d703c13f866b1e535e0937b0f1d0774027d76bd7b1b8b67c6ab79",
+    "objectveil-verify": "fc7013ccf723682d1bf59c75852ec803fab8ee04d47f4b2ce89ec51e7cfd1c13",
+    "objectveil": "e7269ac657a83fe6e3c4142e8524d3fcbfd885bb21e534d6bbdd8d8617386441",
+    "libobjectveil_shim.so": "bd3c442b7f5f3d3dcf7f4863e87ec61ff08e09573dec6ce0cfd73df6ac263cfd",
+    "objectveil-rebuild-catalog": "1bbbea6b9fa9f653a2023660b59283b478d309ca96df932781222f433cf68435",
+    "objectveil-dedup-measure": "a87ec673f02d2a1c656de05398585abd16ea827290d738e03d38550345fb0090"
+  },
+  "package": {
+    "deb_sha256": "4c1088eeb6b03f641a7f6b1a4ec73334621267eb59e95bb371637bcd2afb9c60",
+    "runtime_acceptance_package_sha256": "e273392810d1914e5284ae7bf706bb324c68b4305f29f0cb5a386d7dc81254f3",
+    "documentation_only_repack": true,
+    "runtime_rebuilt_or_restamped": false,
+    "runtime_artifacts_identical": 9,
+    "non_documentation_payloads_and_installer_controls_unchanged": true
+  },
+  "required_linux_gate": {
+    "source_commit": "a575b57c83cae2c120eb38799c396411d12bf666",
+    "status": "passed",
+    "rust_suites": 29,
+    "rust_tests_passed": 1678,
+    "rust_failed": 0,
+    "rust_ignored": 0,
+    "rust_version": "1.96.1",
+    "gate_receipt_sha256": "87318249942e27d491a08962c4c786ec2e3a41e6db105e3ba5cae307c99722ed",
+    "gate_log_sha256": "394eb48c4b36cbc3d82f7e4d2d03eaac30b6147a960e31c21760f14f8378696d",
+    "checks": [
+      "operational script regressions",
+      "formatting",
+      "strict release clippy",
+      "NFS feature matrix",
+      "Rust release tests",
+      "dependency policy and audit",
+      "declared Rust toolchain",
+      "binary size limits"
+    ],
+    "coverage_note": "Cloud and privileged production paths are evidenced by the explicit fixture runs below, separately from the base suite totals."
+  },
+  "targeted_migration_verifier_regressions": {
+    "passed": 8,
+    "failed": 0,
+    "ignored": 0
+  },
+  "packaged_runtime": {
+    "checks": {
+      "daemon_integrity_passed": true,
+      "initializer_integrity_passed": true,
+      "live_busy_skip_and_same_job_resume_passed": true,
+      "migration_integrity_passed": true,
+      "packaged_download_passed": true,
+      "packaged_download_same_job_resume_passed": true,
+      "packaged_initializer_passed": true,
+      "packaged_shim_cold_reads_passed": true
+    },
+    "matching_artifacts": 9,
+    "cold_read_archives_verified": 3,
+    "receipt_sha256": "705a346c85ad91e373632e8de0734a688864808605b436be3b43c8f495af555f"
+  },
+  "cloud_functional_tests": {
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "source_commit": "a575b57c83cae2c120eb38799c396411d12bf666",
+    "test_binary_sha256": "75ab8ee7bdb4715a1fb6fa740b3318a15f4a60047e62f1e233772c20b4ea4c6d",
+    "tests": [
+      {
+        "provider": "s3",
+        "test": "cloud_s3_end_to_end",
+        "functional_status": "passed",
+        "seconds": 82.61,
+        "log_sha256": "204aff50bbf75020e3340d166f10dbd3160a0ee3aeebe87f8f66f5e02dbf82f0"
+      },
+      {
+        "provider": "s3",
+        "test": "cloud_s3_obliterate_and_readd_lifecycle",
+        "functional_status": "passed",
+        "seconds": 26.61,
+        "log_sha256": "e75f5516c47c325f721a938db2dc37a35fb6f49810de88216f7140795e09c406"
+      },
+      {
+        "provider": "s3",
+        "test": "cloud_s3_dedup_mutable_and_cold_recovery",
+        "functional_status": "passed",
+        "seconds": 33.16,
+        "log_sha256": "589ccc8b9edc5010843b4273002901e29604676b61eeac543a19338f68a2fbd7"
+      },
+      {
+        "provider": "azure",
+        "test": "cloud_azure_end_to_end",
+        "functional_status": "passed",
+        "seconds": 78.37,
+        "log_sha256": "38c992470cd655f480403820afaf75027cd31d54531b0b671605a378f683f480"
+      },
+      {
+        "provider": "gcs",
+        "test": "cloud_gcs_end_to_end",
+        "functional_status": "passed",
+        "seconds": 129.45,
+        "log_sha256": "39675f35e6634f3ae8bbd0acfa1ada6d36f56e46c1a19cb15d7c99c18fc9be3b"
+      }
+    ]
+  },
+  "privileged_and_perforce": {
+    "privileged_tests": {
+      "failed": 0,
+      "ignored": 0,
+      "passed": 2,
+      "skipped": 0
+    },
+    "perforce_tests": {
+      "failed": 0,
+      "ignored": 0,
+      "passed": 8,
+      "skipped": 0
+    },
+    "same_uid_exact_cold_reads": 4,
+    "different_uid_expected_permission_denials": 4,
+    "state_directory_modes": [
+      "0750",
+      "0710"
+    ],
+    "source_files_reverified": 291,
+    "runtime_artifacts_reverified": 9
+  },
+  "native_licensing": {
+    "synthetic_tests_passed": 18,
+    "skipped": 0,
+    "actual_native_signer_and_runtime": true,
+    "real_customer_state_used": false,
+    "source_preserved": true,
+    "receipt_sha256": "3bbeb0cfcd796faf0dbcb31f4d27c526db6a0d2584eb39c608f732ae6f94e1ca"
+  },
+  "interrupted_job_recovery": {
+    "existing_job_resumed_with_current_runtime": true,
+    "archives_verified": 3,
+    "original_source_and_manifest_identity_preserved": true,
+    "owned_S3_scopes_cleaned_in_supported_API_views": true,
+    "receipt_sha256": "da6c59de9ea15715ffaa0e07fccee9eccec86beb93dd30397858ba46e926f481"
+  },
+  "identifier_audits": {
+    "runtime_and_extracted_package": {
+      "files": 57,
+      "negative_controls": 35,
+      "matches": 0
+    },
+    "packaging_source": {
+      "files": 291,
+      "git_objects": 364,
+      "decoded_documents": 17,
+      "matches": 0
+    },
+    "website": {
+      "files": 27,
+      "git_objects": 39,
+      "decoded_PDFs": 3,
+      "matches": 0
+    },
+    "public_archive_scan": {
+      "requirement": "All seven completed assets must pass the final scan before publication.",
+      "scope": "Asset names and bytes; decoded tar and Debian data/control; UTF-8 and both UTF-16 byte alignments. Source PDF/PPTX documents are independently decoded.",
+      "receipt": "Private publication acceptance binds the resulting audit and all public asset SHA-256 values."
+    }
+  },
+  "test_resource_cleanup": {
+    "S3": {
+      "functional_test_scopes": 3,
+      "current_versions_delete_markers_and_multipart_API_views": "empty",
+      "additional_packaged_and_retained_job_scopes": "empty in the same supported API views",
+      "provider_backups_or_physical_multipart_part_storage_independently_verified": false
+    },
+    "Azure": {
+      "live_objects": 0,
+      "retained_soft_deleted_test_objects": 30,
+      "account_retention_days": 7,
+      "permanent_delete_enabled": false,
+      "policy_changed": false,
+      "history_empty": false
+    },
+    "GCS": {
+      "live_and_noncurrent_data_objects": 0,
+      "retained_soft_deleted_data_generations": 8,
+      "data_retention_seconds": 604800,
+      "owned_temporary_keystore_removed": true,
+      "owned_key_soft_history_API": "unsupported_or_unknown; no empty-history assertion",
+      "owned_key_bucket_policy": "explicit zero soft-delete and disabled versioning unchanged since owned creation",
+      "existing_policy_changed": false,
+      "history_empty": false
+    },
+    "retention_note": "Expected retention expiry is not observed erasure. No existing provider retention policy was weakened to purge test history."
+  },
+  "limits": [
+    "Uploads are asynchronous: loss of a writer and its disks before remote publication can lose unpublished file generations.",
+    "Perforce metadata needs independent backups. A live migration pass is a per-file capture, not a transactionally consistent whole-server backup.",
+    "The retention-enabled Azure test account does not certify permanent cryptographic key erasure. Keystore retention and recoverable key copies must be independently excluded for that deployment requirement.",
+    "API inventory and bucket absence do not certify undisclosed provider backups or physical multipart part storage.",
+    "No real customer data conversion or production service activation was performed by these tests."
+  ],
+  "packaging_required_linux_gate": {
+    "commit": "8bfa8a0fe11fd38a24575d5b42283d67603718e2",
+    "runtime_code_identical_to": "a575b57c83cae2c120eb38799c396411d12bf666",
+    "status": "passed",
+    "rust_tests_passed": 1678,
+    "rust_suites": 29,
+    "receipt_sha256": "a2c3feb88dc054db5e44b4723fdf1f60c90f83695e656642fc659f016a8efa0f",
+    "log_sha256": "daea9d4e4797fb71ba5cdf56c8c5f6b0676a087e0368b7527852210556409fe0"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  // Production-oriented AWS S3 example.
+  //
+  // What you actually need to change to go live: every "REPLACE-ME" value
+  // below (paths, bucket names, region, credentials) — the thread/packing
+  // knobs are pre-tuned and should not need touching for a typical deployment.
+  // See docs/CONFIGURATION.md for the full field reference and
+  // docs/TUNING.md if your workload is heavily write- or read-skewed enough
+  // to want different thread counts than the balanced defaults below.
+  //
+  // Storage layout:
+  //   - primary: S3, data bucket (chunks/catalog/standalone objects)
+  //   - keystore: S3, a SEPARATE bucket for crypto-shred keys — REQUIRED
+  //     for any cloud primary. Must be its own bucket with versioning /
+  //     object-lock / replication all OFF (a key DELETE has to actually
+  //     destroy bytes). See docs/design/object-storage-best-practices.md.
+  //   - secondary: OPTIONAL, explicitly owned native ObjectVeil storage.
+  //     It must carry the same namespace and supported current catalog/key
+  //     dependencies. It is NOT an unconverted archive-root fallback and may
+  //     receive deletions or reconciliation. Remove the block if not provisioned.
+
+  "format": "objectveil/1", "namespace_id": "00000000-0000-0000-0000-000000000000", "depot_path": "/mnt/perforce/depots/depot",  // REPLACE-ME
+  "read_only": false,
+
+  "max_cache_gb": 4096,        // REPLACE-ME: size to your local NVMe
+  "low_watermark_gb": 3276,    // ~80% of max_cache_gb
+
+  // Thread/packing settings below are pre-tuned recommended values — see
+  // docs/TUNING.md and docs/design/cold-read-chunk-packing.md for the
+  // operating tradeoffs for each. Only revisit them if your workload is
+  // strongly write-only or read-only (TUNING.md's "workload shapes" table).
+  "upload_threads": 16,
+  "restore_threads": 32,
+  "restore_chunk_threshold_mb": 8,
+  "restore_chunk_threads": 8,
+  "pack_target_chunk_bytes": 67108864,
+  "pack_max_file_bytes": 8388608,
+  "pack_flush_deadline_secs": 30,
+  "compaction_live_fraction": 0.5,
+
+  "primary": {
+    "type": "s3",
+    "bucket": "REPLACE-ME-objectveil-data",
+    "region": "REPLACE-ME",             // e.g. "us-east-2" — co-locate with the daemon
+    "access_key": null,                 // omit to use the AWS default credential chain
+    "secret_key": null,                 // (IAM instance role / IRSA / ECS task role, etc.)
+    "path_prefix": "depot"
+    // Optional: set the cloud STORAGE CLASS (tier) for NEW data uploads.
+    // Omit (the default) to use the bucket's default class — zero behaviour
+    // change. Only SYNCHRONOUS-retrieval classes are allowed on the data
+    // path; async classes (GLACIER, DEEP_ARCHIVE) are REJECTED at config load
+    // because objectveil serves cold reads synchronously and they would stall
+    // reads for minutes-to-hours. Safe S3 classes: STANDARD, STANDARD_IA,
+    // ONEZONE_IA, INTELLIGENT_TIERING, GLACIER_IR. Applies to new PUTs only —
+    // existing objects keep their prior class. Data backend only (rejected on
+    // keystore/secondary). See docs/CONFIGURATION.md + docs/TUNING.md.
+    // "storage_class": "STANDARD_IA"
+    // For an S3-compatible endpoint (MinIO, LocalStack) instead of AWS S3, add:
+    //   "endpoint": "https://minio.example.internal:9000",
+    //   "endpoint_pin": true
+    // NOTE: verify_ssl: false, ca_cert_path, and server_side_encryption: true are all
+    // REJECTED at config load (not silently ignored) — the object_store-backed S3
+    // client doesn't honour them. Leave verify_ssl/server_side_encryption at their
+    // defaults; configure bucket-default encryption and TLS trust on the AWS side.
+  },
+
+  "keystore": {
+    "type": "s3",
+    "bucket": "REPLACE-ME-objectveil-keystore",  // MUST be a different bucket than primary
+    "region": "REPLACE-ME",
+    "path_prefix": "depot"
+  },
+
+  "secondary": {
+    // Optional native restore fallback; this is not a mirror or source archive.
+    // Remove this entire block unless a matching native store is provisioned.
+    "type": "nfs",
+    "path": "/srv/objectveil-secondary-objects"  // REPLACE-ME (or delete block)
+  },
+
+  "skip_startup_scan": false,
+  "stats_interval_secs": 60,
+  "daemon": false,
+  "verbose": false,
+
+  "pid_file": "/run/objectveil/objectveil.pid",
+  "log_file": "/var/log/objectveil/objectveil.log",
+
+  "metrics_file": "/var/lib/node_exporter/textfile_collector/objectveil.prom",
+  "metrics_interval_secs": 15,
+
+  // Set to true and configure access_es_url or access_pg_url (see
+  // docs/CONFIGURATION.md) if you want access-log analytics. Left off here
+  // so this config loads with no external log-sink dependency.
+  "access_log_enabled": false,
+
+  // JSON does not allow octal integer literals. 432 decimal == 0660.
+  "shim_socket_mode": 432,
+  "access_socket_mode": 432
+}

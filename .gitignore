@@ -1,0 +1,5 @@
+*.tar.gz
+*.deb
+password.txt
+*.env
+license.lic

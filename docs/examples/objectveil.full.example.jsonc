@@ -1,0 +1,218 @@
+{
+  // Full reference file for objectveil.
+  //
+  // This file is intentionally exhaustive:
+  // - every top-level config key the loader accepts is shown,
+  //   including the rollout / hardening keys that most operators
+  //   leave at their defaults (kept commented at the bottom of the
+  //   file to keep the canonical happy-path readable)
+  // - every backend object key is shown
+  // - many keys are backend-specific; see docs/CONFIGURATION.md
+  //
+  // Use this as a reference template. For a smaller runnable Azure config, see:
+  // docs/examples/objectveil.azure.example.jsonc
+
+  "format": "objectveil/1", "namespace_id": "00000000-0000-0000-0000-000000000000", "depot_path": "/mnt/perforce/depots/depot",
+  "read_only": false,
+
+  "max_cache_gb": 4096,
+  "max_cache_bytes": null,
+
+  "low_watermark_gb": 3276,
+  "low_watermark_bytes": null,
+
+  "upload_threads": 8,
+  "restore_threads": 64,
+  "restore_chunk_threshold_mb": 8,
+  "restore_chunk_threads": 8,
+
+  "primary": {
+    "type": "azure",
+    "endpoint": "https://exampleobjectveilprod.blob.core.windows.net",
+    // F13 / D-005: a custom `endpoint` requires the explicit
+    // opt-in below. The loader rejects a custom endpoint without
+    // it. Set to `false` (or omit `endpoint`) to use the SDK default.
+    "endpoint_pin": true,
+    "bucket": null,
+    "container": "objectveil-archive-prd",
+    "region": null,
+    "access_key": null,
+    "secret_key": null,
+    "account_name": "exampleobjectveilprod",
+    "account_key": null,
+    "sas_token": "sp=...&st=...&se=...&spr=https&sv=...&sr=c&sig=...",
+    "project_id": null,
+    "credentials_file": null,
+    "path": null,
+    "path_prefix": "depot",
+    "ca_cert_path": null,
+    "verify_ssl": true,
+    "server_side_encryption": false
+  },
+
+  "secondary": {
+    // Optional owned native restore fallback; uploads still go to primary.
+    // Require the same namespace and current catalog/key dependencies. This is
+    // not an unconverted archive tree and can receive deletes/reconciliation.
+    // Remove the entire secondary block unless this native store is provisioned.
+    "type": "nfs",
+    "endpoint": null,
+    "bucket": null,
+    "container": null,
+    "region": null,
+    "access_key": null,
+    "secret_key": null,
+    "account_name": null,
+    "account_key": null,
+    "sas_token": null,
+    "project_id": null,
+    "credentials_file": null,
+    "path": "/mnt/objectveil-secondary",
+    "path_prefix": "depot",
+    "ca_cert_path": null,
+    "verify_ssl": true,
+    "server_side_encryption": false
+  },
+
+  // Crypto-shred keystore — MANDATORY whenever `primary` is a cloud
+  // backend (azure/s3/gcs). The per-file encryption keys live here as
+  // `keys/<storage_key>` objects; `p4 obliterate` destroys a key to make
+  // its ciphertext inert. Point it at a SEPARATE bucket/container from
+  // the data (chunks/catalog) bucket, and that keystore bucket MUST run
+  // with object versioning / soft-delete / object-lock / WORM all OFF and
+  // no replication — otherwise a prior key version survives the shred.
+  // The loader REJECTS a cloud primary with no keystore (there is no
+  // single-bucket fallback), rejects an `nfs` keystore, and rejects a
+  // keystore that resolves to the SAME bucket/container as the primary.
+  // A GCS keystore must additionally set
+  // `"gcs_versioning_disabled_confirmed": true` (the daemon cannot probe
+  // GCS versioning, so the operator attests the bucket has none). An NFS
+  // primary (unencrypted dev/test) omits this block entirely.
+  "keystore": {
+    "type": "azure",
+    "endpoint": "https://exampleobjectveilprod.blob.core.windows.net",
+    "endpoint_pin": true,
+    "bucket": null,
+    "container": "objectveil-keystore-prd",
+    "region": null,
+    "access_key": null,
+    "secret_key": null,
+    "account_name": "exampleobjectveilprod",
+    "account_key": null,
+    "sas_token": "sp=...&st=...&se=...&spr=https&sv=...&sr=c&sig=...",
+    "project_id": null,
+    "credentials_file": null,
+    "path": null,
+    "path_prefix": "depot",
+    "ca_cert_path": null,
+    "verify_ssl": true,
+    "server_side_encryption": false
+  },
+
+  "skip_startup_scan": false,
+  // Periodic daemon stats log; set to 0 to disable.
+  "stats_interval_secs": 60,
+  // When true, detaches and expects log_file or external supervision.
+  "daemon": false,
+  "verbose": false,
+
+  "pid_file": "/run/objectveil/objectveil.pid",
+  "log_file": "/var/log/objectveil/objectveil.log",
+
+  "metrics_file": "/var/lib/node_exporter/textfile_collector/objectveil.prom",
+  "metrics_interval_secs": 15,
+
+  "access_log_enabled": true,
+  "access_batch_size": 10000,
+  "access_max_pending_entries": 200000,
+  "access_flush_interval_secs": 5,
+  // Choose exactly one remote access-log sink when enabled.
+  "access_es_url": "https://es.example.com:9200",
+  "access_es_index": "objectveil-access",
+  "access_es_auth": "elastic:replace-me",
+  "access_es_ca_cert": "/etc/objectveil/elasticsearch-ca.pem",
+  "access_pg_url": null,
+  // If choosing Postgres, provision this exact schema/table first.
+  "access_pg_table": "ops.objectveil_access",
+  "access_pg_ca_cert": null,
+  "access_failure_warn_interval_secs": 60,
+  "access_failure_backoff_initial_secs": 1,
+  "access_failure_backoff_max_secs": 60,
+  "access_disable_after_failures": 100,
+  "access_spool_dir": "/var/spool/objectveil/access",
+  "access_spool_max_bytes": 1073741824,
+
+  // JSON does not allow octal integer literals. 432 decimal == 0660.
+  "shim_socket_mode": 432,
+  "access_socket_mode": 432
+
+  // ── State directory override (D-002) ────────────────────────────
+  // Fresh default is depot_path/.objectveil; a sole recognized existing state is reused.
+  // For upgrades, set the existing verified state_dir explicitly; do not move it.
+  // Override for a fresh deployment when the depot
+  // mount is read-only and the daemon needs to write its state
+  // (manifest.redb, sockets, spools, breadcrumbs) somewhere else.
+  // The path is canonicalized like depot_path on load.
+  // "state_dir": "/var/lib/objectveil/state",
+
+  // ── Log rotation (D-002) ────────────────────────────────────────
+  // Either field works; log_rotate_max_bytes wins when both are set.
+  // log_rotate_keep retains N rotated copies (.1 … .N).
+  // failed_uploads_log_rotate_keep is rotated daily by mtime in
+  // addition to size-based rotation.
+  // "log_rotate_max_mb": 64,
+  // "log_rotate_max_bytes": 67108864,
+  // "log_rotate_keep": 7,
+  // "failed_uploads_log_rotate_keep": 7,
+
+  // ── Peer / writer allowlists (D-002, F4/S-003) ─────────────────
+  // Each list defaults to [daemon-euid]. Add the UIDs of every
+  // process that needs to talk to the corresponding socket / write
+  // into the depot. Out-of-list peers are dropped at the kernel
+  // boundary (counters: shim_rejected_peer / access_log_rejected_peer
+  // / watcher_rejected_writer).
+  // "shim_allowed_uids": [1001],
+  // "access_allowed_uids": [1001],
+  // "watcher_allowed_uids": [1001],
+
+  // ── Hardening / rollout knobs (D-002) ──────────────────────────
+  // keep_caps=false (the default) drops CAP_SYS_ADMIN after fanotify
+  // initialises. Flip only if an external supervisor needs the cap.
+  // max_reported_file_bytes caps what the shim hands the daemon for
+  // a single file; files past this size go through the
+  // "too-large-to-track" path instead of blocking the shim hot path.
+  // enforce_content_hash=true makes restores fail closed on a
+  // post-download hash mismatch.
+  // "keep_caps": false,
+  // "max_reported_file_bytes": 1073741824,
+  // "enforce_content_hash": false,
+
+  // ── Cold-read chunk packing (ALWAYS ON) ────────────────────────
+  // Packs many small archive revisions into larger content-addressed
+  // chunks/<hex> objects with a sharded catalog and single-flight
+  // whole-chunk restore, so a cold sync of N files becomes M cloud
+  // GETs with M << N. Packing is always on — the former `packing_enabled`
+  // toggle has been removed (a config that still sets it loads with a
+  // deprecation warning and the field is ignored). Files at or above
+  // `pack_max_file_bytes` stay standalone per-file objects; smaller ones
+  // are coalesced. The knobs below are live tunables (defaults shown);
+  // see docs/design/cold-read-chunk-packing.md.
+  //   pack_target_chunk_bytes  target sealed-chunk size (>0)
+  //   pack_max_file_bytes      standalone bypass cutoff (>0)
+  //   pack_flush_deadline_secs seal a partial packer after this long (>0)
+  //   compaction_live_fraction compact a chunk below this live fraction,
+  //                            in (0.0, 1.0]
+  // "pack_target_chunk_bytes": 67108864,
+  // "pack_max_file_bytes": 8388608,
+  // "pack_flush_deadline_secs": 30,
+  // "compaction_live_fraction": 0.5,
+
+  // ── Batch backfill of native standalone objects (off) ──────────
+  // Opt-in repacker that moves eligible catalogued standalone objects into
+  // L1 chunks. Gated behind `backfill_enabled` (packing itself is always on).
+  //   backfill_rate    pacing in objects/second (>0)
+  //   backfill_prefix  restrict the walk to this depot-path prefix
+  // "backfill_enabled": false,
+  // "backfill_rate": 50,
+  // "backfill_prefix": "depot/main"
+}
