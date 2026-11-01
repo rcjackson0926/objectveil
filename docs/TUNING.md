@@ -37,16 +37,19 @@ rare. The cache runs cold almost all the time.
 | knob | default | read-heavy |
 |---|---|---|
 | `upload_threads` | 8 | 2 (edge rarely writes) |
-| `restore_threads` | 16 | **24–32** (parallelism against cloud HEAD+GET) |
+| `restore_threads` | 16 | 16 for read-only mode; its separate validation admission limit is fixed at 16. Test 24–32 only for writer-mode restore workers. |
 | `restore_chunk_threshold_mb` | 8 | 8 (default already ranges large blobs; lower only for an all-large-file workload) |
 | `restore_chunk_threads` | 8 | 16 |
 | `max_cache_gb` | 100 | as large as your disk allows — hit-rate scales with working-set fit |
 | `low_watermark_gb` | 80 | 0.9× `max_cache_gb` (less eviction churn) |
 
-Rationale: throughput ≈ parallelism × per-request latency. Cloud
-per-GET latency is 30–100ms; 24+ restore threads hide that. Range
-downloads matter once objects cross the `restore_chunk_threshold_mb`
-default of ~8MB.
+Measure read-only authority requests and full-file hashing alongside payload
+throughput. Read-only validation admits at most 16 operations, including
+unfinished blocking hashes, independently of `restore_threads`; overload is
+retryable. Increasing worker configuration does not remove that limit or a
+shim's absolute restore deadline. Range downloads can matter above
+`restore_chunk_threshold_mb` (default 8 MiB), but backend latency and bandwidth
+must be measured on the actual deployment.
 
 ### C. Balanced (the default shape)
 

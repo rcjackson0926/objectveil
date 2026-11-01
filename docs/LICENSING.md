@@ -82,7 +82,7 @@ Exported as `objectveil_license_expiry_state` (0/1/2/3) and `objectveil_license_
 
 ## Observability
 
-Every metric carries the deployment's identity via the `objectveil_license_info` constant label vector:
+`objectveil_license_info` is a separate constant gauge carrying deployment identity; it does not add these labels to every other metric:
 
 ```
 objectveil_license_info{customer_id="acme-corp",customer_name="Acme Corp",
@@ -90,7 +90,7 @@ objectveil_license_info{customer_id="acme-corp",customer_name="Acme Corp",
                      vendor_key_id="v1"} 1
 ```
 
-Join other `objectveil_*` metrics on `customer_id` in PromQL to attribute cache activity to a customer in multi-tenant fleets.
+Other metric families do not inherently carry `customer_id`. Correlate the identity gauge through scrape identity such as `instance` and `job`, or explicitly provision consistent operator labels before building fleet attribution queries.
 
 ## Cloud-side watermarks
 
@@ -123,7 +123,7 @@ license state when changing paths; see [migration](migration.md).
 
 ## Audit log
 
-`<state_dir>/license-audit.log` is an NDJSON file. Every license event (load, capacity transition, expiry transition, integrity-check result) is appended as one line, tied into a BLAKE3 keyed-MAC chain anchored at a `customer_secret` in the license. A daemon restarting against an existing log continues the same chain from its terminal `(seq, hmac)`; a companion anchor file (`license-audit.anchor.json`) records that terminal pair after every write so truncation of the log tail is detectable on the next startup.
+`<state_dir>/license-audit.log` is an NDJSON file. With a signed customer license, license events (load, capacity transition, expiry transition, integrity-check result) form a BLAKE3 keyed-MAC chain using the issued `customer_secret`. Developer mode is explicitly unchained and is not equivalent authenticated audit evidence. A daemon restarting against an existing log continues the same chain from its terminal `(seq, hmac)`; a companion anchor file (`license-audit.anchor.json`) records that terminal pair after every write so truncation of the log tail is detectable on the next startup.
 
 ```
 {"product":"objectveil","v":2,"seq":42,"ts":"2026-05-18T10:23:45.123Z","prev_hmac":"...","hmac":"...","event":{"event":"license_loaded","customer_id":"acme-corp",...}}
@@ -155,7 +155,10 @@ Check the selected license path, its ownership and permissions, and the version 
 
 The `.lic` file's signature does not match any of the vendor public keys embedded in this daemon binary. Causes:
 
-* The file has been modified (whitespace, line endings, BOM).
+* A signed claim, product, envelope version, key ID, algorithm or signature has
+  changed. Signatures cover canonical claims, so changing JSON whitespace or
+  line endings alone does not invalidate an otherwise valid license. A malformed
+  encoding or BOM may instead prevent parsing.
 * The file was issued by a different vendor key than the binary trusts (occurs during key rotation).
 * The file is for a different product.
 
@@ -182,6 +185,10 @@ When opening a ticket, attach (in this order):
 1. The exact `license_id` from the startup banner.
 2. The last 5 minutes of operator log around the failure.
 3. The `license-audit.log` (the full file is fine; it persists and grows across restarts, and — when the operator provisions `chattr +a` — is verified filesystem-append-only at startup).
-4. The output of `objectveil-integrity-stamp --in <binary path> --verify` if the issue might be tamper-related.
+4. The installed artifact version, its release-checksum result, and the startup integrity-check result. The vendor integrity-stamp utility is not included in the public nine-artifact release; request additional verification tooling from support if needed.
 
-Vendor-side verification of the audit log requires only your `customer_id` — the chain is self-contained.
+Vendor-side verification requires the issued `customer_secret` and the
+corresponding authenticated anchor as well as the log. A `customer_id` alone
+cannot verify the keyed chain. Preserve the anchor when collecting diagnostics;
+coordinate any transfer of license secrets through the vendor's secure support
+process.

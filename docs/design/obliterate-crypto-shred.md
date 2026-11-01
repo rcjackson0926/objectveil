@@ -8,6 +8,13 @@ under the revoked key becomes undecodable provided no recoverable copy of the ke
 survives. The primary may retain old immutable standalone objects and packed
 chunks; those encrypted bytes do not need to be found and overwritten individually.
 
+Deduplicated contents have a separate shared content anchor. Poisoning one path
+revokes that path's access but does not destroy the shared anchor or other live
+paths' access. Background Tier-2 GC must establish complete last-reference
+evidence before destroying that key, even if only one path ever referenced the
+content. See [deduplication deletion semantics](content-dedup.md#obliterate-and-reclamation)
+before making a cryptographic-erasure claim.
+
 The local depot cache contains **plaintext**, not ciphertext. The deleting daemon
 must durably remove its local plaintext before acknowledging deletion. Read-only
 peers check remote catalog and key authority before each new shim-mediated open;
@@ -96,9 +103,10 @@ Incomplete reconstruction leaves a durable startup/cleanup prohibition.
 
 The latest catalog Remove remains until a newer Put supersedes it. There is no
 time-based tombstone pruning; any future pruning would require a separate proof
-that retained recovery metadata cannot resurrect the path. Ordinary orphan cleanup requires a complete durable
-Remove or a validated replacement mapping/payload; missing catalog metadata
-never establishes that recoverable bytes are garbage.
+that retained recovery metadata cannot resurrect the path. Physical chunk and
+unknown-blob sweeps are disabled until durable address retirement prevents a
+delayed DELETE from destroying a later publication. Even complete current
+metadata does not establish that such reusable addresses can be deleted safely.
 
 Old immutable standalone versions and descriptors currently remain in storage.
 Their retained encrypted bytes are protected by revocation; retained plaintext

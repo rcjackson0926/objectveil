@@ -173,20 +173,25 @@ if the next retry sees the file already absent. Retry and startup recovery
 preserve a newer local generation and any already-published replacement key. Persistent catalog failures therefore delay
 re-add publication rather than allowing an old deletion to overtake it.
 
-Cloud legacy backfill requires an independently recorded plaintext hash. Unframed
-bytes without that hash are ambiguous: the source might be damaged ciphertext,
-even if the keystore is also missing. Backfill retains it and reports a blocked pass. This
-also applies if an earlier migration minted its key but failed before publishing
-a chunk; verify the source against authoritative archive metadata before repair.
+Opt-in backfill can consider explicitly prepared unframed path-addressed
+candidates only inside an already identified native namespace. Cloud candidates
+require an independently recorded plaintext hash. Without it, bytes might be
+damaged ciphertext, even if the keystore is missing; backfill retains them and
+reports a blocked pass. This also applies when an earlier publication minted a
+key but failed before publishing its chunk. Verify source identity against
+authoritative archive metadata before repair. Backfill excludes native framed
+and `standalone/` payloads and does not convert a foreign namespace or catalog.
 
 ## Cleanup and upgrade behavior
 
-Orphan cleanup requires validated replacement payloads and mappings, or explicit
-durable deletion records, for every member before removing a valid unmapped chunk. Missing catalog entries, unreadable metadata,
-and damaged footers retain the object for diagnosis or reconstruction. This can
-retain abandoned uploads longer; disk/object growth is preferable to deleting
-potentially recoverable archives. Recovery's incomplete marker also prevents
-ordinary compaction from acting on partially reconstructed liveness counts.
+Physical chunk and unknown-blob sweeps are disabled. Even a complete catalog
+and validated replacement payloads cannot prevent a delayed DELETE from removing
+a later publication at a reusable address. Superseded and unmapped chunks, seal
+markers and recovery metadata remain stored until a durable address-retirement
+protocol exists. Missing mappings, unreadable metadata and damaged footers never
+establish that retained bytes are disposable. Account for remote storage growth.
+Recovery's incomplete marker also prevents ordinary spatial repacking from
+acting on partially reconstructed liveness counts.
 
 Each writer reserves a permanent, atomically created ticket in `catalog/epochs/`
 before publishing. Deltas and bases carry that writer era; within an era, each
@@ -256,12 +261,13 @@ already opened or copied. These guarantees require all read-only archive access
 to use the updated shim and all cooperating processes to follow its locking
 protocol.
 
-Version 2 catalog deltas and bases include a canonical JSON checksum covering
-causal order, deletion records, and payload pointers. Valid-JSON bit corruption
-therefore fails closed instead of silently selecting an older archive. Legacy
-version 1 has no such checksum and remains readable for migration. The checksum
-is an accidental-corruption detector, not a signature against an attacker able
-to replace the object and recompute its digest.
+Native version 3 catalog deltas and bases include a canonical JSON checksum
+covering causal order, deletion records and payload pointers. Valid-JSON bit
+corruption therefore fails closed instead of silently selecting an older
+archive. Other catalog versions are refused; online migration is not an
+incompatible-format converter. The checksum detects accidental corruption; it
+is not a signature against an attacker able to replace the object and recompute
+its digest.
 
 Full cache verification checks stored archive identity and authenticated contents
 against the catalog. It does not independently prove every logical Perforce

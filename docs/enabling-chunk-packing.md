@@ -4,7 +4,8 @@
 > flag; that toggle has been removed (a config that still names it loads
 > with a deprecation warning and the field is ignored). Packing itself can
 > no longer be staged on or rolled back; the staged rollout below applies
-> only to the still-opt-in **backfill** of pre-existing standalone objects.
+> only to the still-opt-in **backfill** of explicitly prepared path-addressed
+> candidates within a native namespace. It is not an incompatible-format converter.
 
 For *what it is and how it works*, see the design:
 [`design/cold-read-chunk-packing.md`](design/cold-read-chunk-packing.md).
@@ -35,7 +36,7 @@ keep more files standalone, lower `pack_max_file_bytes`.
 | `pack_max_file_bytes` | 8 MiB | Files at/above the effective threshold stay standalone; in-memory capture has a 16 MiB ceiling. |
 | `pack_flush_deadline_secs` | 30 | Seal a partially-filled chunk after this long so trickle submits land durably. |
 | `compaction_live_fraction` | 0.5 | Compact a chunk once its live-byte fraction drops below this. |
-| `backfill_enabled` | `false` | Opt-in repacker for pre-existing standalone objects. |
+| `backfill_enabled` | `false` | Opt-in repacker for eligible prepared path-addressed objects; excludes native `standalone/<id>` payloads. |
 | `backfill_rate` | 50 | Backfill pacing, objects/second. |
 | `backfill_prefix` | unset | Restrict the backfill walk to one depot-path subtree. |
 
@@ -47,8 +48,11 @@ buffers have separate bounds, so this is not a total-process memory limit.
 ## Recommended backfill rollout
 
 Packing is always on and needs no rollout. What you *can* stage is
-**backfill** — the opt-in migration of pre-existing standalone objects
-into chunks (`backfill_enabled`, default off). Roll it out in stages and
+**backfill** — the opt-in repacking of eligible path-addressed objects that
+were explicitly prepared with independently trusted identity within the native
+namespace (`backfill_enabled`, default off). Native `standalone/<id>` payloads
+and their descriptors are excluded from this walk. Backfill does not adopt a
+foreign namespace or convert an incompatible catalog. Roll it out in stages and
 watch the metrics between each. Every packing/backfill knob is
 restart-required — it takes effect on daemon (re)start, not on hot reload
 (see `CONFIGURATION.md`).
@@ -57,7 +61,8 @@ restart-required — it takes effect on daemon (re)start, not on hot reload
 
 Confirm the gate is green and record a baseline: cloud GETs per synced
 file, restore latency, and cloud request bill for a representative cold
-sync. This is what backfilling the legacy objects has to beat.
+sync. Compare eligible prepared candidates against that baseline; enabling
+backfill alone does not repack existing native standalone payloads.
 
 ### Stage 1 — new writes only (the default)
 
@@ -65,18 +70,17 @@ sync. This is what backfilling the legacy objects has to beat.
 "backfill_enabled": false
 ```
 
-New small submits pack into chunks (they always do); **pre-existing
-objects stay standalone** and resolve through the catalog-miss →
-per-key-GET fallback, so nothing old changes. This is the default state
-with backfill off — it exercises the write/seal path, the catalog, and
-single-flight whole-chunk restore on freshly-packed data without touching
-anything already in the store.
+Eligible new small submits pack into chunks. Existing native standalone objects
+remain served through their authoritative catalog pointers; a catalog miss fails
+closed and does not fall back to a raw path-addressed object. With backfill off,
+new publication exercises the write/seal and catalog paths without converting
+prepared backfill candidates or rewriting existing native standalone payloads.
 
 Watch for: chunks being written, packed files being served from chunks,
 and zero increase in restore failures. Let it run under real submit +
 sync load before proceeding.
 
-### Stage 2 — backfill legacy objects
+### Stage 2 — backfill prepared path-addressed candidates
 
 ```jsonc
 "backfill_enabled": true,
@@ -84,14 +88,15 @@ sync load before proceeding.
 "backfill_prefix": "depot/pilot/subtree"   // start scoped
 ```
 
-The backfill loop walks existing standalone objects, repacks the small
-ones into chunks, and **deletes the standalone copy only after the
-catalog (and its cloud shard) resolves the key to the chunk**
-(object-before-pointer). Start with a scoped `backfill_prefix` and a low
-`backfill_rate`; confirm the migrated subtree still reads correctly and
-that cold-sync GET counts drop, then widen the prefix and raise the rate.
-It is resumable (a persisted cursor) and rate-limited, and safe to run
-while serving.
+The backfill loop considers eligible path-addressed candidates, excluding native
+`standalone/` payloads and control namespaces. It verifies source identity and
+publishes the replacement chunk and authoritative catalog mapping before removing
+an eligible old path-addressed copy. Unframed cloud bytes require an independently
+recorded plaintext hash; ambiguous contents are retained and reported as blocked.
+Start with a reviewed scoped `backfill_prefix` and a low `backfill_rate`; verify
+the resulting subtree and request counts before widening the scope. The cursor
+is resumable and pacing is rate-limited. Keep the normal single-writer and native
+namespace requirements while serving.
 
 ### Stage 3 — steady state
 

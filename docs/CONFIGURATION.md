@@ -29,9 +29,11 @@ The full annotated reference file, showing every top-level and backend key:
 
 - [`docs/examples/objectveil.full.example.jsonc`](examples/objectveil.full.example.jsonc)
 
-For a runnable, provider-specific starter config with pre-tuned
-thread/packing settings and an NFS read-only fallback already wired in,
-use one of:
+For provider-specific templates with example thread/packing settings, use
+one of the files below. Replace credentials, paths and the nil UUID, remove
+JSONC comments before loading, and review the deployment guide. A configured
+secondary must be an explicitly owned native backend with matching identity
+and catalog/key dependencies; it is not an arbitrary read-only NFS fallback:
 
 - [`docs/examples/objectveil.s3.example.jsonc`](examples/objectveil.s3.example.jsonc) (AWS S3)
 - [`docs/examples/objectveil.azure.example.jsonc`](examples/objectveil.azure.example.jsonc) (Azure Blob Storage)
@@ -65,7 +67,7 @@ hard-linked outputs are refused before modification.
 | `low_watermark_gb` | u64 | unset | Used only when `low_watermark_bytes` is not set. |
 | `low_watermark_bytes` | u64 | unset | Overrides `low_watermark_gb`. If both are unset, the daemon uses `80%` of the effective max cache size. |
 | `upload_threads` | u16 | `8` | Write-mode upload coordinators. Must be `> 0` unless `read_only = true`. Runtime upload concurrency is `4 x upload_threads`. |
-| `restore_threads` | u16 | `16` | Max concurrent shim restores. Must be `> 0`. |
+| `restore_threads` | u16 | `16` | Writer-mode restore workers; must be `> 0`. Read-only authority validation has a separate fixed admission limit of 16, including unfinished blocking hashes. Raising this setting does not raise that limit. |
 | `restore_chunk_threshold_mb` | u64 | `8` | Cloud-backend large-restore threshold (Azure, S3, GCS). Files at or above this size switch to parallel range GETs when `restore_chunk_threads > 1`. `0` disables the threshold for all cloud backends. NFS ignores the field. |
 | `restore_chunk_threads` | u16 | `8` | Cloud-backend parallel-range fan-out (Azure, S3, GCS). Must be `> 0` and `<= 64`; a value above `64` is rejected at load (not silently clamped). NFS ignores the field. |
 | `primary` | object | required | Main storage backend. Uploads always go here. |
@@ -397,7 +399,7 @@ set socket paths to the selected state's actual sockets.
 | `OBJECTVEIL_NEGATIVE_CACHE_TTL_SECS` | no | `60` | TTL for repeated `NOTFOUND` results. Max accepted value is `3600`. |
 | `OBJECTVEIL_MAX_FILE_BYTES` | no | `MAX_REPORTED_FILE_BYTES` (64 GiB) | Shim-side hard cap on daemon-reported file sizes (mirrors the daemon's `max_reported_file_bytes`). Accepted values must be `> 0` and `< u64::MAX / 2`. |
 | `OBJECTVEIL_RPC_TIMEOUT_MS` | no | `5000` | Per-RPC send/recv timeout for shim → daemon FETCH/STAT/DELETE, in milliseconds. A parsed override is clamped to `[1000, 60000]` (an unparseable value falls back to the default). The `1000` floor is coordinated with — and compile-time-guaranteed to exceed — the daemon's inline serve-wait, so a low override can't spuriously fast-fail a cold read while the daemon is briefly holding the reply. |
-| `OBJECTVEIL_RESTORE_MAX_WAIT_MS` | no | `300000` (5 min) | Absolute backstop on how long the shim's FETCH progress-poll loop keeps waiting on a daemon that reports `RESTORING`. This is **not** the restore budget — a restore of any size completes as long as the daemon keeps reporting progress; each poll is still bounded by `OBJECTVEIL_RPC_TIMEOUT_MS`. It only bounds a daemon stuck in `RESTORING` (a daemon bug). Clamped to `[1, 3600000]` (1 hour) and raised to at least `OBJECTVEIL_RPC_TIMEOUT_MS` so a single poll always fits. |
+| `OBJECTVEIL_RESTORE_MAX_WAIT_MS` | no | `300000` (5 min) | Absolute deadline for the full FETCH progress-poll exchange, including RPCs, polls and sleeps. Continued progress does not reset it; a healthy slow restore can exceed the deadline and the open fails. Each RPC is also bounded by its per-RPC timeout and remaining total time. Clamped to `[1, 3600000]` (1 hour) and raised to at least `OBJECTVEIL_RPC_TIMEOUT_MS`. Choose a budget appropriate to the workload and inspect failures before retrying. |
 
 ## Prometheus Metrics
 
@@ -520,18 +522,19 @@ four cases:
 
 - the next event would overflow the buffer
 - the buffer reaches the ~30 KiB high-water mark
-- the oldest unflushed event has been buffered for longer than 1 s
-  (age-based trigger, so a low-volume thread cannot sit on stale
-  events indefinitely)
+- a subsequent access event observes that the oldest buffered event is more
+  than one second old (there is no independent per-thread timer)
 - the thread exits (Drop on the thread-local buffer drains the
   remainder before the thread tears down)
 
-Without the age and thread-exit triggers, low-volume or short-lived
-worker threads could disappear from the access feed entirely; with
-them, every event reaches the daemon-side spool/retry contract within
-the bounded window above.
-- the spool never grows past `access_spool_max_bytes`
-- when the spool is full, new undeliverable batches are dropped
+An idle thread can retain buffered events longer than one second. Thread-exit
+flushing is best effort; process death, failed datagram sends and socket/queue
+pressure can lose events before they reach the daemon. The daemon's spool/retry
+contract applies only after receipt and resolution of a batch. Access analytics
+are not a lossless audit or file-durability mechanism.
+
+The spool never grows past `access_spool_max_bytes`; when full, new undeliverable
+batches are dropped.
 
 If the remote sink is down and no spool is configured, undeliverable batches are dropped in memory after the bounded in-process queue and batch are drained.
 

@@ -1,250 +1,158 @@
 # Cost model: when cold-read chunk packing can save
 
-A practical model for estimating the **cloud-storage cost saving** that
-chunk packing delivers when a cold `p4 sync` pulls many small archive
-files back from an `object_store` backend. For *what packing is and how
-it works* (packing is always on — there is no on/off switch), see
-[`enabling-chunk-packing.md`](enabling-chunk-packing.md) and the design
-[`design/cold-read-chunk-packing.md`](design/cold-read-chunk-packing.md).
-For the **cost of offline-verifying** those archives at three integrity
-depths (and the same `g`/`e` symbols reused), see
-[`verify-cost-tiers.md`](verify-cost-tiers.md).
+Packing can reduce data-object requests for a localized cold workload. It can
+also increase transferred bytes and metadata work. Use this model to separate
+those effects, then measure the complete workload. See
+[packing operations](enabling-chunk-packing.md), the
+[packing design](design/cold-read-chunk-packing.md), and
+[verification cost](verify-cost-tiers.md).
 
-> **Rates below are illustrative inputs retained from the earlier model, not
-> verified current provider quotes or ObjectVeil customer results.** Use them
-> to reason about formulas, not to predict an invoice. Replace every rate with
-> your provider contract, region, storage class and actual retrieval/transfer
-> terms before quoting savings. Model all metadata/key requests as well as data
-> requests. Savings and latency improvements are conditional, not guaranteed.
+The numerical rates below are hypothetical inputs, not current provider quotes,
+ObjectVeil benchmarks or customer results. Substitute your actual provider,
+region, class, retrieval, transfer and request charges before making a decision.
 
-## Why packing can reduce data-object requests
+## What the runtime coalesces
 
-Cloud object stores bill a cold read on **two independent lines**:
+Eligible small files are stored together in immutable `chunks/<hex>` objects.
+Concurrent requests for members of the same chunk can share a whole-chunk
+restore. That restore may also warm neighboring members whose current catalog,
+key, content and local-publication checks succeed. It does not guarantee that
+every footer member becomes a local file. An isolated small member may instead
+use a bounded range read. Subsequent verified warm hits need no payload download.
 
-- **Per-request (GET):** a flat charge per object fetched, regardless of
-  size.
-- **Per-GB egress:** the bytes that leave the store (often the bigger,
-  more variable line — and frequently **free or near-free** for
-  in-region / same-cloud reads).
+These alternatives depend on layout, concurrency and available metadata. A
+whole-chunk download can itself use several backend range GETs. Retries, HEADs,
+namespace checks and key/catalog operations add requests. Coalescing therefore
+does not promise one provider request per chunk, a fixed latency improvement or
+freedom from throttling.
 
-For a working set of **many small files**, the request line dominates
-and, more importantly, the *per-file overhead* — a TLS handshake, a
-round-trip, connection setup, provider rate-limiting — is the real pain,
-not the bytes. Ten thousand 8 KiB GETs cost almost nothing in egress but
-are ten thousand round-trips and ten thousand chances to hit a 503.
+Read-only caches check remote authority on every new managed open, including
+warm hits, and hash verified local contents. Catalog traffic is not merely a
+one-time bootstrap cost. Writer-local access and read-only access have different
+request and I/O profiles; measure the mode you will deploy.
 
-Packing collapses those many small per-file objects into a few large
-`chunks/<hex>` objects. A suitably localized cold sync of **N** files can use fewer whole-chunk data
-GETs than separate per-file payloads: the daemon coalesces
-concurrent restores of co-packed files into a single whole-chunk fetch
-(single-flight, keyed by chunk key) and warms *every* member of that
-chunk into the local cache. So the saving is dominated by
-**request-count reduction**, plus two large secondary wins:
+## A simplified payload-only model
 
-- Fewer data-object round-trips can reduce overhead for a localized burst.
-  Metadata/key checks, compression, coalescing waits and over-fetch still cost work.
-- Lower data-object request rates can reduce throttling pressure; they do not
-  prevent 503s, rate limits or other provider failures.
+For an explicitly defined cold workload, let:
 
-The catch is **over-fetch**: a whole-chunk GET pulls co-packed neighbours
-that the current sync may not have asked for. When sync locality is good
-those neighbours are exactly what the client wants next, so it is
-*prefetch, not waste*. When locality is poor it is extra egress you paid
-for and evicted unused — see [Caveats](#caveats).
+- `N` be payload GET requests in a measured or hypothetical per-file layout;
+- `M` be payload GET requests in the packed layout, including ranges and retries;
+- `B_ind` and `B_pack` be the respective transferred payload bytes in decimal GB;
+- `g` be the assumed equal charge per payload GET;
+- `e` be the assumed equal transfer charge per GB.
 
-## Historical illustrative pricing inputs
+The payload-only comparison is:
 
-Ballpark **list** prices for a standard/hot tier. Read the warnings
-above them; egress especially is tiered and contract-dependent.
-
-| Provider (standard/hot tier) | GET request (~per 1,000) | Internet egress (~per GB) | Same-region / same-cloud read |
-|---|---|---|---|
-| AWS S3            | ~$0.0004 | ~$0.09 (tiers down at PB scale) | often free to in-region EC2 |
-| Azure Blob (Hot)  | ~$0.0004 | ~$0.087 | often free in-region |
-| Google Cloud Storage | ~$0.0004 | ~$0.12 | often free in-region |
-
-Two things to internalise before using these:
-
-- **The GET line is ~$0.0004 per 1,000 (~$0.40 per million) across all
-  three.** That is the number the request-count reduction acts on.
-- **Egress is the swingy line.** If your daemon reads from a bucket in
-  the same region/cloud as the daemon, egress may be **$0/GB**, in which
-  case over-fetch is free and packing's money win is essentially the
-  full request-count reduction. If you egress to the public internet,
-  over-fetch has a real price and can erode (or invert) the saving.
-
-Symbols used below:
-
-- `g` = cost per GET (dollars) — e.g. `$0.0004 / 1000 = $4e-7`.
-- `e` = cost per GB egress (dollars) — e.g. `$0.09` on S3 internet, `$0`
-  in-region.
-
-## The formulas
-
-Let **N** = files restored, **M** = distinct chunks actually fetched
-(the coalesced GETs), `B_ind` = Σ(requested file bytes, GB), `B_over` =
-over-fetched bytes (GB, the co-packed neighbours pulled but not
-requested).
-
-```
-individual_cost = N × g   +   B_ind × e
-packed_cost     = M × g   +   (B_ind + B_over) × e
-saving          = individual_cost − packed_cost
-                = (N − M) × g   −   B_over × e
+```text
+individual_payload_cost = N * g + B_ind * e
+packed_payload_cost     = M * g + B_pack * e
+payload_saving          = (N - M) * g - (B_pack - B_ind) * e
 ```
 
-The whole model is that one line: **you save one GET for every file that
-now rides a shared chunk, and you pay egress on whatever you over-fetch.**
+Compression, ciphertext framing and retrieval shape can change both byte totals.
+For a simplified equal-encoding comparison where the only extra packed transfer
+is unwanted neighboring content, write `B_over = B_pack - B_ind`. When `M > 0`
+and `g > 0`, and `overfetch = B_over / M`, positive payload savings require:
 
-### Break-even
-
-Packing saves money when `(N − M)·g > B_over·e`. Dividing by M and
-writing `overfetch = B_over / M` (average over-fetched GB per chunk GET),
-packing wins on the dollar lines once the coalescing ratio clears,
-roughly:
-
-```
-N / M   >   (e × overfetch) / g
+```text
+N / M > 1 + (e * overfetch) / g
 ```
 
-Read it as: **the more you over-fetch per chunk and the more egress
-costs, the higher the coalescing ratio you need to come out ahead.**
+With zero transfer charge, the break-even ratio is **1**, not zero: this model
+saves request cost only when `N > M`. Equality means no saving on these two lines.
+With billed over-fetch, more request reduction is needed. If request prices vary
+by operation or tier, sum each actual request class instead of using one `g`.
 
-- **Free/in-region egress (`e ≈ 0`)** → break-even `N/M ≈ 0`: packing
-  wins on money essentially always, and the request/latency/throttling
-  wins are pure gravy.
-- **Billed internet egress + good locality** (`overfetch` per chunk near
-  0) → break-even is tiny, packing wins easily.
-- **Billed internet egress + poor locality** (each chunk mostly
-  neighbours you didn't want) → break-even `N/M` can be in the
-  thousands. Below it, packing costs money on the egress line even while
-  it still slashes request count and latency. This is the case to tune
-  for.
+This is not the total deployment cost. Add catalog and namespace LIST/GET/HEAD
+requests, key operations, retries, retrieval charges, storage minimums, retained
+historical objects, local storage, CPU/I/O, network, backup, operations and
+licensing. A payload-only saving can coexist with a higher total bill.
 
-## Worked examples
+## Illustrative scenarios
 
-### Example 1 — 50,000 files averaging 8 KiB, good locality (S3 list price)
+Assume `g = $0.0004 / 1000 = $0.0000004` per payload GET and
+`e = $0.09 / GB`. These are arithmetic inputs only. Each scenario assumes its
+stated GET count already includes payload ranges/retries; it makes no claim
+about the count a particular ObjectVeil workload will achieve.
 
-A CI fleet cold-syncs a source tree: **N = 50,000**, mean 8 KiB, total
-≈ **390 MiB (~0.41 GB)**. These files were submitted together, so they
-co-pack well.
+### Localized small-file workload
 
-| | Individual | Packed |
-|---|---|---|
-| Cloud GETs | 50,000 | ~40 chunk GETs + ~10 catalog-shard fetches ≈ **50** |
-| Bytes egressed | ~0.41 GB | ~0.41 GB (over-fetch ≈ 0 — the working set fills the chunks) |
+Suppose 50,000 files averaging 8 KiB transfer approximately 0.41 GB in either
+layout, and the packed layout uses 40 payload GETs rather than 50,000:
 
-The ~40 comes from the 390 MiB working set landing in a few dozen 64 MiB
-chunk buckets (packing buckets by depot subtree); single-flight folds
-every concurrent miss for a chunk into one GET.
+| Payload component | Per-file layout | Packed layout |
+| --- | ---: | ---: |
+| GET requests | 50,000 | 40 |
+| GET cost | $0.020000 | $0.000016 |
+| Transferred payload | about 0.41 GB | about 0.41 GB |
 
-- **Request line:** individual `50,000 × $4e-7 = $0.020`; packed
-  `50 × $4e-7 ≈ $0.00002`. Request saving ≈ **$0.020 per cold sync**.
-- **Egress line:** near-identical (~0.41 GB) either way, so ~$0 delta;
-  `$0` entirely if reads are in-region.
-- **Ratio: ~1,000× fewer requests** (50,000 → ~50).
+The payload-request difference is **$0.019984 per workload run**; equal transfer
+bytes cancel. At 500 identical runs per day, that arithmetic difference is about
+$9.99 per day before excluded costs. It does not establish the total request
+ratio, elapsed-time improvement or total savings. In particular, per-open
+read-only authority checks still occur.
 
-The absolute dollar saving on one sync is small — but that fleet running
-the sync 500×/day saves ~$10/day *in request charges alone*, does it with
-**1,000× fewer round-trips** (much faster cold sync), and never comes
-near S3's ~5,500-GET/s-per-prefix ceiling that 50,000 parallel GETs would
-have flirted with (503 throttling). The latency and throttling wins are
-the headline; the dollars are a bonus.
+### Poor locality with billed over-fetch
 
-### Example 2 — 20,000 files averaging 512 KiB, poor locality (S3 internet egress)
+Suppose a second workload uses 20,000 per-file payload GETs or 400 packed payload
+GETs, with the packed layout transferring an additional 20 GB:
 
-A scattered restore: **N = 20,000**, mean 512 KiB, total ≈ **10 GiB
-(~10.7 GB)**, but the files are spread across the depot and submitted at
-different times, so each 64 MiB chunk holds only a little of what this
-sync wants. Say the sync touches files living across **M = 400** chunks,
-and on average only ~25% of each fetched chunk is wanted (over-fetch ≈ 48
-MiB/chunk → `B_over ≈ 400 × 48 MiB ≈ 18.75 GiB ≈ 20 GB`).
-
-- **Request line:** `(20,000 − 400) × $4e-7 ≈ $0.0078` saved.
-- **Egress line (internet, `e = $0.09`):** over-fetch costs
-  `20 GB × $0.09 = $1.80` *extra*.
-- **Net (billed internet egress):** `$0.0078 − $1.80 ≈ −$1.79` — packing
-  **loses money on the byte line** here. Check against break-even:
-  `N/M = 50`, but `(e × overfetch)/g = (0.09 × 0.047)/4e-7 ≈ 10,500`. `50
-  ≪ 10,500`, so the model correctly predicts a loss.
-- **Net (in-region egress, `e = $0`):** over-fetch is free → packing is a
-  clean win: 50× fewer requests, still faster, still no throttling.
-
-The lesson: **poor locality + large-ish files + billed egress is exactly
-where packing's money win shrinks or inverts.** The fix is tuning, not
-turning packing off — lower `pack_target_chunk_bytes` (less over-fetch
-per chunk GET) and/or lower `pack_max_file_bytes` so these mid-size files
-stay standalone. See [Caveats](#caveats).
-
-## Measure YOUR actual saving from the daemon's metrics
-
-Do not trust the worked examples for your shop — measure. The daemon
-exports the packing counters below (Prometheus textfile at `metrics_file`,
-suffixed `_total` and prefixed `objectveil_`; the same values print in the
-periodic stats line under the field names used here). Take two snapshots
-bracketing a representative window and diff them.
-
-| Metric (stats field / `objectveil_*_total`) | Meaning |
-|---|---|
-| `files_served_from_chunk` | Cold reads served *out of* a chunk (range fast-path or whole-chunk warm). Each of these would have been its own per-file GET before packing — the numerator of the win. |
-| `chunk_gets` | Whole-chunk downloads actually issued on the restore path — this is **M**, the coalesced GETs. |
-| `per_file_fallbacks` | Cold reads that refreshed a packed mapping and then used a current catalog-selected standalone payload. It does not authorize reads of uncatalogued raw-path objects. |
-| `bytes_over_fetched` | Bytes pulled beyond the specifically-requested blob when a whole-chunk restore pulled the whole chunk to serve one file — the byte-line cost to subtract. |
-| `catalog_shard_fetches` | Cloud catalog-shard objects fetched (cold-start / miss bootstrap + shard-compaction reads) — a small mostly-fixed GET overhead to net out. |
-
-Over a window (`Δ` = end − start of each counter):
-
-```
-requests_saved  =  Δfiles_served_from_chunk  −  Δchunk_gets
-
-dollars_saved   ≈  requests_saved            ×  g
-                −  (Δbytes_over_fetched / 1 GB) × e        # over-fetch egress
-                −  Δcatalog_shard_fetches     ×  g        # bootstrap GET overhead
+```text
+request saving = (20,000 - 400) * $0.0000004 = $0.00784
+extra transfer = 20 * $0.09                 = $1.80
+payload saving = $0.00784 - $1.80           = -$1.79216
 ```
 
-The first term is the request-count win: files that rode a shared chunk
-instead of each costing a GET. The two subtractions are packing's own
-overheads — the egress you paid on over-fetch, and the handful of GETs
-the catalog bootstrap adds. If `e ≈ 0` (in-region reads), drop the
-over-fetch term and `dollars_saved ≈ requests_saved × g`.
+Here packing costs more on the payload lines. If transfer were actually free,
+these same assumptions would save $0.00784 in payload request charges, without
+establishing a latency or total-cost advantage. Lowering the chunk target or
+standalone cutoff may reduce over-fetch; verify the effect with the same
+workload and provider measurements.
 
-Sanity checks while reading the window:
+## Interpret the daemon counters correctly
 
-- `files_served_from_chunk / chunk_gets` is your **effective coalescing
-  ratio** — the real N/M. Watch it trend up as more of the depot packs.
-- `bytes_over_fetched` large relative to bytes actually served → poor
-  locality; expect the egress subtraction to bite (see Caveats).
-- A high `per_file_fallbacks` share means much of your working set is not
-  packed yet — run backfill (Stage 2 in
-  [`enabling-chunk-packing.md`](enabling-chunk-packing.md)) before
-  judging the saving.
+Take counter deltas over the same representative workload window. The following
+names are stats fields; Prometheus uses the `objectveil_` prefix and `_total`
+suffix.
 
-## Caveats
+| Counter | What it establishes | What it does not establish |
+| --- | --- | --- |
+| `files_served_from_chunk` | Requested cold reads served through a packed-member path, including range and coalesced cases. | It is not every prefetched member or every later verified warm hit, and is not a direct count of saved GETs. |
+| `chunk_gets` | Whole-chunk download operations on the restore path. | A download may use multiple provider range requests; isolated member-range requests are not whole-chunk downloads. |
+| `bytes_over_fetched` | Whole-chunk transfer beyond the specifically requested member, as accounted by the restore path. | Neighbors may later be useful; this is not an invoice or total network traffic counter. |
+| `catalog_shard_fetches` | Nonempty shard walks for bootstrap, freshness and folding; a truncated nonempty read can also be counted. | One walk can read many objects and listing pages. It is not an object GET count or a mostly one-time cost. |
+| `per_file_fallbacks` | Packed reads retried through a newly authoritative native standalone publication. | It is not the standalone share of the dataset or evidence that backfill would reduce its cost. |
 
-Be honest with these before quoting a saving:
+Do not compute billed requests as `files_served_from_chunk - chunk_gets`, or
+multiply `catalog_shard_fetches` by a GET price as if each walk were one request.
+Use backend operation/byte counters as diagnostics and reconcile them with
+provider request, retrieval and transfer metrics for the actual billed scope.
+Namespace wrappers and SDK retries can perform underlying work not represented
+one-for-one by an outer operation counter. Count successes and refusals alongside
+latency so an incomplete workload cannot appear cheaper merely by doing less work.
 
-- **Over-fetch is only free when locality is good.** The whole-chunk GET
-  pulls co-packed neighbours; that is prefetch only if the sync wants
-  them soon. Poor locality + billed egress can make packing *cost* money
-  on the byte line even while it cuts requests — Example 2. Watch
-  `bytes_over_fetched` and mind the break-even.
-- **`pack_target_chunk_bytes` too large amplifies over-fetch.** Bigger
-  chunks mean fewer requests but more bytes dragged along per isolated
-  read. If `bytes_over_fetched` is high, lower it (default 64 MiB) or
-  confirm your packing buckets align with sync locality.
-- **`pack_max_file_bytes` bounds the blast radius.** Files at/above it
-  (default 8 MiB) stay standalone and never over-fetch. If a class of
-  mid-size files has poor locality, keeping them standalone (a lower
-  cutoff) can beat packing them.
-- **The catalog-shard bootstrap adds a few LIST/GETs on a cold start.**
-  `catalog_shard_fetches` is small and mostly one-time per cold daemon,
-  but net it out for an honest per-window figure — it is real cloud
-  traffic.
-- **Savings assume the files are actually co-packed.** Submit locality is
-  what puts related files in the same chunk. Files scattered across many
-  submits/subtrees pack poorly; that is a workload property, not a bug —
-  tune `pack_target_chunk_bytes` / `pack_max_file_bytes`, or accept that
-  this corner of the depot resolves via `per_file_fallbacks`.
-- **In-region egress is often free — confirm before pricing bytes.** If
-  it is, the egress terms vanish and the request-count reduction is the
-  whole story (and packing effectively always wins).
+## Tuning and retained storage
+
+- Lower `pack_target_chunk_bytes` when whole-chunk over-fetch dominates; measure
+  request count and throughput again. Target changes affect new publications.
+- Lower `pack_max_file_bytes` to send more future files through immutable
+  standalone storage. The in-memory packing capture ceiling also applies;
+  see the configuration and packing guides. Existing objects are not rewritten
+  simply because a cutoff changes.
+- Native standalone payloads already have authoritative catalog mappings.
+  Backfill excludes `standalone/` payloads: it is only for eligible, explicitly
+  prepared path-addressed candidates inside a native namespace. A catalog miss
+  does not fall back to an uncatalogued raw object, and backfill is not an
+  incompatible-format converter.
+- Compaction can improve layout but retains old chunk payloads, seals and recovery
+  metadata. Physical chunk and unknown-blob sweeps are disabled pending a durable
+  address-retirement protocol. Immutable standalone history can also remain.
+  Model retained physical capacity rather than assuming current logical bytes
+  equal billed remote storage. Known-content dedup GC has separate safety rules.
+- Use immediately readable storage classes. Class minimum-duration/size charges,
+  retrieval fees and asynchronous archival transitions can invalidate a model
+  based only on nominal GB-month rates.
+
+Evaluate cold and warm reads, writer publication backlog, read-only authority
+traffic, tail latency and errors together. Packing changes resource tradeoffs;
+it does not make uploads synchronously durable or replace the recovery plan.

@@ -5,7 +5,7 @@
   "status": "passed",
   "scope": "Functional and artifact acceptance for the named runtime. Provider-retained test history and verification limits are reported separately.",
   "source_commit": "a575b57c83cae2c120eb38799c396411d12bf666",
-  "packaging_commit": "8bfa8a0fe11fd38a24575d5b42283d67603718e2",
+  "packaging_commit": "529390d6adc1e8165918ed0108350f08ddd146ca",
   "platform": "Linux x86-64",
   "minimum_glibc": "2.39",
   "runtime_sha256": {
@@ -20,12 +20,16 @@
     "objectveil-dedup-measure": "a87ec673f02d2a1c656de05398585abd16ea827290d738e03d38550345fb0090"
   },
   "package": {
-    "deb_sha256": "4c1088eeb6b03f641a7f6b1a4ec73334621267eb59e95bb371637bcd2afb9c60",
+    "deb_sha256": "291e189f476cf5e4b9c287ca518d25ef886876db5de24ce9acc158a13f4a96f0",
     "runtime_acceptance_package_sha256": "e273392810d1914e5284ae7bf706bb324c68b4305f29f0cb5a386d7dc81254f3",
     "documentation_only_repack": true,
     "runtime_rebuilt_or_restamped": false,
     "runtime_artifacts_identical": 9,
-    "non_documentation_payloads_and_installer_controls_unchanged": true
+    "non_documentation_payloads_and_maintainer_scripts_unchanged": true,
+    "control_difference": "Debian md5sums only",
+    "repack_receipt_sha256": "80cd5c4b21f7d78dbef16a201becbf07f11885cdbf5679493e4703e28520c0c6",
+    "independent_archive_comparison_sha256": "6f8992507bc36baf355143c8cee8c3d124d8186159989f949ff0b30999ae9978",
+    "tar_sha256": "fcda718a54635666a0227d601cb5a24e9b3c49028db7a79f57abbbb28dfbf7f8"
   },
   "required_linux_gate": {
     "source_commit": "a575b57c83cae2c120eb38799c396411d12bf666",
@@ -158,9 +162,13 @@
     },
     "packaging_source": {
       "files": 291,
-      "git_objects": 364,
-      "decoded_documents": 17,
-      "matches": 0
+      "git_objects": 464,
+      "reachable_objects": 380,
+      "unreachable_objects": 84,
+      "decoded_documents": 18,
+      "scope": "All available Git objects and active files; 17 current documents plus an earlier quick-start PDF in object history. PDF streams and slide parts were decoded; UTF-8 and both UTF-16 byte alignments were inspected.",
+      "matches": 0,
+      "receipt_sha256": "4404656532c0af074c420a98083d9d8f439aaa2394c03c8db0b8f156d49d2943"
     },
     "website": {
       "files": 27,
@@ -209,12 +217,12 @@
     "No real customer data conversion or production service activation was performed by these tests."
   ],
   "packaging_required_linux_gate": {
-    "commit": "8bfa8a0fe11fd38a24575d5b42283d67603718e2",
+    "commit": "529390d6adc1e8165918ed0108350f08ddd146ca",
     "runtime_code_identical_to": "a575b57c83cae2c120eb38799c396411d12bf666",
     "status": "passed",
     "rust_tests_passed": 1678,
     "rust_suites": 29,
-    "receipt_sha256": "a2c3feb88dc054db5e44b4723fdf1f60c90f83695e656642fc659f016a8efa0f",
-    "log_sha256": "daea9d4e4797fb71ba5cdf56c8c5f6b0676a087e0368b7527852210556409fe0"
+    "receipt_sha256": "494e40401ec25e50e9e357eb5e4f40af53535be3d583d59f429eda98b1c60299",
+    "log_sha256": "774428713bf5e55e60706da9d38c8f9a3bdf38e67fe0bd2d856a469ea63b5de2"
   }
 }

@@ -67,10 +67,11 @@ credentials.
    crypto-shred keys. This one must have **versioning OFF, soft-delete
    OFF, object-lock/WORM OFF, and no replication** — `p4 obliterate`
    destroys a key by overwriting it, and that only actually destroys the
-   bytes on a non-versioned bucket. The daemon self-tests this on S3/Azure
-   at startup and refuses to start on a versioned keystore; on GCS it
-   cannot self-test, so the GCS template requires you to explicitly
-   attest this via `gcs_versioning_disabled_confirmed: true`. Details:
+   revoked key only when no historical copy survives. Startup probes check
+   visible storage behavior and exposed version IDs; they do not prove that
+   soft delete, retention, backups or replication are absent. Independently
+   verify those policies on every provider. GCS also requires the explicit
+   `gcs_versioning_disabled_confirmed: true` attestation. Details:
    [`design/object-storage-best-practices.md`](design/object-storage-best-practices.md).
 3. A secondary is an explicitly owned native ObjectVeil backend, not an
    arbitrary plaintext archive tree. It must have a matching native primary-role

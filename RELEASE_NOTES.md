@@ -39,3 +39,10 @@ source or private review records are bundled.
 GitHub's automatic Source code archives contain only this public repository's
 documentation and configuration templates. Download the named Linux tar or Debian
 assets for the executable tools.
+
+The packaged operating guides specify native catalog version 3, conservative
+retention of reusable storage addresses, shared-content deletion limits, explicit
+writer cutover, absolute restore deadlines and best-effort access analytics. The
+cost model distinguishes payload requests from full authority and provider costs.
+The runtime files remain identical to the artifacts used for the recorded cloud,
+Perforce, licensing and recovery tests.

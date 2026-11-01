@@ -246,8 +246,9 @@ systemctl stop objectveil
 systemctl start objectveil
 ```
 
-The command rewrites only the manifest summary metadata under
-`depot_path/.objectveil/manifest.redb`. It also recovers any files left in
+The command rewrites manifest summary metadata in the configured
+`state_dir/manifest.redb` (default `depot_path/.objectveil/manifest.redb`).
+It also recovers any files left in
 `Uploading` state back to `Dirty`, the same way daemon startup does.
 
 ## Disaster Recovery (chunk packing)
@@ -277,8 +278,13 @@ procedure and the acknowledged-submit loss window before asynchronous upload.
 When p4d runs `p4 obliterate` it removes the archive file; the shim's
 delete hook forwards that to the daemon, which **crypto-shreds** the content:
 in encrypted deployments each archive uses a per-path key epoch. Revoking that
-key makes its ciphertext copies undecodable, provided no recoverable old key
-versions exist. Plaintext NFS deployments do not provide cryptographic deletion.
+key revokes that path's access. For ordinary standalone and packed contents,
+ciphertext becomes undecodable only if no recoverable old key survives.
+Deduplicated contents have a shared anchor: poisoning one path does not destroy
+that anchor or copies available through other live paths. Content-key destruction
+waits for Tier-2 last-reference GC, even if there was only one reference; see
+[deduplication deletion semantics](design/content-dedup.md#obliterate-and-reclamation).
+Plaintext NFS deployments do not provide cryptographic deletion.
 Under a drain lock, the daemon:
 
 - persists a deletion intent for the selected epoch, refuses unresolved eviction
@@ -291,16 +297,19 @@ Under a drain lock, the daemon:
 
 Required durability failures leave deletion retryable. Intent replay stays pinned
 to the old epoch and preserves newer re-added data. Immutable standalone payloads
-and descriptors can remain physically present; encrypted old copies lose their
-key, while plaintext NFS history can remain recoverable. New read-only opens check
+and descriptors can remain physically present. The path epoch is revoked, but
+shared deduplicated contents remain subject to the separate content-key GC
+requirements above. Plaintext NFS history can remain recoverable. New read-only opens check
 remote authority, but already-open file descriptors keep snapshot semantics.
 
 The overwrite (vs a delete) also closes a rare race: a plain delete leaves the
 key name momentarily absent, so an ingest that was reading the same revision as
 the obliterate ran could re-mint a usable key into the empty slot. The atomic
 poison-overwrite means the slot is never empty, so a straggling ingest fails
-closed instead. If the shred fails (a backend blip), the daemon returns an error
-and p4d **retries** — the operation is idempotent.
+closed instead. If shredding fails, the daemon returns an error and retains the
+delete intent for recovery. The shim reports failure to its caller; operators
+must check the Perforce command result and retry or reconcile the operation.
+Do not assume p4d automatically retries every failed unlink.
 
 > **Compliance-critical deployment precondition — the keystore bucket MUST NOT
 > have versioning.** Poison-overwriting a key only shreds its ciphertext if no
@@ -394,8 +403,11 @@ the entire run. The tool also holds exclusive access to the existing manifest
 to exclude the cache daemon, locks each candidate, and refuses a changed inode
 or occupied destination. Keep Perforce metadata stable during the scan. A live
 scan must use report-only mode; an attestation cannot itself fence an unmanaged
-writer. After a file is quarantined the daemon re-detects it as
-a cache miss on the next access and restores it from the backend.
+writer. A later access can restore a quarantined file only if complete current
+catalog authority, required keys and valid payload bytes survive in the backend.
+Missing or inconsistent remote evidence correctly refuses restoration. Preserve
+the quarantined copy until the needed archives have been independently verified;
+a successful move is not evidence that a recoverable remote copy exists.
 
 **`--verify-digest` cost.** By default a file with a matching storage row
 is counted `healthy` without reading its bytes. `--verify-digest` reads
@@ -486,23 +498,24 @@ Example:
 ### Cost and backend-health signals
 
 Beyond the semantic counters (`objectveil_uploads_total`,
-`objectveil_chunk_gets_total`, …), two families make object-store **request
-cost** and **primary health** directly observable:
+`objectveil_chunk_gets_total`, …), these counters help assess object-store
+traffic and primary health:
 
-- `objectveil_backend_requests_total{class="get|head|list|put|delete"}` — every
-  billable request the cloud backend issues, bucketed by request class. `list`
-  is usually the surprise cost driver (whole-namespace scans by backfill,
-  orphan GC, and rebuild); watch its rate to confirm the backfill idle back-off
-  is keeping a caught-up daemon quiet. A multipart upload counts as one `put`
-  (its parts are not separately counted).
-- `objectveil_backend_bytes_total{direction="downloaded|uploaded"}` — bytes moved
-  each way, counted on successful transfer. Pair with the request counts to see
-  average object size and egress volume.
-- `objectveil_secondary_fallbacks_total` — reads the **primary** did not have
-  (NotFound) that were served off the read-only **secondary**. A rising rate
-  means the primary is missing objects (degraded, mid-outage, or lagging an
-  NFS→cloud migration) even while restores still succeed. Alert on any sustained
-  increase.
+- `objectveil_backend_requests_total{class="get|head|list|put|delete"}` — cloud
+  backend wrapper operations by request class. This is not a provider billing
+  ledger: SDK retries, LIST pagination and multipart subrequests are not all
+  counted individually. A multipart upload counts as one `put`. Watch LIST
+  activity from backfill, catalog maintenance and rebuild, and compare with
+  provider telemetry; the disabled physical orphan sweeps issue no requests.
+- `objectveil_backend_bytes_total{direction="downloaded|uploaded"}` — transferred
+  body bytes recorded on successful operations. Failed or retried network traffic
+  is not fully represented; use provider metrics for billed transfer volume.
+- `objectveil_secondary_fallbacks_total` — primary `NotFound` responses whose
+  selected payload was successfully obtained from the explicitly owned native
+  secondary. Other primary errors do not trigger this fallback. A sustained
+  increase warrants investigation of missing primary payloads. Secondary
+  configuration does not create a mirrored copy, adopt a raw archive tree or
+  make that backend read-only to other maintenance/deletion paths.
 
 At startup the daemon also probes the primary once and logs
 `primary backend reachable at startup` or a `primary backend probe FAILED`
@@ -601,21 +614,24 @@ Operators watching for this condition should alert on a sustained
 
 ### Storage cost & tiering
 
-The daemon uploads every object in the **Standard** storage class and does not
-pin a colder class at write time. That is deliberate: a cache cannot tell hot
-from cold when it writes an object (every chunk is written once and read later),
-so tiering belongs in a **bucket lifecycle rule** that demotes objects by access
-age — which only moves data that actually goes cold.
+New primary objects use the provider's default storage class unless
+`primary.storage_class` is configured. That setting applies to small PUTs,
+multipart uploads and primary metadata writes; it does not reclassify existing
+objects. Configuration accepts only supported immediately readable classes.
+Choose the class and any data-bucket lifecycle transitions using the workload's
+request, retrieval and egress costs, while preserving immediate cold-read access.
+See [storage configuration](CONFIGURATION.md).
 
 Recommended lifecycle configuration on the **data** bucket:
 
-- An **Intelligent-Tiering** rule (or an IA transition) scoped to the `chunks/`
-  prefix. This is the single largest bytes-at-rest cost lever for cold archive
-  history.
-- **Exclude the `keys/` prefix** — the crypto-shred keystore must have no
-  lifecycle, versioning, soft-delete, or object-lock, so that an obliterate's
-  key delete is final (see the keystore requirements). If the keystore lives in
-  its own bucket (recommended), scope lifecycle to the data bucket only.
+- Consider supported immediate-retrieval tiering for data payload prefixes,
+  including `chunks/`, `standalone/` and `blobs/`, based on measured access and
+  provider costs. Keep catalog metadata immediately available.
+- **Keep keys in a separate bucket/container**, as native cloud configuration
+  requires. Apply data lifecycle rules only to the data bucket. The keystore
+  must have no versioning, soft-delete, object-lock, retention or replication
+  that preserves revoked keys; independently verify those provider policies
+  before claiming cryptographic erasure (see the keystore requirements).
 - **Avoid Glacier / non-instant-retrieval tiers** on `chunks/` — they are on the
   restore-serving path and would turn a cold read into a multi-hour restore.
 - Keep an **AbortIncompleteMultipartUpload** rule (1–7 days) on the data prefixes
@@ -629,7 +645,7 @@ Watch `objectveil_backend_bytes_total` and `objectveil_backend_requests_total` (
 1. Use a separate read-only cache to verify restores from an already populated backend. Do not switch an active submit server to read-only mode for this drill.
 2. Turn on `metrics_file` and confirm the textfile exporter is producing sane counters and gauges.
 3. If you need access analytics, enable Elasticsearch or PostgreSQL logging after restore behavior is stable.
-4. Enable write mode on the writer after the daemon has `CAP_SYS_ADMIN` and fanotify starts cleanly. Restart p4d with the updated shim when deploying or changing roles.
+4. Follow the [coordinated first-activation steps](#quick-start): fence every writer and automatic restart, enable write mode with the required capability, require writer readiness, then restart every p4d with the matching shim before releasing the fence.
 
 ## Schema & Protocol Versioning
 
@@ -658,9 +674,9 @@ whole restore. This is what lets a large standalone archive over a
 slow/cross-cloud backend (multi-part ranged GET, easily past the
 shim's `rpc_timeout`) restore successfully instead of the shim giving
 up and p4d reporting "Error opening librarian file." An absolute
-`OBJECTVEIL_RESTORE_MAX_WAIT_MS` backstop (default 5 min) still bounds a
-daemon stuck in `RESTORING`; a silent or erroring daemon still fails
-fast on the first transient.
+`OBJECTVEIL_RESTORE_MAX_WAIT_MS` deadline (default 5 min) bounds the entire
+exchange, including a healthy restore that is still progressing. Progress does
+not reset the deadline; a silent or erroring daemon fails on the first transient.
 
 **Authenticated metadata can also require a cold restore.** The current shim
 starts a fresh `STATSTART` operation. Quick checks return ordinary metadata;
@@ -672,19 +688,15 @@ after 60 seconds and are consumed once. The shim's absolute
 `OBJECTVEIL_RESTORE_MAX_WAIT_MS` deadline also bounds metadata polling; errors do
 not restart the operation automatically.
 
-Synchronous `STAT` is also supported. A shim falls back to it only on an exact
-protocol-unsupported reply to `STATSTART`; that fallback retains the synchronous
-RPC timeout. Deploy the matching daemon and restart shim-bearing processes
-together to use progress polling.
+The versioned `STAT` endpoint remains synchronous, but the current shim uses
+`STATSTART`/`STATPOLL` and does not fall back on a protocol-unsupported response.
+Deploy the matching `OBJECTVEIL/1` daemon and shim together and restart every
+shim-bearing process; incompatible peers fail the operation.
 
-**Writer inline short-wait (since 5.0.5).** The unconditional `RESTORING` on
-the very first poll cost every cold read a full extra round trip
-(measured ~+26 ms, ~+36% for small files) even when the restore itself
-was fast. `fetch_poll` now does a bounded inline wait
-(`SHIM_FETCH_INLINE_WAIT_MS`, 250 ms) before replying: a restore that
-finishes within the wait returns `OK` in the *same* round trip as the
-old synchronous behavior, and only a restore slower than 250 ms falls
-through to `RESTORING` + polling. The shim's `OBJECTVEIL_RPC_TIMEOUT_MS`
+**Writer inline short-wait.** `fetch_poll` waits up to
+`SHIM_FETCH_INLINE_WAIT_MS` (250 ms) before replying. A restore that finishes
+within that wait returns `OK` in the initial round trip; a slower restore
+returns `RESTORING` and continues through polling. The shim's `OBJECTVEIL_RPC_TIMEOUT_MS`
 override is floored at `MIN_RPC_TIMEOUT_MS` (1 s, compile-time
 guaranteed to exceed the inline wait), so a too-aggressive timeout
 override can't spuriously fast-fail during the inline wait.
@@ -694,7 +706,7 @@ without the writer's inline wait. This prevents an older validation from being
 reinserted after a newer read has started. Warm validation also hashes the local
 file; account for that I/O and authority traffic when sizing reader caches.
 
-**Observability.** `objectveil_restores_polled_total` counts cold restores
+**Observability.** `objectveil_restores_polled_total` counts writer cold restores
 that outlasted the inline wait and were served via the `RESTORING` poll
 path — i.e. slow restores (large files, or a slow/degraded/throttled
 backend). Watch it against `objectveil_restores_total{result="success"}`:
@@ -730,10 +742,12 @@ Postgres, add a migration under
 
 ## Checkpoint Verification
 
-Fresh implicit verifier jobs use `.objectveil-verify-<input>`; a sole recognized
-existing job is reused and ambiguous dual jobs are refused.
-Prefer an explicit verified existing `--state-dir` for an upgrade. Verifier
-ownership/progress records remain tied to that job identity.
+Implicit verifier jobs use one deterministic `.objectveil-verify-<input>`
+directory beside the input. Long or non-UTF-8 input names use a bounded digest
+of the full canonical path. An existing real directory at that location is
+reused; a file or symlink is refused. Select an explicit verified existing
+`--state-dir` when needed for an upgrade. Ownership and progress records remain
+tied to the job identity and are validated before resume.
 
 `objectveil-verify` scans Perforce checkpoints and journals against backend
 storage to find missing archive objects. It writes restart state under
@@ -759,10 +773,11 @@ directory) so long scans can resume across restarts.
 Archive paths that contain non-UTF-8 bytes (rare on Linux but legal)
 use the engine's compatible reversible byte-path encoding when checking S3,
 Azure or GCS. Do not construct or rename these internal keys manually. This is the same encoding `objectveil` uses for uploads, so
-objects written by the daemon verify correctly. If you're verifying
-against a cloud bucket populated directly by p4d (e.g. a migration
-seed) under literal byte-named keys, those will be reported as
-missing. Re-upload through `objectveil` to reconcile.
+objects written by the daemon verify correctly. An incompatible populated
+namespace is refused by the native ownership guards; raw uncatalogued objects
+are never archive authority. Do not try to adopt a directly seeded cloud tree
+in place or rename its keys. Preserve that source and use a separately verified
+conversion into a distinct native destination before verifying the result.
 
 ### Unavailable objects
 
