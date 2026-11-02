@@ -11,9 +11,12 @@ utilities and native initializer. This release requires `objectveil/1` configura
 a deployment namespace UUID, native stored formats, and version 2 signed licenses.
 No license or private configuration is bundled.
 
-Start with [INSTALL.txt](INSTALL.txt). The supported binary platform is
-**Linux x86-64 with glibc 2.39 or newer**. The Debian package is a separate
-release asset; this tar bundle can also be installed in a versioned directory.
+Start with [INSTALL.txt](INSTALL.txt). Choose the build for your system:
+
+- **RHEL 9 x86-64:** `objectveil-7.0.0-1.el9.x86_64.rpm`, built against glibc 2.34. See [Red Hat installation](docs/redhat.md).
+- **Debian/Ubuntu or generic Linux x86-64:** the `.deb` or named Linux tar bundle, requiring glibc 2.39 or newer.
+
+Keep each build's executables and matching shim together. The RPM is a separate native build; [RPM_VALIDATION.json](RPM_VALIDATION.json) records its tests, hashes and container-testing limits.
 
 GitHub also displays automatic **Source code (zip)** and **Source code (tar.gz)** links. Those archives contain only this public repository’s documentation and configuration templates. The Rust implementation is maintained privately and is not included in those archives. Download the named Linux release assets for the executable tools.
 
@@ -37,6 +40,8 @@ multipart pipeline. `--download` reconstructs the supported current cloud
 catalog into a separate local tree and preserves conflicting local files.
 
 ## Documentation
+
+- [Red Hat Enterprise Linux RPM installation](docs/redhat.md)
 
 - [Installation and upgrades](INSTALL.txt) and [existing-installation upgrade](docs/upgrading.md)
 - [Configuration reference](docs/CONFIGURATION.md) and [examples](docs/examples/)

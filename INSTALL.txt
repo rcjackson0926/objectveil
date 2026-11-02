@@ -10,9 +10,10 @@ installing; incompatible persisted formats require verified conversion.
 
 Requirements
 ------------
-* Linux x86_64 with glibc 2.39 or newer. Check `uname -m` and
-  `getconf GNU_LIBC_VERSION`. This build does not support musl/Alpine,
-  older glibc installations, ARM, Windows or macOS.
+* Linux x86_64. The Debian/Ubuntu .deb and generic tar bundle require
+  glibc 2.39 or newer. The RHEL 9 .rpm is built against glibc 2.34.
+  Check `uname -m` and `getconf GNU_LIBC_VERSION`; select the package for
+  your system. These builds do not support musl/Alpine, ARM, Windows or macOS.
 * A signed license valid for your deployment. No license, credentials or
   private configuration is included. Use a vendor-signed version 2 license, or
   request an evaluation license at https://rcjacksonconsulting.com/objectveil-product.html.
@@ -30,7 +31,7 @@ Download and verify
 Use a new empty download directory. The release page is:
   https://github.com/rcjackson0926/objectveil/releases/tag/v7.0.0
 
-Download SHA256SUMS and either the .deb or tar.gz asset from that release.
+Download SHA256SUMS and the .deb, .rpm or tar.gz asset from that release.
 Download all assets listed in SHA256SUMS to check them together, or verify
 only the files you downloaded:
 
@@ -75,6 +76,30 @@ and precreated state modes/groups are preserved. Follow "Socket access across Li
 docs/OPERATIONS.md and verify an actual cold read as the application's UID.
 Do not broaden all state/license permissions to fix socket access.
 
+Red Hat Enterprise Linux 9 package
+---------------------------------
+Use objectveil-7.0.0-1.el9.x86_64.rpm on RHEL 9 x86_64. It contains
+all eight tools, the matching shim, a systemd unit, examples and documentation.
+Complete the same coordinated writer/service stop required above, then run:
+
+  sudo dnf install ./objectveil-7.0.0-1.el9.x86_64.rpm
+
+The executable, shim and documentation paths match the .deb paths above;
+the RPM unit is /usr/lib/systemd/system/objectveil.service. Installation
+never enables/starts the service and never creates configuration, licenses,
+archive markers or state. Configure the archive-owner account and follow
+the initialization and startup procedure below. Read docs/redhat.md for
+SELinux checks, package verification, upgrades and removal. Do not disable
+SELinux or assume a container test certifies your host's policy.
+
+The RPM preserves edits to config.json.example using RPM's noreplace rules.
+The actual config.json, license, archive files, state and key material are
+operator-owned and are retained during upgrades and removal. Removal also
+requires the coordinated stop; it refuses while p4d or ObjectVeil is running.
+For migration on a server that must stay online, do not use the Ubuntu tar
+bundle on RHEL 9: first extract the verified RHEL RPM into a separate empty
+directory as described in docs/redhat.md and run only its migration tool.
+
 Tar installation
 ----------------
 Verify the tarball first, then unpack it into a new directory:
@@ -89,7 +114,7 @@ example /opt/objectveil/7.0.0. Copy this verified bundle there only if that
 destination does not already contain another installation. Use absolute
 paths to that release's executables and shim in your service configuration.
 
-The supplied packaging/systemd/objectveil.service is the Debian unit. For a
+The supplied packaging/systemd/objectveil.service is the packaged unit. For a
 tar installation, adapt its ExecStart to your versioned daemon path and
 your service account. Keep daemon=false under process supervision. The
 writer unit supplies CAP_SYS_ADMIN; a manual writer launch needs equivalent
@@ -125,7 +150,7 @@ read-only clients require identity markers already created by a native writer.
    this release's matching shim. This also applies to FIRST enablement
    after an online migration, not just an upgrade. A separately owned
    read-only reader cache must not be used as an active submit server.
-5. Start the daemon as the configured archive-owner account. For .deb,
+5. Start the daemon as the configured archive-owner account. For .deb or .rpm,
    place the readable license beside the configuration and use the unit:
 
      sudo systemctl daemon-reload
@@ -237,7 +262,7 @@ Coordinated upgrades and rollback
 Back up your configuration and retain the complete previous executable/shim
 set. Stop and fence Perforce writers/p4d and objectveil, including automatic
 restarts, before replacing binaries or the shim. Keep them stopped through
-the entire installation. The Debian guard conservatively checks all p4d
+the entire installation. The package guards conservatively checks all p4d
 processes on the host.
 
 Install the complete new release, start objectveil, confirm its configured

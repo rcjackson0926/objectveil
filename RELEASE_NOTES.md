@@ -37,12 +37,33 @@ the account's seven-day soft-delete policy. No license, credentials, implementat
 source or private review records are bundled.
 
 GitHub's automatic Source code archives contain only this public repository's
-documentation and configuration templates. Download the named Linux tar or Debian
-assets for the executable tools.
+documentation and configuration templates. Download the named Linux tar, Debian
+or Red Hat RPM assets for the executable tools.
 
 The packaged operating guides specify native catalog version 3, conservative
 retention of reusable storage addresses, shared-content deletion limits, explicit
 writer cutover, absolute restore deadlines and best-effort access analytics. The
 cost model distinguishes payload requests from full authority and provider costs.
-The runtime files remain identical to the artifacts used for the recorded cloud,
+The original Debian and generic-tar runtime files remain identical to the artifacts used for the recorded cloud,
 Perforce, licensing and recovery tests.
+
+## Red Hat Enterprise Linux 9 RPM
+
+The separate native `objectveil-7.0.0-1.el9.x86_64.rpm` is built for RHEL 9
+with glibc 2.34. It includes the same eight tools and matching preload library,
+plus the systemd unit, examples and guides. Keep its runtime components together;
+the original Debian and generic-tar downloads require glibc 2.39.
+
+Read the [Red Hat guide](https://github.com/rcjackson0926/objectveil/blob/main/docs/redhat.md)
+and complete the coordinated writer stop before package installation or removal.
+For online migration without replacing a mapped library, the guide explains
+how to extract the RPM separately and run only the migration command.
+Installation never enables/starts the daemon or initializes operator state.
+
+[The RPM validation report](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.0/RPM_VALIDATION.json)
+records the native suite, exact packaged Perforce integration, 69 Python controls,
+and 174 installation/upgrade/removal assertions. Testing used official Red Hat
+UBI 9 user space on an Ubuntu host; validate your actual RHEL kernel, service
+and SELinux policy before enabling eviction. No new cloud-provider test or
+Red Hat certification is claimed for this packaging addition. The original
+Debian and tar runtime bytes are unchanged.

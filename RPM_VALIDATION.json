@@ -1,0 +1,159 @@
+{
+  "format": "objectveil-rpm-validation/1",
+  "product": "ObjectVeil",
+  "version": "7.0.0",
+  "rpm_release": "1.el9",
+  "status": "passed",
+  "added_on": "2026-11-02",
+  "platform": "RHEL 9 x86_64",
+  "minimum_glibc": "2.34",
+  "source_commit": "32ac7a1ef2484d86d7dbe6d6804614fb32cf0621",
+  "package": {
+    "filename": "objectveil-7.0.0-1.el9.x86_64.rpm",
+    "bytes": 23411546,
+    "sha256": "9aeb690d7526a94b8f446d3b9282a483457aebdd3b5baa1e39162d314f14c4fd"
+  },
+  "runtime_sha256": {
+    "objectveil": "5c362c17a665908063dba4eebdace939347987b6cb92440201b92ee6f65b2d03",
+    "objectveil-verify": "98a40b665da09315ce086eedf7e49b55b3a261384c6467c556ff2d64aabcc88e",
+    "objectveil-manifest-summary": "fddc40266f1b01e78432f66324f4c110149cda3625590912a422dc19da1df436",
+    "objectveil-rebuild-catalog": "6d2c8b926674ddf6142bcbc0b33189a361ecee234a3593ea767e19b95094f5dd",
+    "objectveil-rescan": "b1323ae6abc791abbe601b55140c31152c3c9a5b1690b1fc797224d5e46949bd",
+    "objectveil-dedup-measure": "ee5512c9d4664d707d4e6c6df5831e71a93036e27a38983497675ecbbeebcdcb",
+    "objectveil-migrate": "010c6f30d3f92c7952eeab0a5a8f9b352e54a6eb578a515593ba8756e8a37b47",
+    "objectveil-initialize": "cb6d25f86ca993315abef5a7945f3bac438bdfd9e235261248861e361941c329",
+    "libobjectveil_shim.so": "9859f8ccbf3790d09b3739033214963a37cc81184bc7e5cf9e0efc66fcb010ff"
+  },
+  "integrity_seals_verified": 3,
+  "source_equivalence": {
+    "native_suite_source_commit": "529390d6adc1e8165918ed0108350f08ddd146ca",
+    "rust_and_licensing_sources_unchanged": true,
+    "rust_tree": "538280c6abb5ac192005a6cfc26ae49d6231606f",
+    "licensing_tree": "8130101e5dd2441b778a3fb79c20e0cbfe7407f9",
+    "note": "The final build changes packaging and embedded build identity only. The native integration-test executable was reused with the exact extracted RPM executables at its expected paths."
+  },
+  "build": {
+    "base_image": "registry.access.redhat.com/ubi9/ubi@sha256:8f989cc9270da6abec0144c22846ed1e6e92e462dc7768ce0981c4ac1d574733",
+    "build_image_id": "ba69b6afbe1e2702c9ac5717b3ba19f8272825bb1272b220753a4e13c55a6a40",
+    "rust_toolchain": "1.96.1-x86_64-unknown-linux-gnu",
+    "umask": "077",
+    "payload_rewriting_disabled": true
+  },
+  "native_rust_suite": {
+    "suites": 29,
+    "rust_reported_passed": 1678,
+    "failed": 0,
+    "rust_ignored": 0,
+    "limits": "Cloud-provider and privileged cases are environment-gated and may return without exercising their live scenario. No cloud credentials were supplied."
+  },
+  "python_operational_script_tests": {
+    "passed": 69,
+    "rpm_specific_controls": 6,
+    "failed": 0
+  },
+  "exact_packaged_integration_tests": {
+    "rust_reported_passed": 13,
+    "failed": 0,
+    "cloud_cases_not_exercised": 5,
+    "noncloud_cases_exercised": 8,
+    "actual_perforce_scenarios": [
+      "warm and cold archive reads through the packaged daemon and shim",
+      "writer submits and mutable RCS archives, historical reads, verification and acknowledged deletion",
+      "read-only freshness and outage refusal",
+      "concurrent cold reads and refused read-only obliterate preserving siblings"
+    ]
+  },
+  "rpm_lifecycle": {
+    "assertions_passed": 174,
+    "first_install": true,
+    "upgrade_with_identical_runtime": true,
+    "removal": true,
+    "active_writer_install_and_removal_refused": true,
+    "tested_process_names": [
+      "p4d",
+      "p4d_2026.1",
+      "objectveil"
+    ],
+    "operator_config_license_state_and_archives_preserved": true,
+    "edited_example_preserved_on_upgrade_and_retained_as_rpmsave": true,
+    "ordinary_user_can_read_shim_and_provenance_and_traverse_config_directory": true,
+    "automatic_service_enable_or_start": false,
+    "test_only_upgrade_package_sha256": "52a859a188368f0a1f12cd07f42c3af165baba7b47909b301792ae719a43348e"
+  },
+  "package_audit": {
+    "regular_files": 42,
+    "retired_identifier_matches": 0,
+    "all_runtime_glibc_requirements_at_most": "2.34",
+    "requirements": [
+      "/bin/sh",
+      "/bin/sh",
+      "/bin/sh",
+      "/bin/sh",
+      "ca-certificates",
+      "config(objectveil) = 7.0.0-1.el9",
+      "ld-linux-x86-64.so.2()(64bit)",
+      "ld-linux-x86-64.so.2(GLIBC_2.3)(64bit)",
+      "libc.so.6()(64bit)",
+      "libc.so.6(GLIBC_2.10)(64bit)",
+      "libc.so.6(GLIBC_2.13)(64bit)",
+      "libc.so.6(GLIBC_2.14)(64bit)",
+      "libc.so.6(GLIBC_2.15)(64bit)",
+      "libc.so.6(GLIBC_2.16)(64bit)",
+      "libc.so.6(GLIBC_2.17)(64bit)",
+      "libc.so.6(GLIBC_2.18)(64bit)",
+      "libc.so.6(GLIBC_2.2.5)(64bit)",
+      "libc.so.6(GLIBC_2.25)(64bit)",
+      "libc.so.6(GLIBC_2.27)(64bit)",
+      "libc.so.6(GLIBC_2.28)(64bit)",
+      "libc.so.6(GLIBC_2.29)(64bit)",
+      "libc.so.6(GLIBC_2.3)(64bit)",
+      "libc.so.6(GLIBC_2.3.2)(64bit)",
+      "libc.so.6(GLIBC_2.3.4)(64bit)",
+      "libc.so.6(GLIBC_2.30)(64bit)",
+      "libc.so.6(GLIBC_2.32)(64bit)",
+      "libc.so.6(GLIBC_2.33)(64bit)",
+      "libc.so.6(GLIBC_2.34)(64bit)",
+      "libc.so.6(GLIBC_2.4)(64bit)",
+      "libc.so.6(GLIBC_2.5)(64bit)",
+      "libc.so.6(GLIBC_2.7)(64bit)",
+      "libc.so.6(GLIBC_2.9)(64bit)",
+      "libgcc_s.so.1()(64bit)",
+      "libgcc_s.so.1(GCC_3.0)(64bit)",
+      "libgcc_s.so.1(GCC_3.3)(64bit)",
+      "libgcc_s.so.1(GCC_4.2.0)(64bit)",
+      "libm.so.6()(64bit)",
+      "libm.so.6(GLIBC_2.29)(64bit)",
+      "procps-ng",
+      "procps-ng",
+      "rpmlib(CompressedFileNames) <= 3.0.4-1",
+      "rpmlib(FileDigests) <= 4.6.0-1",
+      "rpmlib(PayloadFilesHavePrefix) <= 4.0-1",
+      "rpmlib(PayloadIsZstd) <= 5.4.18-1",
+      "rtld(GNU_HASH)",
+      "systemd",
+      "systemd",
+      "systemd",
+      "systemd"
+    ],
+    "private_source_credentials_signing_and_stamping_tools_included": false,
+    "gpg_signed": false
+  },
+  "private_evidence_sha256": {
+    "build-environment.json": "8f86cde7efd713d170e033cac3b78dd7a157c2f3dc938081428c60a670eceaca",
+    "lifecycle.json": "0d08d706e329240d53bb04c0df25043eb5609d60b17f305cf9c836ebf0ba4147",
+    "native-suite.json": "37322af74adbcc14063ce29c2930d69b30108a5b7495c7ae5e1dc7900cff699d",
+    "package-audit.json": "eb04d76d496e2b474888b289d72c7d2eab824d3023072d99da850bdaa5ed2cdf",
+    "packaged-perforce.log": "677fa58d9fecb47719a175312935ada83dded4c5c4b9b39fd7777c40ed7b331b",
+    "script-tests.log": "7f205bd2772510451ba1352b29aa8e351592b038bac3dd6f0378fe0adf8a5c5a"
+  },
+  "limitations": [
+    "Testing used official Red Hat UBI 9 user space on an Ubuntu-hosted Linux kernel; it does not certify a RHEL host kernel, booted host systemd or enforcing SELinux policy.",
+    "No new live cloud-provider test is claimed for the RPM; the original VALIDATION.json describes the separate Debian/Ubuntu and generic-tar build.",
+    "Uploads remain asynchronous and can lose unpublished writes after complete writer/disk loss. Independent application metadata backups and an archive recovery point are required.",
+    "Package checksums are not a detached GPG signature or hosted attestation."
+  ],
+  "environment_corrections": [
+    "The first native test run correctly refused overlay temporary storage; the complete suite passed after using supported bound ext4 temporary storage.",
+    "A package-version conflict with OS VERSION metadata was fixed and regression-tested before any RPM was published."
+  ]
+}
