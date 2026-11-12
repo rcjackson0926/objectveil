@@ -1,8 +1,14 @@
 {
-  // Production-oriented NFS + Postgres example.
+  // NFS + Postgres example.
+  //
+  // An NFS primary stores archives UNENCRYPTED and has no keystore, so
+  // `p4 obliterate` is local cleanup only, not a cryptographic deletion
+  // (see docs/OPERATIONS.md). The guides treat it as a dev/test or
+  // proof-of-concept layout; use a cloud primary where that matters.
   //
   // Cache:
-  //   - local cache root: /p4/1/cache
+  //   - local cache root: /p4/1/depots, the directory p4d itself reads and
+  //     writes archives in
   //   - cache size: 4 TiB
   //
   // Storage:
@@ -15,13 +21,18 @@
   //   - PostgreSQL sink
   //   - bounded on-disk spool enabled for sink outages
 
-  "format": "objectveil/1", "namespace_id": "00000000-0000-0000-0000-000000000000", "depot_path": "/p4/1/cache",
+  "format": "objectveil/1",
+  // REPLACE-ME: generate one UUID per deployment and use it on every cache
+  // sharing this data/key namespace. The nil placeholder is rejected.
+  "namespace_id": "00000000-0000-0000-0000-000000000000",
+  "depot_path": "/p4/1/depots",  // REPLACE-ME
   "read_only": false,
 
   "max_cache_gb": 4096,
   "low_watermark_gb": 3276,
 
   // Starting thread settings; validate capacity and latency for your workload.
+  // The two restore_chunk_* knobs only affect cloud backends; NFS ignores them.
   "upload_threads": 12,
   "restore_threads": 48,
   "restore_chunk_threshold_mb": 4,
@@ -29,13 +40,15 @@
 
   "primary": {
     "type": "nfs",
-    "path": "/srv/objectveil-objects"
+    "path": "/srv/objectveil-objects"  // REPLACE-ME; must already exist
   },
 
   "skip_startup_scan": false,
   "stats_interval_secs": 60,
 
-  "daemon": true,
+  // Keep false under systemd or any supervisor: the daemon refuses
+  // daemon=true when it detects a systemd service environment.
+  "daemon": false,
   "verbose": false,
 
   "pid_file": "/run/objectveil/objectveil.pid",
@@ -49,8 +62,11 @@
   "access_max_pending_entries": 200000,
   "access_flush_interval_secs": 5,
 
-  "access_pg_url": "postgresql://objectveil:replace-me@db.example.com:5432/objectveil?sslmode=verify-full",
-  // Provision this exact schema/table before enabling the sink.
+  // REPLACE-ME. An explicit sslmode of require, verify-ca or verify-full is
+  // mandatory; with access_pg_ca_cert set it must be verify-ca or verify-full.
+  "access_pg_url": "postgresql://objectveil:REPLACE-ME@db.example.com:5432/objectveil?sslmode=verify-full",
+  // The daemon creates this table when it is missing, but never a schema:
+  // the `ops` schema must already exist.
   "access_pg_table": "ops.objectveil_access",
   "access_pg_ca_cert": "/etc/objectveil/postgres-ca.pem",
 
@@ -59,7 +75,8 @@
   "access_failure_backoff_max_secs": 60,
   "access_disable_after_failures": 100,
 
-  "access_spool_dir": "/p4/1/cache/.objectveil/access-spool",
+  // Enables the spool. It lives in <state_dir>/access-spool unless
+  // access_spool_dir names another dedicated, symlink-free directory.
   "access_spool_max_bytes": 1073741824,
 
   // JSON does not allow octal integer literals. 432 decimal == 0660.

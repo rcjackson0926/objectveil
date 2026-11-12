@@ -1,4 +1,4 @@
-# ObjectVeil 7.0.0
+# ObjectVeil 7.0.1
 
 This repository contains public documentation and configuration templates.
 Executable tools are supplied as named Linux release assets. Start with
@@ -13,7 +13,7 @@ No license or private configuration is bundled.
 
 Start with [INSTALL.txt](INSTALL.txt). Choose the build for your system:
 
-- **RHEL 9 x86-64:** `objectveil-7.0.0-1.el9.x86_64.rpm`, built against glibc 2.34. See [Red Hat installation](docs/redhat.md).
+- **RHEL 9 x86-64:** `objectveil-7.0.1-1.el9.x86_64.rpm`, built against glibc 2.34. See [Red Hat installation](docs/redhat.md).
 - **Debian/Ubuntu or generic Linux x86-64:** the `.deb` or named Linux tar bundle, requiring glibc 2.39 or newer.
 
 Keep each build's executables and matching shim together. The RPM is a separate native build; [RPM_VALIDATION.json](RPM_VALIDATION.json) records its tests, hashes and container-testing limits.
@@ -56,8 +56,8 @@ catalog into a separate local tree and preserves conflicting local files.
 the files inside this bundle. The release-level checksum file verifies the
 download assets. The release and Rust workspace versions identify this native
 format generation. [VALIDATION.json](VALIDATION.json) records the tested source,
-artifact hashes, runtime checks and test-resource cleanup limits. The initializer,
-daemon and migration executable carry verified integrity seals.
+artifact hashes, the checks run for this release and the checks that were not.
+The initializer, daemon and migration executable carry verified integrity seals.
 
 Writer upgrades require a coordinated stop of p4d, ObjectVeil and any previous
 cache daemon, followed by restarting every p4d with the matching new shim.

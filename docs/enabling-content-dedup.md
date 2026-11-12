@@ -23,15 +23,17 @@ objectveil-dedup-measure /path/to/config.json --manifest /snapshots/manifest.red
 Use the **standalone** scope to assess opportunity. The duplicate count is
 exact for the selected records; reclaimable byte totals are logical estimates,
 not a measurement of physical cloud bills. Packed and combined figures are
-informational. The tool is included in the Debian package.
+informational. The tool is included in every release package and bundle.
 
 ## Preconditions
 
 1. Exactly one writer ingests or obliterates against this backend. Read-only
    caches are allowed. The attestation below does not fence a second writer.
 2. Use a separate keystore with versioning, soft delete, retention, and
-   key-preserving replication disabled. S3 and Azure policy is probed at
-   startup; GCS requires an explicit operator attestation.
+   key-preserving replication disabled. Startup probes detect enabled object
+   versioning on S3 and Azure only; GCS requires an explicit operator
+   attestation. No probe can establish that soft delete, retention, backups or
+   replication are absent, so verify those policies yourself on every provider.
 3. All daemons and shims have been upgraded together, p4d has been restarted,
    and old writer binaries are fenced. Preserve remote catalog history,
    writer-era tickets, data, and the current
@@ -75,6 +77,49 @@ remain readable and are not rewritten merely by enabling the flag.
 - Obliterate removes the path's authority and poisons its serving key. Tier-2
   GC destroys a shared key only after complete remote metadata and local
   coordination prove that no live path needs the content.
+
+## Garbage-collection cost and timing
+
+Tier-2 GC runs on the writer. Every five minutes it looks in its local manifest
+for content that no path references any more. When it finds some, it proves the
+whole batch (up to 4,096 records) at once:
+
+1. it reads the complete remote catalog once, to confirm that no path still
+   names the content or its blob;
+2. it reads every object in the keystore once, to confirm that no other key
+   slot holds the same key; and
+3. for each record that passes both, it downloads and decrypts the shared blob
+   to authenticate it under its content key.
+
+Uploads, restores and obliterates keep running during all three. They wait only
+while a proved record's key is actually destroyed, which takes one small
+keystore read and one small write per record.
+
+The cost of steps 1 and 2 follows the size of the deployment, not the amount
+being collected: every catalog object and every key object is read once per
+pass, however many records are in the batch. To keep that a small share of the
+time, the collector rests ten times as long as a pass took before it runs those
+reads again, so on a large deployment passes can be hours apart. An obliterate
+shortens that rest to the length of the last pass and re-examines every
+retained record, so destruction follows a deletion within about one pass.
+
+A record that cannot be collected is retained and retried with a delay that
+doubles from ten minutes up to one day:
+
+- **Still referenced.** Another path's catalog entry names the content, or
+  another key slot holds the same key. The usual cause is a rewritten mutable
+  path that kept its original key; the shared key and blob are then retained
+  until that path is obliterated. The collector remembers which object blocked
+  the record and re-reads only that object on each retry.
+- **Not provable.** The catalog or keystore could not be read completely, the
+  content key is not live, the blob does not authenticate or could not be
+  downloaded within one hour, or the key write failed. Each logs a
+  `content-GC` warning.
+
+Every pass that has something to prove ends with a `content-GC pass finished`
+log line that counts the records it destroyed, retained as still referenced,
+and failed to prove. Retry delays and remembered blockers are kept in memory
+only: after a restart the first pass proves every unreferenced record again.
 
 ## Disable or recover
 

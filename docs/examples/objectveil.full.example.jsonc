@@ -12,7 +12,11 @@
   // Use this as a reference template. For a smaller runnable Azure config, see:
   // docs/examples/objectveil.azure.example.jsonc
 
-  "format": "objectveil/1", "namespace_id": "00000000-0000-0000-0000-000000000000", "depot_path": "/mnt/perforce/depots/depot",
+  "format": "objectveil/1",
+  // REPLACE-ME: generate one UUID per deployment and use it on every cache
+  // sharing this data/key namespace. The nil placeholder is rejected.
+  "namespace_id": "00000000-0000-0000-0000-000000000000",
+  "depot_path": "/mnt/perforce/depots/depot",
   "read_only": false,
 
   "max_cache_gb": 4096,
@@ -29,9 +33,9 @@
   "primary": {
     "type": "azure",
     "endpoint": "https://exampleobjectveilprod.blob.core.windows.net",
-    // F13 / D-005: a custom `endpoint` requires the explicit
-    // opt-in below. The loader rejects a custom endpoint without
-    // it. Set to `false` (or omit `endpoint`) to use the SDK default.
+    // A custom `endpoint` requires the explicit opt-in below; the
+    // loader rejects a custom endpoint without it. Omit both
+    // `endpoint` and `endpoint_pin` to use the provider default.
     "endpoint_pin": true,
     "bucket": null,
     "container": "objectveil-archive-prd",
@@ -47,7 +51,10 @@
     "path_prefix": "depot",
     "ca_cert_path": null,
     "verify_ssl": true,
-    "server_side_encryption": false
+    "server_side_encryption": false,
+    // Primary only: cloud tier for NEW data uploads (for example "Cool" on
+    // Azure, "STANDARD_IA" on S3). null keeps the container default.
+    "storage_class": null
   },
 
   "secondary": {
@@ -106,7 +113,10 @@
     "path_prefix": "depot",
     "ca_cert_path": null,
     "verify_ssl": true,
-    "server_side_encryption": false
+    "server_side_encryption": false,
+    // Keystore only, and only meaningful for a GCS keystore, which must set
+    // it to true (see the comment above). Shown here for completeness.
+    "gcs_versioning_disabled_confirmed": false
   },
 
   "skip_startup_scan": false,
@@ -132,7 +142,8 @@
   "access_es_auth": "elastic:replace-me",
   "access_es_ca_cert": "/etc/objectveil/elasticsearch-ca.pem",
   "access_pg_url": null,
-  // If choosing Postgres, provision this exact schema/table first.
+  // If choosing Postgres: the daemon creates this table when it is missing,
+  // but never a schema — the `ops` schema must already exist.
   "access_pg_table": "ops.objectveil_access",
   "access_pg_ca_cert": null,
   "access_failure_warn_interval_secs": 60,
@@ -146,7 +157,7 @@
   "shim_socket_mode": 432,
   "access_socket_mode": 432
 
-  // ── State directory override (D-002) ────────────────────────────
+  // ── State directory override ────────────────────────────────────
   // Fresh default is depot_path/.objectveil; a sole recognized existing state is reused.
   // For upgrades, set the existing verified state_dir explicitly; do not move it.
   // Override for a fresh deployment when the depot
@@ -155,7 +166,7 @@
   // The path is canonicalized like depot_path on load.
   // "state_dir": "/var/lib/objectveil/state",
 
-  // ── Log rotation (D-002) ────────────────────────────────────────
+  // ── Log rotation ────────────────────────────────────────────────
   // Either field works; log_rotate_max_bytes wins when both are set.
   // log_rotate_keep retains N rotated copies (.1 … .N).
   // failed_uploads_log_rotate_keep is rotated daily by mtime in
@@ -165,38 +176,40 @@
   // "log_rotate_keep": 7,
   // "failed_uploads_log_rotate_keep": 7,
 
-  // ── Peer / writer allowlists (D-002, F4/S-003) ─────────────────
+  // ── Peer / writer allowlists ───────────────────────────────────
   // Each list defaults to [daemon-euid]. Add the UIDs of every
   // process that needs to talk to the corresponding socket / write
-  // into the depot. Out-of-list peers are dropped at the kernel
-  // boundary (counters: shim_rejected_peer / access_log_rejected_peer
-  // / watcher_rejected_writer).
+  // into the depot. Out-of-list peers are dropped (counters:
+  // objectveil_shim_rejected_peer_total,
+  // objectveil_access_log_peer_rejected_total and
+  // objectveil_watcher_rejected_writer_total).
   // "shim_allowed_uids": [1001],
   // "access_allowed_uids": [1001],
   // "watcher_allowed_uids": [1001],
 
-  // ── Hardening / rollout knobs (D-002) ──────────────────────────
+  // ── Hardening / rollout knobs (defaults shown) ─────────────────
   // keep_caps=false (the default) drops CAP_SYS_ADMIN after fanotify
   // initialises. Flip only if an external supervisor needs the cap.
-  // max_reported_file_bytes caps what the shim hands the daemon for
-  // a single file; files past this size go through the
-  // "too-large-to-track" path instead of blocking the shim hot path.
+  // max_reported_file_bytes is the largest file size the daemon will
+  // report to the shim (64 GiB by default). A larger archive is NOT
+  // served cold, so never lower it below your largest archive; raise
+  // it together with the shim's OBJECTVEIL_MAX_FILE_BYTES.
   // enforce_content_hash=true makes restores fail closed on a
   // post-download hash mismatch.
   // "keep_caps": false,
-  // "max_reported_file_bytes": 1073741824,
+  // "max_reported_file_bytes": 68719476736,
   // "enforce_content_hash": false,
 
   // ── Cold-read chunk packing (ALWAYS ON) ────────────────────────
   // Packs many small archive revisions into larger content-addressed
   // chunks/<hex> objects with a sharded catalog and single-flight
-  // whole-chunk restore, so a cold sync of N files becomes M cloud
-  // GETs with M << N. Packing is always on — the former `packing_enabled`
+  // whole-chunk restore, which can cut payload requests for a localized
+  // cold sync (see docs/cost-model.md). Packing is always on — the former `packing_enabled`
   // toggle has been removed (a config that still sets it loads with a
   // deprecation warning and the field is ignored). Files at or above
   // `pack_max_file_bytes` stay standalone per-file objects; smaller ones
-  // are coalesced. The knobs below are live tunables (defaults shown);
-  // see docs/design/cold-read-chunk-packing.md.
+  // are coalesced. The knobs below take effect at daemon restart, not on
+  // hot reload (defaults shown); see docs/design/cold-read-chunk-packing.md.
   //   pack_target_chunk_bytes  target sealed-chunk size (>0)
   //   pack_max_file_bytes      standalone bypass cutoff (>0)
   //   pack_flush_deadline_secs seal a partial packer after this long (>0)
@@ -207,12 +220,20 @@
   // "pack_flush_deadline_secs": 30,
   // "compaction_live_fraction": 0.5,
 
-  // ── Batch backfill of native standalone objects (off) ──────────
-  // Opt-in repacker that moves eligible catalogued standalone objects into
-  // L1 chunks. Gated behind `backfill_enabled` (packing itself is always on).
+  // ── Batch backfill of prepared path-addressed objects (off) ────
+  // Opt-in repacker for eligible, explicitly prepared path-addressed objects
+  // in this namespace. Native standalone/<id> payloads are never candidates.
+  // Gated behind `backfill_enabled` (packing itself is always on).
   //   backfill_rate    pacing in objects/second (>0)
   //   backfill_prefix  restrict the walk to this depot-path prefix
   // "backfill_enabled": false,
   // "backfill_rate": 50,
-  // "backfill_prefix": "depot/main"
+  // "backfill_prefix": "depot/main",
+
+  // ── Content de-duplication (off) ───────────────────────────────
+  // Stores identical large standalone content once. Changes deletion
+  // semantics: read docs/enabling-content-dedup.md before enabling.
+  // dedup_gc_single_writer_ack attests this is the only writer.
+  // "dedup_enabled": false,
+  // "dedup_gc_single_writer_ack": false
 }

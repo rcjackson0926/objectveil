@@ -37,9 +37,11 @@ Evaluator shall **not**:
 ## 3. Term and expiry
 
 This evaluation right lasts until the expiry date encoded in the `license.lic`
-issued to Evaluator. The Software enforces this: past expiry it enters a short
-grace window (writes refused) and then refuses to start. Licensor may revoke the evaluation right at any time. Upon expiry or
-revocation, Evaluator shall cease use and delete the Evaluation Build.
+issued to Evaluator. The Software enforces this: for 30 days past expiry it
+stops uploading to cold storage (new writes stay queued locally and reads
+continue), and after that it refuses to start. Licensor may revoke the
+evaluation right at any time. Upon expiry or revocation, Evaluator shall cease
+use and delete the Evaluation Build.
 
 ## 4. No warranty
 

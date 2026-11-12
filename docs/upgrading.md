@@ -51,6 +51,27 @@ not permission to generate replacement keys.
 5. Restart the matching daemon and application under the archive-owner UID.
    Verify warm/cold reads and recoverability before authorizing eviction.
 
+## From 7.0.0 to 7.0.1
+
+7.0.1 belongs to the same format generation as 7.0.0. It converts nothing:
+follow [Updating a compatible installation](#updating-a-compatible-installation).
+Three things behave differently on the host afterwards:
+
+- At its first start the daemon removes world access from an existing
+  `manifest.redb`. New manifests are created owner-only.
+- A configuration with an Azure backend that lacks `account_name`, or an S3
+  backend with only one of `access_key` and `secret_key`, is now rejected when
+  it is loaded. Such a configuration could not reach its backend before;
+  correct it before upgrading.
+- Removing the Debian package refuses while the service or a `p4d` is running,
+  as installing and upgrading it already did, and no longer stops the service.
+
+If `objectveil-verify` from 7.0.0 was ever run as root with Perforce checks
+enabled, confirm that `/dev/null` on that host is still a character device
+(`ls -l /dev/null` begins with `c`). That release let the Perforce client
+replace it with a regular file; a reboot, or `rm -f /dev/null && mknod -m 666
+/dev/null c 1 3` as root, restores it.
+
 ## Incompatible persisted formats
 
 A format transition requires an explicit, separately verified conversion into

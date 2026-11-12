@@ -55,12 +55,12 @@ and their descriptors are excluded from this walk. Backfill does not adopt a
 foreign namespace or convert an incompatible catalog. Roll it out in stages and
 watch the metrics between each. Every packing/backfill knob is
 restart-required — it takes effect on daemon (re)start, not on hot reload
-(see `CONFIGURATION.md`).
+(see [`CONFIGURATION.md`](CONFIGURATION.md#restart-required-fields)).
 
 ### Stage 0 — baseline (before backfill)
 
-Confirm the gate is green and record a baseline: cloud GETs per synced
-file, restore latency, and cloud request bill for a representative cold
+Confirm the preconditions above hold and record a baseline: cloud GETs per
+synced file, restore latency, and cloud request bill for a representative cold
 sync. Compare eligible prepared candidates against that baseline; enabling
 backfill alone does not repack existing native standalone payloads.
 
@@ -111,24 +111,34 @@ bytes when planning capacity. Local cache eviction continues normally.
 
 The daemon exposes packing counters alongside its other metrics:
 
-- **`files_served_from_chunk` vs per-file fallbacks** — the coalescing
-  ratio. Rising chunk-served share on cold syncs is the win.
-- **`chunk_gets` / cloud GETs per synced file** — the headline number;
-  target ≪ 1.
+- **`files_served_from_chunk`** — cold reads served through a packed-member
+  path. A rising share on cold syncs shows packing is in use; it is not a count
+  of saved requests. `per_file_fallbacks` counts packed reads retried through a
+  newly authoritative standalone publication, not the standalone share of the
+  dataset.
+- **`chunk_gets`** — whole-chunk download operations. One download can issue
+  several provider range requests and an isolated member read is not a chunk
+  download, so compare against provider request metrics rather than treating
+  `chunk_gets` per synced file as the billed ratio.
 - **`bytes_over_fetched`** — whole-chunk over-fetch. If high relative to
   bytes served, lower `pack_target_chunk_bytes` or check that packing
   buckets align with your sync locality.
 - **`compactions`** — completed spatial repacks. `chunks_reclaimed` and
   `orphan_deletes` remain zero while physical chunk cleanup is deferred; they
   must not be interpreted as remote storage savings.
-- **`catalog_shard_fetches`** — cold-start catalog bootstrap traffic.
+- **`catalog_shard_fetches`** — nonempty catalog shard walks for bootstrap,
+  read-only freshness checks and folding. It is ongoing traffic, not a one-time
+  cold-start cost.
+
+The [cost model](cost-model.md#interpret-the-daemon-counters-correctly) defines
+each counter precisely.
 
 ## Tuning
 
 - **Chunk size** (`pack_target_chunk_bytes`): larger ⇒ fewer requests but
   more over-fetch per isolated read; smaller ⇒ the reverse. 64 MiB is a
   reasonable start.
-- **Standalone cutoff** (`pack_max_file_bytes`): files above this are
+- **Standalone cutoff** (`pack_max_file_bytes`): files at or above this are
   never packed. Keep it well below the chunk target.
 - **Flush deadline**: shorter ⇒ lower write-durability latency for trickle
   submits, at the cost of smaller (less-coalesced) chunks.

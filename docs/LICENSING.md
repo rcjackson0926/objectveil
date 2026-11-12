@@ -12,8 +12,8 @@ goes wrong.
 ## TL;DR
 
 1. Place your vendor-issued `.lic` file at `/etc/objectveil/license.lic` (or one of the alternate search paths below).
-2. Restart the daemon. Look for `objectveil license loaded` in the operator log — it carries your `customer_id`, `capacity_tib`, and `signed_expires_at` / `effective_expires_at`.
-3. If you see `running under the in-binary developer license`, you do not have a customer license installed and the daemon is using the built-in developer fallback. **Production deployments must override this.**
+2. Restart the daemon. Look for `ObjectVeil license loaded` in the operator log — it carries your `customer_id`, `capacity_tib`, and `signed_expires_at` / `effective_expires_at`.
+3. If you see `running under the in-binary developer license`, no license file was found and the daemon is using the built-in developer fallback: 1 TiB of capacity with no growth band, expiring 30 days after the binary's *build* date. **Production deployments must override this.**
 
 ## License file shape
 
@@ -21,7 +21,7 @@ The `.lic` file is a single canonical-JSON document, signed by the vendor with E
 
 | Field | Meaning |
 |---|---|
-| `customer_id` | Stable customer slug. Appears in Prometheus labels, the startup banner, and the audit log. |
+| `customer_id` | Stable customer slug. Appears as a label on the `objectveil_license_info` gauge, in the startup banner, and in the audit log. |
 | `customer_name` | Human-readable customer name. |
 | `license_id` | UUIDv4 unique to this issued license. Reference this in support tickets. |
 | `tier` | One of `design_partner`, `annual`, `perpetual`, `ela`. |
@@ -29,6 +29,8 @@ The `.lic` file is a single canonical-JSON document, signed by the vendor with E
 | `growth_band_pct` | Allowed overage before the hard ceiling kicks in. Defaults to 20. |
 | `expires_at` | License expiration date (RFC 3339). |
 | `maintenance_expires_at` | For perpetual licenses: when maintenance ends. |
+| `trial_period_days` | Optional floating evaluation window, counted from the daemon's first launch under this license. The enforced expiry is the earlier of `expires_at` and first launch plus this many days; the first-launch time is kept in an authenticated local anchor. |
+| `max_instances` | Optional licensed number of simultaneous daemon instances. The daemon does not enforce it; instances are told apart by the deployment UUID in the watermark. |
 | `features` | Allow-list of storage backends. |
 
 The version 2 envelope binds product `objectveil`, envelope version, vendor key ID, algorithm and canonical claims under an ObjectVeil signature domain. Changing any signed value invalidates verification. JSON formatting alone is not entitlement identity. Verification happens at startup.
@@ -41,10 +43,13 @@ The daemon looks for a license in this order:
 2. `OBJECTVEIL_LICENSE`.
 3. `<config-dir>/license.lic`, beside the selected config JSON.
 4. `/etc/objectveil/license.lic`.
-5. The built-in developer license when no customer license was selected; this
-   fallback is not intended for production.
+5. The built-in developer license when none of the above exists. It is not a
+   file: it identifies the deployment as `developer-build`, allows 1 TiB with
+   no growth band, and expires 30 days after the build date regardless of when
+   the binary is first started. This fallback is not intended for production.
 
-An explicit missing path is a hard error. Unsafe, invalid or incompatible files
+An explicit missing path (`--license` or `OBJECTVEIL_LICENSE`) is a hard error
+rather than a fallback. Unsafe, invalid or incompatible files
 are refused. Customer license files for version 7 require a vendor-signed ObjectVeil version 2 envelope;
 older envelope formats require verified conversion, not editing signed JSON.
 Preserve license UUIDs, entitlement dates, customer identity, authenticated trial
@@ -147,9 +152,9 @@ At every startup, the daemon BLAKE3-hashes every executable (`PF_X`) `PT_LOAD` s
 
 ## Common error messages
 
-### `license load failed: license file not found at any search path`
+### A named license file cannot be opened
 
-Check the selected license path, its ownership and permissions, and the version 2 license requirement. Do not delete authenticated clock/trial state or substitute development credentials to bypass a refusal. Contact support if the supplied license cannot be loaded.
+A path given with `--license` or `OBJECTVEIL_LICENSE` that does not exist, or a license file with unsafe ownership or permissions, stops startup with the failing path in the message. Check the selected license path, its ownership and permissions, and the version 2 license requirement. An absent license in the default locations is not an error: the daemon starts on the developer fallback and logs the warning quoted in the TL;DR. Do not delete authenticated clock/trial state or substitute development credentials to bypass a refusal. Contact support if the supplied license cannot be loaded.
 
 ### `license load failed: license signature did not verify`
 
@@ -170,7 +175,7 @@ The license names a `vendor_key_id` (e.g. `v1`) that this daemon binary doesn't 
 
 ### `license expired ... more than 30 days past expires_at`
 
-Self-explanatory. Issue a renewed license.
+The license is beyond its 30-day grace period and the daemon refuses to start. Obtain a renewed license from the vendor and install it at the configured path; existing state is preserved.
 
 ### `write retained locally and queued pending license admission`
 
@@ -185,7 +190,7 @@ When opening a ticket, attach (in this order):
 1. The exact `license_id` from the startup banner.
 2. The last 5 minutes of operator log around the failure.
 3. The `license-audit.log` (the full file is fine; it persists and grows across restarts, and — when the operator provisions `chattr +a` — is verified filesystem-append-only at startup).
-4. The installed artifact version, its release-checksum result, and the startup integrity-check result. The vendor integrity-stamp utility is not included in the public nine-artifact release; request additional verification tooling from support if needed.
+4. The installed artifact version, its release-checksum result, and the startup integrity-check result. The vendor integrity-stamp utility is not part of the nine-artifact release; request additional verification tooling from support if needed.
 
 Vendor-side verification requires the issued `customer_secret` and the
 corresponding authenticated anchor as well as the log. A `customer_id` alone

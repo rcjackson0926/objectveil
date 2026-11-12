@@ -13,13 +13,20 @@
   //   - keystore: Azure, a SEPARATE container for crypto-shred keys —
   //     REQUIRED for any cloud primary. Must be its own container with
   //     versioning / soft-delete all OFF (a key overwrite has to actually
-  //     destroy bytes). See docs/design/object-storage-best-practices.md.
+  //     destroy bytes). Azure sets both per STORAGE ACCOUNT, not per
+  //     container: if the data account keeps versions or deleted blobs, put
+  //     the keystore in a separate account. See
+  //     docs/design/object-storage-best-practices.md.
   //   - secondary: OPTIONAL, explicitly owned native ObjectVeil storage.
   //     It must carry the same namespace and supported current catalog/key
   //     dependencies. It is NOT an unconverted archive-root fallback and may
   //     receive deletions or reconciliation. Remove the block if not provisioned.
 
-  "format": "objectveil/1", "namespace_id": "00000000-0000-0000-0000-000000000000", "depot_path": "/mnt/perforce/depots/depot",  // REPLACE-ME
+  "format": "objectveil/1",
+  // REPLACE-ME: generate one UUID per deployment and use it on every cache
+  // sharing this data/key namespace. The nil placeholder is rejected.
+  "namespace_id": "00000000-0000-0000-0000-000000000000",
+  "depot_path": "/mnt/perforce/depots/depot",  // REPLACE-ME
   "read_only": false,
 
   "max_cache_gb": 4096,        // REPLACE-ME: size to your local NVMe
@@ -43,8 +50,8 @@
     "account_name": "REPLACE-ME",
     "container": "REPLACE-ME-objectveil-data",
     "sas_token": "REPLACE-ME",   // or set "account_key" instead (use one, not both);
-                                 // omit both to use the Azure SDK default credential
-                                 // chain (managed identity / AZURE_CLIENT_ID+SECRET+TENANT_ID)
+                                 // omit both to use the host's managed identity.
+                                 // AZURE_CLIENT_ID/SECRET/TENANT_ID are NOT read.
     "path_prefix": "depot"
     // For a private/custom Azure endpoint instead of the public one, add:
     //   "endpoint": "https://REPLACE-ME.blob.core.windows.net",

@@ -12,14 +12,18 @@
   //   - primary: S3, data bucket (chunks/catalog/standalone objects)
   //   - keystore: S3, a SEPARATE bucket for crypto-shred keys — REQUIRED
   //     for any cloud primary. Must be its own bucket with versioning /
-  //     object-lock / replication all OFF (a key DELETE has to actually
+  //     object-lock / replication all OFF (a key overwrite has to actually
   //     destroy bytes). See docs/design/object-storage-best-practices.md.
   //   - secondary: OPTIONAL, explicitly owned native ObjectVeil storage.
   //     It must carry the same namespace and supported current catalog/key
   //     dependencies. It is NOT an unconverted archive-root fallback and may
   //     receive deletions or reconciliation. Remove the block if not provisioned.
 
-  "format": "objectveil/1", "namespace_id": "00000000-0000-0000-0000-000000000000", "depot_path": "/mnt/perforce/depots/depot",  // REPLACE-ME
+  "format": "objectveil/1",
+  // REPLACE-ME: generate one UUID per deployment and use it on every cache
+  // sharing this data/key namespace. The nil placeholder is rejected.
+  "namespace_id": "00000000-0000-0000-0000-000000000000",
+  "depot_path": "/mnt/perforce/depots/depot",  // REPLACE-ME
   "read_only": false,
 
   "max_cache_gb": 4096,        // REPLACE-ME: size to your local NVMe
@@ -42,8 +46,9 @@
     "type": "s3",
     "bucket": "REPLACE-ME-objectveil-data",
     "region": "REPLACE-ME",             // e.g. "us-east-2" — co-locate with the daemon
-    "access_key": null,                 // omit to use the AWS default credential chain
-    "secret_key": null,                 // (IAM instance role / IRSA / ECS task role, etc.)
+    "access_key": null,                 // set both for static keys, or leave both null to
+    "secret_key": null,                 // use the EC2 instance profile. Environment keys,
+                                        // IRSA and ECS/EKS task roles are NOT read.
     "path_prefix": "depot"
     // Optional: set the cloud STORAGE CLASS (tier) for NEW data uploads.
     // Omit (the default) to use the bucket's default class — zero behaviour

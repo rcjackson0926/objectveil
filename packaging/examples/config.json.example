@@ -1,5 +1,7 @@
 {
-  "format": "objectveil/1", "namespace_id": "00000000-0000-0000-0000-000000000000", "depot_path": "/p4/1/cache",
+  "format": "objectveil/1",
+  "namespace_id": "00000000-0000-0000-0000-000000000000",
+  "depot_path": "/p4/1/depots",
   "state_dir": "/var/lib/objectveil",
   "read_only": false,
   "max_cache_gb": 4096,

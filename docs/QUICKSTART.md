@@ -5,12 +5,12 @@ Upgrading an existing installation? Follow the
 services, state directories, environment variables or cloud prefixes.
 
 
-Start with [INSTALL.txt](../INSTALL.txt) for checksum verification, installation,
-service ownership and coordinated first activation or upgrade. This public
-repository contains documentation and templates, not implementation source.
+Start with `INSTALL.txt`, at the top of the release bundle or in
+`/usr/share/doc/objectveil/` for a package. It covers checksum verification,
+installation, service ownership and coordinated first activation or upgrade.
 
 Get `objectveil` running in front of an existing Perforce server, from a
-verified release bundle to a read-only cache to full write mode. This is the
+verified release to a read-only cache to full write mode. This is the
 narrative walkthrough; [`OPERATIONS.md`](OPERATIONS.md) has the terser
 reference version and every operational detail (metrics, log rotation,
 disaster recovery, obliterate, upgrade notes). [`CONFIGURATION.md`](CONFIGURATION.md)
@@ -27,16 +27,18 @@ is the full field-by-field config reference.
   The split is mandatory (the daemon refuses to start without it) — see
   [the note below](#2-provision-storage). Skip this if you're doing an
   NFS-only proof of concept.
-- The complete matching Linux release artifacts and a valid vendor-signed
-  version 2 license. No license is bundled.
+- The complete matching Linux release artifacts. No license is bundled: use
+  a vendor-signed version 2 license for anything beyond a short trial. Without
+  one the daemon starts on its built-in developer license (1 TiB, expiring 30
+  days after the release was built); see [`LICENSING.md`](LICENSING.md).
 
 ## 1. Install the matching release
 
-Follow [INSTALL.txt](../INSTALL.txt) to verify and install either the Debian
-package or a tar bundle in a new versioned directory. Use all nine runtime
-artifacts from that same release: the daemon, initializer, migration tool,
-verifier, manifest summary, catalog rebuild, rescan, deduplication measurement
-and preload library. Do not mix a new daemon with an already mapped older shim.
+Follow `INSTALL.txt` to verify and install the Debian package, the RHEL 9 RPM
+or a tar bundle in a new versioned directory. Use all nine runtime artifacts
+from that same release: the daemon, initializer, migration tool, verifier,
+manifest summary, catalog rebuild, rescan, deduplication measurement and
+preload library. Do not mix a new daemon with an already mapped older shim.
 
 The commands below use installed executable names. For a tar installation,
 substitute the absolute paths under that verified bundle's `bin/` directory.
@@ -66,8 +68,8 @@ credentials.
 2. Create a **separate** **keystore** bucket/container for the per-file
    crypto-shred keys. This one must have **versioning OFF, soft-delete
    OFF, object-lock/WORM OFF, and no replication** — `p4 obliterate`
-   destroys a key by overwriting it, and that only actually destroys the
-   revoked key only when no historical copy survives. Startup probes check
+   destroys a key by overwriting it, and that actually destroys the revoked
+   key only when no historical copy survives. Startup probes check
    visible storage behavior and exposed version IDs; they do not prove that
    soft delete, retention, backups or replication are absent. Independently
    verify those policies on every provider. GCS also requires the explicit
@@ -101,8 +103,10 @@ See [upgrading](upgrading.md) for format transitions.
 
 ## 4. First run: read-only mode
 
-Use a separate reader cache against an already populated backend. With
-`read_only: true`, the daemon serves restores and checks remote freshness even
+Use a separate reader cache against an already populated backend. A read-only
+cache never initializes storage, so a brand-new deployment has nothing to read
+yet: start its first writer with [step 6](#6-go-to-write-mode), and return to
+this drill once archives have been published. With `read_only: true`, the daemon serves restores and checks remote freshness even
 for warm archive opens; managed writes are rejected. This confirms backend and
 credentials without enabling fanotify or uploads. Do not apply read-only mode
 to an active submit server:
@@ -127,7 +131,7 @@ Restart `p4d` with the shim preloaded:
 
 ```bash
 LD_PRELOAD=/path/to/libobjectveil_shim.so \
-OBJECTVEIL_DEPOT=/mnt/perforce/depots/your-depot \
+OBJECTVEIL_DEPOT=/p4/1/depots \
 p4d ...
 ```
 
@@ -150,12 +154,13 @@ not a daemon-only toggle:
 
 1. With all writers and the daemon stopped, set `read_only: false` in the config.
 2. Grant the daemon `CAP_SYS_ADMIN` (needed for fanotify, which watches
-   for new/changed depot files):
+   for new/changed depot files). The packaged systemd unit already does this
+   for the service alone; for a manual launch:
    ```bash
    sudo setcap cap_sys_admin+ep /usr/bin/objectveil
    ```
-3. Start the daemon, require `OK WRITER` from its actual shim socket, then
-   restart every p4d with the matching current shim and actual root/socket paths.
+3. Start the daemon, then restart every p4d with the matching current shim and
+   actual root/socket paths.
    Release the fence only once every writer is coordinated. The shim caches its
    role for the process lifetime, so restarting only the daemon is insufficient.
    The daemon
@@ -177,7 +182,7 @@ for its whole lifetime.
 
 - **Run under `systemd`** instead of the daemon's own `daemon: true` flag
   — use the supplied package or adapt its unit for the verified tar bundle. See
-  [`OPERATIONS.md`](OPERATIONS.md#debian-package).
+  [`OPERATIONS.md`](OPERATIONS.md#packages).
 - **License:** obtain a signed version 2 license for the deployment and pass
   it via `--license <path>` (or the other search-path locations —
   [`LICENSING.md`](LICENSING.md)).
@@ -186,8 +191,9 @@ for its whole lifetime.
 - **Access-log analytics:** if you want per-path access history, set
   `access_log_enabled: true` and configure `access_es_url` or
   `access_pg_url` — see [`CONFIGURATION.md`](CONFIGURATION.md#access-logging).
-  Every template ships with this off so it loads with no external
-  dependency by default.
+  The cloud templates ship with this off so they load with no external
+  dependency; the NFS + Postgres template and the full reference show a
+  configured sink.
 - **Tune for your workload:** the shipped thread/packing settings are a
   balanced default. If you're write-heavy (commit servers) or read-heavy
   (edge replicas), see the workload-shape tables in

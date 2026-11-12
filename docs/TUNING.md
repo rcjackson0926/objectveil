@@ -1,6 +1,6 @@
 # Performance tuning guide
 
-Defaults in `CacheConfig` target a mid-sized shop with bursty writes
+The built-in defaults target a mid-sized shop with bursty writes
 and mostly cold reads. Real deployments benefit from tuning a handful
 of knobs against actual workload shape.
 
@@ -113,7 +113,7 @@ provider lifecycle policy).
   `STANDARD_IA` (S3) / `NEARLINE` (GCS) / `Cool` (Azure). Only the **primary**
   data backend honours the setting — the keystore and secondary are excluded.
 - S3 `INTELLIGENT_TIERING` is allowed, but do **not** turn on the bucket's
-  optional Archive/Deep-Archive access tiers for a objectveil data bucket: aged
+  optional Archive/Deep-Archive access tiers for an objectveil data bucket: aged
   objects would move to asynchronous retrieval and cold reads of them would fail.
 
 See [`CONFIGURATION.md`](CONFIGURATION.md#storage-class-data-tiering) for the
@@ -125,9 +125,10 @@ full rules and rationale.
   deduplicated events (default 10000); tune that plus `access_es_url` +
   TLS settings and `access_flush_interval_secs`.
 - **Postgres**: each flush upserts up to `access_batch_size` rows
-  (default 10000). If you see lag, check the destination table is
-  indexed on `(path, last_access)` (standard) and that autovacuum is
-  keeping up.
+  (default 10000). The upsert resolves conflicts on the `path` primary key
+  the daemon creates with the table, so no extra index is needed; if you
+  see lag, check that key exists on a pre-created table and that
+  autovacuum is keeping up.
 - **Spool fallback**: `access_spool_max_bytes` bounds the on-disk buffer
   during sink outages. Size it to ride through a peak-hour outage. It is
   unset (disabled) by default; leave it unset to disable the spool (a
@@ -140,7 +141,7 @@ Prometheus textfile (path set by `metrics_file`):
 | metric | meaning | threshold |
 |---|---|---|
 | `objectveil_cache_bytes / objectveil_cache_max_bytes` | fill % | > 95% sustained → raise cap or lower watermark |
-| `objectveil_uploads_total{result="failure"}` | terminal upload failures | any persistent growth → check failed-ops log |
+| `objectveil_uploads_total{result="failure"}` | terminal upload failures | any persistent growth → check the failed-uploads log |
 | `objectveil_restores_total{result="failure"}` | cold-read failures | any persistent growth → backend health |
 | `objectveil_files{state="uploading"}` | in-flight uploads | should oscillate around `upload_threads`; if pinned at ceiling, upload workers are saturated |
 | `objectveil_evictions_total` | files evicted | rate of growth = churn; sustained high rate = working-set overrun |

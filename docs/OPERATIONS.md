@@ -7,9 +7,9 @@ services, state directories, environment variables or cloud prefixes.
 
 ## Installation
 
-Start with [INSTALL.txt](../INSTALL.txt). Verify the selected Linux release
-assets before installing; this public repository does not include implementation
-source or a build toolchain. Use the complete matching artifact set:
+Start with `INSTALL.txt`, at the top of the release bundle or in
+`/usr/share/doc/objectveil/` for a package. Verify the selected Linux release
+assets before installing, and use the complete matching artifact set:
 
 - `objectveil` — daemon
 - `objectveil-initialize` — native local archive-root initialization
@@ -21,28 +21,43 @@ source or a build toolchain. Use the complete matching artifact set:
 - `objectveil-dedup-measure` — deduplication measurement
 - `libobjectveil_shim.so` — matching preload library
 
-Executable examples below use the Debian paths. For a tar installation, use
-absolute paths to the same tools inside the verified versioned bundle.
+Keep all nine together when installing, upgrading or rolling back. The daemon,
+migration tool and initializer check their own integrity seal at startup.
+Preserve native state and follow [upgrading](upgrading.md) for format
+compatibility requirements.
+
+Executable examples below use the package paths under `/usr/bin`. For a tar
+installation, use absolute paths to the same tools inside the verified
+versioned bundle.
 
 ### Cloud backends
 
-The cloud backends (S3, Azure, GCS) are a single, always-compiled
-`object_store`-backed wrapper — there are no per-cloud feature gates or
-per-cloud build variants, and one binary serves every backend. NFS is
-also always compiled (a custom backend with no optional dependencies),
-so the default feature set is empty. Which backend a given deployment
-uses is chosen entirely by the `primary`/`secondary` config, not at
-build time.
+One set of binaries serves every backend: S3, Azure and GCS share a single
+object-store client and NFS is always available. Which backend a deployment
+uses is chosen entirely by the `primary`/`secondary` config.
 
-## Debian Package
+## Packages
 
-Install the verified `objectveil_7.0.0_amd64.deb` asset as described in
-[INSTALL.txt](../INSTALL.txt). Complete the coordinated writer stop first; the
-package does not stop or restart Perforce for you.
+Install the verified `.deb` (Debian/Ubuntu) or `.rpm` (RHEL 9) release asset as
+described in `INSTALL.txt`; [Red Hat installation](redhat.md) covers the RPM in
+detail. Complete the coordinated writer stop first.
 
-Package contents include all eight executables in `/usr/bin`, the matching
-`/usr/lib/objectveil/libobjectveil_shim.so`, the systemd unit, the example
-configuration and operator documentation. No signed license is included.
+Package contents:
+
+- all eight executables in `/usr/bin` (`objectveil` and the seven `objectveil-*` tools)
+- `/usr/lib/objectveil/libobjectveil_shim.so`
+- the `objectveil.service` systemd unit (`/lib/systemd/system` in the `.deb`,
+  `/usr/lib/systemd/system` in the RPM)
+- `/etc/objectveil/config.json.example`
+- `/usr/share/doc/objectveil/` — these guides, design notes and example configs
+
+No signed license is included. Both packages depend on `ca-certificates`: the
+cloud backends verify TLS against the system trust store.
+
+Both packages refuse installation, upgrade and removal while a `p4d` or
+`objectveil` process is running, or while `objectveil.service` is active or in
+a transitional state. They never stop, start or enable a service, and never
+create or delete configuration, licenses, archives or state.
 
 The packaged `systemd` unit expects:
 
@@ -59,10 +74,6 @@ The packaged unit runs as `perforce` and lets `systemd` create:
 The packaged example config is aligned with that layout.
 The packaged unit also sets `TimeoutStartSec=0` so large depots are not killed
 by `systemd` while the daemon is walking existing files.
-
-The supplied tools must be kept together when installing, upgrading or rolling
-back. Preserve native state and follow [upgrading](upgrading.md) for format
-compatibility requirements.
 
 ## Deployment Model
 
@@ -90,6 +101,15 @@ Write mode needs Linux fanotify privileges:
 sudo setcap cap_sys_admin+ep /usr/bin/objectveil
 ```
 
+A file capability applies to every user who can execute that binary, not only
+the service account, and it is lost whenever the file is replaced, for example
+by a package upgrade. The packaged unit instead grants the capability to the
+service alone through `AmbientCapabilities`; because it also sets
+`NoNewPrivileges`, a file capability on the packaged binary has no effect
+there. Prefer the unit, and if you use `setcap` for a manual launch, restrict
+who may execute the file. Either way the daemon drops the capability once
+fanotify is initialized unless `keep_caps` is set.
+
 Reader-only deployments can use `read_only = true` without this capability.
 
 ### Socket access across Linux users
@@ -111,13 +131,21 @@ when that access is needed. Keep socket modes restricted (normally `0660`),
 and do not grant group/world write on state. UID allowlists do not select a
 group or grant filesystem permissions.
 
+The packaged unit's `/var/lib/objectveil` is the exception to the private
+default: `systemd` creates it with mode `0755`, and the packaged example config
+writes the world-readable `objectveil.prom` there for a metrics collector that
+runs as another user. The daemon keeps its own files in it owner-only. The
+manifest database, which lists every tracked depot path, is created `0600`, and
+on startup the daemon removes world access from a manifest that an earlier
+release left readable.
+
 The shim also accepts a daemon peer only when it runs as the application's UID
 or as root. This authentication rule does not change the restored file's owner
 or mode. Add every intended connecting UID to `shim_allowed_uids` and
 `access_allowed_uids`, and every archive writer to `watcher_allowed_uids`, but
 keep serving processes under the matching UID for this release.
 
-Verify readiness and an actual cold read through the matching shim **as the
+Verify an actual cold read through the matching shim **as the
 application's real UID**, including after a daemon restart. Use a controlled,
 independently verified test archive; do not remove real archives just to
 manufacture a cold read. For existing state, preserve its contents and ownership
@@ -173,17 +201,20 @@ verification). Terse version:
 /usr/bin/objectveil /etc/objectveil/config.json
 ```
 
-6. Require the configured mode/readiness, then start every managed `p4d` with the matching preload shim:
+6. Start every managed `p4d` with the matching preload shim:
 
 ```bash
 LD_PRELOAD=/path/to/libobjectveil_shim.so \
-OBJECTVEIL_DEPOT=/mnt/perforce/depots/cod \
-OBJECTVEIL_SOCK=/mnt/perforce/depots/cod/.objectveil/shim.sock \
-OBJECTVEIL_ACCESS_SOCK=/mnt/perforce/depots/cod/.objectveil/access.sock \
+OBJECTVEIL_DEPOT=/p4/1/depots \
+OBJECTVEIL_SOCK=/p4/1/depots/.objectveil/shim.sock \
+OBJECTVEIL_ACCESS_SOCK=/p4/1/depots/.objectveil/access.sock \
 p4d ...
 ```
 
-The two socket variables are optional unless you want non-default socket paths.
+The two socket variables are optional while the daemon uses the default
+`depot_path/.objectveil` state directory. With an explicit `state_dir` (the
+packaged example config sets `/var/lib/objectveil`) point both at that
+directory's `shim.sock` and `access.sock`.
 
 ## State Directory
 
@@ -196,8 +227,14 @@ The selected directory contains:
 - Terminal-failure ledger: existing daemon-owned JSONL log of upload failures; preserve its recorded filename
 - `shim.sock`: Unix stream socket used by `libobjectveil_shim.so`
 - `access.sock`: Unix datagram socket used by the access logger
+- license state: `license-audit.log`, its `license-audit.anchor.json`, the
+  clock/trial anchors and `license/daemon-instance.uuid` (see [licensing](LICENSING.md))
+- `access-spool/` when `access_spool_max_bytes` is set without an explicit `access_spool_dir`
+- recovery markers and journals such as `catalog-recovery-incomplete` and
+  `refresh-retained/` (see [disaster recovery](disaster-recovery.md))
 
-This directory is reserved and never treated as depot content.
+Back the whole directory up together and never edit or delete individual
+files. This directory is reserved and never treated as depot content.
 
 ## Startup Scan
 
@@ -226,9 +263,7 @@ Eviction still checks the locked local file's size and hash before removing it;
 that final guard does not publish missed writes. Read-only caches do not run this scan.
 
 Socket creation alone is not readiness: the listener can exist during license,
-manifest, or cloud-key checks. Before starting dependent Perforce operations,
-use a client implementing the bundled shim's versioned role handshake against
-the selected shim socket and require the configured writer or read-only role. Bootstrap errors are temporary failures, not
+manifest, or cloud-key checks. Bootstrap errors are temporary failures, not
 permission to bypass the shim. Readiness does not mean the background writer
 reconciliation or upload backlog has finished; check their status separately.
 
@@ -535,16 +570,18 @@ The default of `access_log_enabled = true` means a config that omits
 both sinks is **rejected at load time**. If access logging is not
 desired, set `access_log_enabled = false` explicitly.
 
-(Earlier docs described "best-effort disabled" behavior here; the
-loader's no-sink rejection makes that path explicit.)
-
 `access_es_auth` uses `user:pass` basic auth format. `access_es_ca_cert` should point to a PEM CA bundle if Elasticsearch uses a private CA.
 
 For PostgreSQL:
 
-- put credentials and any desired `sslmode` in `access_pg_url`
-- use `access_pg_table` to select the destination table, optionally schema-qualified
-- use `access_pg_ca_cert` for private TLS roots
+- put credentials and an explicit `sslmode` of `require`, `verify-ca` or
+  `verify-full` in `access_pg_url`; a missing or weaker mode is rejected
+- use `access_pg_table` to select the destination table, optionally
+  schema-qualified. The daemon creates the table when it is missing (default
+  `objectveil_access`) but never a schema, so create the schema first
+- use `access_pg_ca_cert` with `verify-ca`/`verify-full` for a private CA. The
+  server certificate is always verified: without that file, against the
+  daemon's bundled public roots rather than the host trust store
 - use `access_spool_max_bytes` if you want bounded on-disk buffering during sink outages
 
 Access-log failure handling:
@@ -559,45 +596,51 @@ Access-log failure handling:
 
 ### Azure
 
-- Use either `sas_token`, `account_key`, or the Azure SDK default credential chain.
+- Use `sas_token` or `account_key` (not both). With neither, the client
+  authenticates as the host's managed identity through the instance metadata
+  service. `AZURE_*` service-principal and workload-identity environment
+  variables and an Azure CLI login are not read.
 - `endpoint` is optional. If omitted, the daemon uses `https://<account_name>.blob.core.windows.net/<container>`.
-- `ca_cert_path` and `verify_ssl: false` are **rejected at config load** (see `docs/CONFIGURATION.md`'s Backend Object table) — the `object_store`-backed builders don't honour either, so the loader fails closed rather than silently ignoring them. There is no working custom-CA/relaxed-TLS override today.
+- `ca_cert_path` and `verify_ssl: false` are **rejected at config load** (see the [Backend Object table](CONFIGURATION.md#backend-object)) — the `object_store`-backed builders don't honour either, so the loader fails closed rather than silently ignoring them. There is no working custom-CA/relaxed-TLS override today.
 - `restore_chunk_threshold_mb` and `restore_chunk_threads` apply to Azure, S3, and GCS large-file restores. NFS ignores both. Tune them once per cloud-backend choice; they aren't Azure-specific.
 
 ### S3
 
 - `bucket` is required.
 - `endpoint` is optional and is how you target S3-compatible services such as MinIO.
-- If you omit `access_key` and `secret_key`, the AWS SDK default credential chain is used.
+- If you omit `access_key` and `secret_key`, the client uses the EC2 instance profile (see [S3 credentials](#s3-credentials) for what is and is not read).
 - `ca_cert_path` and `server_side_encryption: true` are **rejected at config load** — neither is wired through the `object_store` S3 builder. Configure default bucket encryption on the AWS side instead of `server_side_encryption`.
 - `verify_ssl = false` is rejected at config load, with no working fallback (not even via `ca_cert_path`, which is also rejected) — install the endpoint's CA in the system trust store instead.
-- `region` should match the region the daemon runs in. Co-locate the bucket
+- `region` must name the bucket's region; when it is omitted the client
+  assumes `us-east-1`. It should also match the region the daemon runs in. Co-locate the bucket
   and the daemon: a cross-region bucket bills inter-region data transfer on
   every restore and upload. On EC2, if `region` is set (and no custom
   `endpoint` is configured) the daemon compares it against the instance's own
   region at startup via IMDSv2 and logs a **warning** on a mismatch — advisory
   only, but a cheap way to catch an expensive misconfiguration.
 
-#### S3 credential refresh
+#### S3 credentials
 
-The SDK resolves credentials via the standard AWS provider chain. How
-long the daemon keeps working without operator intervention depends on
-which provider fires:
+The S3 client is built from the backend block alone; it does not run the
+general AWS provider chain. Exactly two sources exist:
 
-- **IAM instance role, IRSA, EKS Pod Identity, ECS task role.**
-  Credentials auto-refresh in the background; no action required.
-- **Static `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` (no session
-  token).** Long-lived credentials — no expiry, no refresh needed.
-- **Static `AWS_SESSION_TOKEN` in the daemon environment.** The STS
-  token has a fixed TTL (typically 1–12 h). Once it expires, every
-  upload/restore will get a 403 and the daemon does **not** self-
-  recover: it reads the environment once at process start. Restart
-  the daemon with a fresh token, or — preferred — migrate to an IAM
-  role so refresh is transparent.
+- **`access_key` + `secret_key` in the config.** Long-lived static keys — no
+  expiry, no refresh. There is no field for a session token, so temporary STS
+  credentials cannot be supplied this way.
+- **The EC2 instance profile**, when both keys are omitted. The client fetches
+  role credentials from the instance metadata service and refreshes them in
+  the background; no action is required.
 
-Operators watching for this condition should alert on a sustained
-`objectveil_uploads_total{result="failure"}` increment paired with repeated
-403s in the daemon log.
+Nothing else is consulted. `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` /
+`AWS_SESSION_TOKEN`, shared credential or config profiles, IRSA
+(`AWS_WEB_IDENTITY_TOKEN_FILE` + `AWS_ROLE_ARN`), EKS Pod Identity and ECS task
+roles (`AWS_CONTAINER_CREDENTIALS_*`) are **not** read. A daemon that relies on
+one of them falls through to the instance metadata service and fails
+authentication, or silently uses the node's role where that is reachable. Off
+EC2, or in a pod that must not use the node role, configure static keys.
+
+Alert on a sustained `objectveil_uploads_total{result="failure"}` increment
+paired with repeated 401/403 responses in the daemon log.
 
 ### NFS
 
@@ -606,7 +649,10 @@ Operators watching for this condition should alert on a sustained
 
 ### GCS
 
-- `bucket` is required. `credentials_file` is optional when Application Default Credentials are available.
+- `bucket` is required. `credentials_file` names a service-account key. When
+  it is omitted the client uses the gcloud application-default credentials
+  file in the daemon user's home directory if present, otherwise the GCE/GKE
+  metadata server. `GOOGLE_APPLICATION_CREDENTIALS` is not read.
 - With `credentials_file`, the backend signs a JWT locally from the service-account key and uses it directly as the bearer token (`object_store`'s `SelfSignedJwt`) — there is no token-endpoint round trip to exchange it for a separate OAuth token.
 - `project_id` is accepted but currently **dead** — it's parsed into the config and never sent to the GCS client (no `x-goog-user-project` header). Safe to omit.
 - GCS `endpoint` overrides are rejected at config load. Select the storage bucket with `bucket`; a `gs://` endpoint could otherwise replace that bucket and defeat the separation between archive data and keys.
@@ -632,8 +678,10 @@ Recommended lifecycle configuration on the **data** bucket:
   must have no versioning, soft-delete, object-lock, retention or replication
   that preserves revoked keys; independently verify those provider policies
   before claiming cryptographic erasure (see the keystore requirements).
-- **Avoid Glacier / non-instant-retrieval tiers** on `chunks/` — they are on the
-  restore-serving path and would turn a cold read into a multi-hour restore.
+- **Avoid Glacier / non-instant-retrieval tiers** on every data payload prefix
+  (`chunks/`, `standalone/`, `blobs/`) and on `catalog/` — they are all on the
+  restore-serving path, and an asynchronous tier would fail or stall a cold read
+  until a provider restore completes.
 - Keep an **AbortIncompleteMultipartUpload** rule (1–7 days) on the data prefixes
   as the backstop for parts orphaned by a crash mid-multipart.
 
@@ -645,7 +693,7 @@ Watch `objectveil_backend_bytes_total` and `objectveil_backend_requests_total` (
 1. Use a separate read-only cache to verify restores from an already populated backend. Do not switch an active submit server to read-only mode for this drill.
 2. Turn on `metrics_file` and confirm the textfile exporter is producing sane counters and gauges.
 3. If you need access analytics, enable Elasticsearch or PostgreSQL logging after restore behavior is stable.
-4. Follow the [coordinated first-activation steps](#quick-start): fence every writer and automatic restart, enable write mode with the required capability, require writer readiness, then restart every p4d with the matching shim before releasing the fence.
+4. Follow the [coordinated first-activation steps](#quick-start): fence every writer and automatic restart, enable write mode with the required capability, then restart every p4d with the matching shim before releasing the fence.
 
 ## Schema & Protocol Versioning
 
@@ -732,13 +780,13 @@ identities.
 
 ### 3. Access log entries
 
-`AccessEntry` carries a `schema_version` field (currently `1`). When
-adding new fields, bump the version and tag the field with
-`#[serde(default)]` so older records are still decodable. For
-Elasticsearch, rotate the index suffix
-(for example, explicitly configure `objectveil-access-v<N>-<date>`) when the version changes. For
-Postgres, add a migration under
-`packaging/postgres/migrations/`.
+Access records carry a `schema_version` (currently `1`). Elasticsearch
+documents include it as their first field; when a release changes the
+version, select a new index (for example, explicitly configure
+`objectveil-access-v<N>-<date>`) rather than mixing generations in one
+index. The PostgreSQL sink writes only `path`, `last_access` and `size`,
+so its table needs no change for the current version; any future schema
+change will be described in that release's upgrade notes.
 
 ## Checkpoint Verification
 
@@ -766,6 +814,8 @@ directory) so long scans can resume across restarts.
   targets.shelf.txt         verify targets for shelved archives
   verified.regular.ok.txt   verify-OK list, regular
   verified.shelf.ok.txt     verify-OK list, shelf
+  unavailable_objects.txt   JSON-lines log of rows that exhausted the
+                            transient-error retry budget (see below)
 ```
 
 ### Non-UTF-8 archive keys on cloud backends

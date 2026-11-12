@@ -1,6 +1,6 @@
 # Red Hat Enterprise Linux installation
 
-Use `objectveil-7.0.0-1.el9.x86_64.rpm` for RHEL 9 on Intel/AMD 64-bit.
+Use `objectveil-7.0.1-1.el9.x86_64.rpm` for RHEL 9 on Intel/AMD 64-bit.
 This native build uses glibc 2.34. The Debian/Ubuntu package and generic Linux
 tarball are separate builds requiring glibc 2.39; do not use those on RHEL 9.
 RPM resolves the generated ELF dependencies, including glibc and libgcc,
@@ -11,11 +11,11 @@ or vendor signing/stamping utility is included.
 
 Download the RPM and `SHA256SUMS` from the official release into an empty
 directory, verify each downloaded asset, and complete the coordinated stop
-in [release installation instructions](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.0/INSTALL.txt) before installing:
+in [release installation instructions](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/INSTALL.txt) before installing:
 
 ```sh
 sha256sum --ignore-missing -c SHA256SUMS
-sudo dnf install ./objectveil-7.0.0-1.el9.x86_64.rpm
+sudo dnf install ./objectveil-7.0.1-1.el9.x86_64.rpm
 rpm -q objectveil
 rpm -V objectveil
 ```
@@ -44,7 +44,7 @@ allow rules blindly or disable SELinux to make a failing deployment start.
 This package does not install a universal SELinux policy or relabel archives.
 
 Validate the real host's fanotify support and service capability, archive-owner
-permissions, license, readiness and a real cold read under the application UID
+permissions, license and a real cold read under the application UID
 before enabling eviction. Container tests exercise RHEL user space, not the
 RHEL kernel, host systemd or your enforcing SELinux policy.
 
@@ -57,7 +57,7 @@ private directory and extract the trusted payload there (requires rpm2cpio/cpio)
 ```sh
 mkdir -m 700 objectveil-rhel9-migration
 cd objectveil-rhel9-migration
-rpm2cpio ../objectveil-7.0.0-1.el9.x86_64.rpm | cpio -idm --no-absolute-filenames
+rpm2cpio ../objectveil-7.0.1-1.el9.x86_64.rpm | cpio -idm --no-absolute-filenames
 ./usr/bin/objectveil-migrate --help
 ```
 
@@ -70,7 +70,7 @@ packing, encryption, deduplication and parallel multipart pipeline.
 ## Upgrade and removal
 
 Fence automatic restarts, stop all p4d/writers and ObjectVeil, then install
-with `dnf upgrade ./objectveil-7.0.0-1.el9.x86_64.rpm`. Follow the same matching
+with `dnf upgrade ./objectveil-7.0.1-1.el9.x86_64.rpm`. Follow the same matching
 shim restart and recovery checks as a fresh install. Consult [upgrading.md](upgrading.md)
 for format/identity preservation and rollback requirements.
 

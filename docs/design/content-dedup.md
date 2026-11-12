@@ -91,10 +91,24 @@ external key backups are outside that revocation guarantee.
 GC establishes that no path needs it. This applies even if only one path ever
 referenced the content. A candidate with no local reference is only a starting
 point. Before shredding, GC requires the single-writer attestation, exclusion
-of active ingestion, and a complete remote catalog and absence of unsupported independent route records. Any surviving
-reference to either the content hash or ciphertext address, or any incomplete
-metadata read, defers destruction. The anchor is poisoned before deletion of
-its captured ciphertext object.
+of active ingestion, a complete remote catalog and absence of unsupported
+independent route records, a complete keystore inventory showing that no other
+key slot holds the same key, and authentication of the exact blob under the
+anchor. Any surviving reference to either the content hash or ciphertext
+address, any other holder of the key, or any incomplete read, defers
+destruction. The anchor is poisoned before deletion of its captured ciphertext
+object.
+
+GC proves a batch of candidates with one catalog inventory and one keystore
+inventory, because neither read depends on which candidate is being proved, and
+it performs both without excluding writers. It relies on the single-writer
+invariant instead. Every ingest registers its content hash before it can obtain
+the shared key, and every catalog publication reports the content hashes and
+blob addresses it names; a candidate that either touches while it is being
+proved is deferred to a later pass. The exclusive writer drain is held only to
+re-confirm the candidate and poison its anchor. A candidate that cannot be
+collected is retried with back-off, the object that blocked it is remembered in
+memory and re-read alone on retry, and an obliterate ends every back-off.
 
 Unknown orphan blobs are retained. A delayed earlier deletion can otherwise
 arrive after the same address has been reused; absence from a local reference

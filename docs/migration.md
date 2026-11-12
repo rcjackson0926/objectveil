@@ -152,7 +152,7 @@ objectveil-migrate /etc/objectveil/config.json \
 
 Inspect the reported inventory, skips and addressing fingerprint. `--plan`
 performs local inspection without uploading. Omit it to import. `--source-kind`
-may be omitted for live mode. `--license /secure/path/license.json` selects an
+may be omitted for live mode. `--license /secure/license.lic` selects an
 explicit license.
 
 For example, if the live cache will manage `/p4/1/depots`, use that archive-only

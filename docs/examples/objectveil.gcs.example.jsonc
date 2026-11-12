@@ -13,16 +13,20 @@
   //   - keystore: GCS, a SEPARATE bucket for crypto-shred keys — REQUIRED
   //     for any cloud primary. Must be its own bucket with versioning /
   //     soft-delete / retention all OFF (a key overwrite has to actually
-  //     destroy bytes). GCS exposes no versioning-status API, so the
-  //     daemon cannot self-verify this — you must attest it below via
-  //     gcs_versioning_disabled_confirmed. See
+  //     destroy bytes). The daemon's storage interface does not expose
+  //     GCS bucket policy, so it cannot self-verify this — you must attest
+  //     it below via gcs_versioning_disabled_confirmed. See
   //     docs/design/object-storage-best-practices.md.
   //   - secondary: OPTIONAL, explicitly owned native ObjectVeil storage.
   //     It must carry the same namespace and supported current catalog/key
   //     dependencies. It is NOT an unconverted archive-root fallback and may
   //     receive deletions or reconciliation. Remove the block if not provisioned.
 
-  "format": "objectveil/1", "namespace_id": "00000000-0000-0000-0000-000000000000", "depot_path": "/mnt/perforce/depots/depot",  // REPLACE-ME
+  "format": "objectveil/1",
+  // REPLACE-ME: generate one UUID per deployment and use it on every cache
+  // sharing this data/key namespace. The nil placeholder is rejected.
+  "namespace_id": "00000000-0000-0000-0000-000000000000",
+  "depot_path": "/mnt/perforce/depots/depot",  // REPLACE-ME
   "read_only": false,
 
   "max_cache_gb": 4096,        // REPLACE-ME: size to your local NVMe
@@ -44,15 +48,15 @@
   "primary": {
     "type": "gcs",
     "bucket": "REPLACE-ME-objectveil-data",
-    "credentials_file": "/etc/objectveil/gcs-service-account.json",  // REPLACE-ME;
-                                                                     // omit to use
-                                                                     // Application
-                                                                     // Default Credentials
+    // REPLACE-ME. Omit to use the gcloud application-default credentials file
+    // in the daemon user's home directory, or else the GCE/GKE metadata
+    // server. GOOGLE_APPLICATION_CREDENTIALS is NOT read.
+    "credentials_file": "/etc/objectveil/gcs-service-account.json",
     "path_prefix": "depot"
     // NOTE: verify_ssl: false and ca_cert_path are REJECTED at config load (not
     // silently ignored) — the object_store-backed GCS client doesn't honour either.
-    // `endpoint` only accepts a gs:// URL (not http/https), so it isn't useful for
-    // pointing at a local emulator here.
+    // `endpoint` overrides are REJECTED for GCS at config load; select the bucket
+    // with `bucket`.
   },
 
   "keystore": {

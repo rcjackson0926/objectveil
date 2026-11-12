@@ -1,228 +1,153 @@
 {
   "format": "objectveil-release-validation/1",
   "product": "ObjectVeil",
-  "version": "7.0.0",
-  "status": "passed",
-  "scope": "Functional and artifact acceptance for the named runtime. Provider-retained test history and verification limits are reported separately.",
-  "source_commit": "a575b57c83cae2c120eb38799c396411d12bf666",
-  "packaging_commit": "529390d6adc1e8165918ed0108350f08ddd146ca",
+  "version": "7.0.1",
+  "status": "passed_without_cloud_provider_tests",
+  "scope": "Artifact identity, the required Linux gate, real Perforce integration on the exact packaged executables, and Debian package lifecycle. Every check listed here passed. No live cloud-provider test was run for this release: read not_run before relying on cloud storage, migration or cold-read acceptance.",
+  "recorded_on": "2026-11-12",
+  "source_commit": "396f47f5d07b4d28e27fd434620aa4694191919a",
+  "packaging_commit": "396f47f5d07b4d28e27fd434620aa4694191919a",
   "platform": "Linux x86-64",
   "minimum_glibc": "2.39",
   "runtime_sha256": {
-    "objectveil-initialize": "d6d89b4a5accde44908e4cf2e9ebdac86a982604f4970a9d0a63ecbc6c9222a8",
-    "objectveil-migrate": "d2dceb0d5ba558af063175885f625e2bea04367d46ac2c68b4bf750479b4a6f5",
-    "objectveil-manifest-summary": "62d92b0fd251fcbfe90ad39dbd45170f1db5911dfb7dc57f3acda08814032573",
-    "objectveil-rescan": "8f4b0bb0898d703c13f866b1e535e0937b0f1d0774027d76bd7b1b8b67c6ab79",
-    "objectveil-verify": "fc7013ccf723682d1bf59c75852ec803fab8ee04d47f4b2ce89ec51e7cfd1c13",
-    "objectveil": "e7269ac657a83fe6e3c4142e8524d3fcbfd885bb21e534d6bbdd8d8617386441",
-    "libobjectveil_shim.so": "bd3c442b7f5f3d3dcf7f4863e87ec61ff08e09573dec6ce0cfd73df6ac263cfd",
-    "objectveil-rebuild-catalog": "1bbbea6b9fa9f653a2023660b59283b478d309ca96df932781222f433cf68435",
-    "objectveil-dedup-measure": "a87ec673f02d2a1c656de05398585abd16ea827290d738e03d38550345fb0090"
+    "objectveil": "41de4258213bb91659e09d2c5ee6ca7aa8681a82b13762173f345c44587e97cd",
+    "objectveil-verify": "d8b91b5415d227b4f3643f1232a8db505f0c735cbffff131376b5f4c551478f3",
+    "objectveil-manifest-summary": "98cf024476b1e195d5e6c7ff9d1ea4192566c098e12e86c14e805d3db4c00dca",
+    "objectveil-rebuild-catalog": "74298ceb6233e79da415766ef203024351fc95a4a55885b8ca25b3610da4e11c",
+    "objectveil-rescan": "9536daa0da5bea87dd38ce5dc447f1ea006677a9967a282cf4077c5cf726e233",
+    "objectveil-dedup-measure": "5b11708d8b09fd51c733cfa75dd8a060db7907795a333971a55cb2b19a3c4318",
+    "objectveil-migrate": "38354b34f1971e817ad729a8c70d314762bd08efc0c8edc2533cc6e3dd5a99f7",
+    "objectveil-initialize": "9f157484d126a407ba12fe1c0afb59eae98e24a32927d8c35c74787f5022e2b3",
+    "libobjectveil_shim.so": "9f8aeefe04a3a5a8c56c569db5d936bbdc70007796736a792331dbc55c12cf14"
   },
   "package": {
-    "deb_sha256": "291e189f476cf5e4b9c287ca518d25ef886876db5de24ce9acc158a13f4a96f0",
-    "runtime_acceptance_package_sha256": "e273392810d1914e5284ae7bf706bb324c68b4305f29f0cb5a386d7dc81254f3",
-    "documentation_only_repack": true,
-    "runtime_rebuilt_or_restamped": false,
-    "runtime_artifacts_identical": 9,
-    "non_documentation_payloads_and_maintainer_scripts_unchanged": true,
-    "control_difference": "Debian md5sums only",
-    "repack_receipt_sha256": "80cd5c4b21f7d78dbef16a201becbf07f11885cdbf5679493e4703e28520c0c6",
-    "independent_archive_comparison_sha256": "6f8992507bc36baf355143c8cee8c3d124d8186159989f949ff0b30999ae9978",
-    "tar_sha256": "fcda718a54635666a0227d601cb5a24e9b3c49028db7a79f57abbbb28dfbf7f8"
+    "tar_sha256": "e71084bc44c3a6ffbd8ff59e900a9c488f19809094449b05de0e5b5b8236c578",
+    "tar_bytes": 31945051,
+    "deb_sha256": "4b1a5bdbc8a42de17d35150645860fedbafa5c90380d3f0ee3a7fd51aabaf1eb",
+    "deb_bytes": 23439656,
+    "runtime_artifacts_identical_in_tar_and_deb": 9,
+    "integrity_seals_verified": 3,
+    "built_from_clean_committed_source": true,
+    "rust_version": "1.96.1"
   },
   "required_linux_gate": {
-    "source_commit": "a575b57c83cae2c120eb38799c396411d12bf666",
+    "source_commit": "396f47f5d07b4d28e27fd434620aa4694191919a",
     "status": "passed",
     "rust_suites": 29,
-    "rust_tests_passed": 1678,
+    "rust_tests_passed": 1698,
     "rust_failed": 0,
     "rust_ignored": 0,
     "rust_version": "1.96.1",
-    "gate_receipt_sha256": "87318249942e27d491a08962c4c786ec2e3a41e6db105e3ba5cae307c99722ed",
-    "gate_log_sha256": "394eb48c4b36cbc3d82f7e4d2d03eaac30b6147a960e31c21760f14f8378696d",
+    "gate_log_sha256": "1ed0e4f3d862dd3e89bb2f3415b6248cb5595b2c9f4fec2e83b3e86644d80f7f",
     "checks": [
-      "operational script regressions",
-      "formatting",
-      "strict release clippy",
-      "NFS feature matrix",
-      "Rust release tests",
-      "dependency policy and audit",
-      "declared Rust toolchain",
-      "binary size limits"
+      "offline operational scripts",
+      "rustfmt",
+      "clippy (incl. bench compile gate)",
+      "feature matrix (nfs-only)",
+      "tests (full offline suite; available live integration prerequisites)",
+      "cargo deny (advisories/bans/licenses/sources)",
+      "cargo audit (--deny warnings)",
+      "MSRV (1.96.1) build --locked",
+      "binary size budget"
     ],
-    "coverage_note": "Cloud and privileged production paths are evidenced by the explicit fixture runs below, separately from the base suite totals."
+    "perforce_binaries_present": "p4d and p4 2026.1/3089746; the Perforce integration cases ran",
+    "privileged_watcher_test": "The fanotify live-watch case ran with CAP_SYS_ADMIN and did not skip, confirmed by a verbose run of the same test executable.",
+    "coverage_note": "The gate tests executables from its own Cargo build of the same source with the same toolchain; the packaged build is a separate compilation. The packaged bytes are evidenced by packaged_perforce_integration below."
   },
-  "targeted_migration_verifier_regressions": {
-    "passed": 8,
+  "packaged_perforce_integration": {
+    "runtime": "The tar/Debian runtime files above, placed at the paths the integration-test executable launches.",
+    "rust_reported_passed": 13,
     "failed": 0,
-    "ignored": 0
-  },
-  "packaged_runtime": {
-    "checks": {
-      "daemon_integrity_passed": true,
-      "initializer_integrity_passed": true,
-      "live_busy_skip_and_same_job_resume_passed": true,
-      "migration_integrity_passed": true,
-      "packaged_download_passed": true,
-      "packaged_download_same_job_resume_passed": true,
-      "packaged_initializer_passed": true,
-      "packaged_shim_cold_reads_passed": true
-    },
-    "matching_artifacts": 9,
-    "cold_read_archives_verified": 3,
-    "receipt_sha256": "705a346c85ad91e373632e8de0734a688864808605b436be3b43c8f495af555f"
-  },
-  "cloud_functional_tests": {
-    "passed": 5,
-    "failed": 0,
-    "skipped": 0,
-    "source_commit": "a575b57c83cae2c120eb38799c396411d12bf666",
-    "test_binary_sha256": "75ab8ee7bdb4715a1fb6fa740b3318a15f4a60047e62f1e233772c20b4ea4c6d",
-    "tests": [
-      {
-        "provider": "s3",
-        "test": "cloud_s3_end_to_end",
-        "functional_status": "passed",
-        "seconds": 82.61,
-        "log_sha256": "204aff50bbf75020e3340d166f10dbd3160a0ee3aeebe87f8f66f5e02dbf82f0"
-      },
-      {
-        "provider": "s3",
-        "test": "cloud_s3_obliterate_and_readd_lifecycle",
-        "functional_status": "passed",
-        "seconds": 26.61,
-        "log_sha256": "e75f5516c47c325f721a938db2dc37a35fb6f49810de88216f7140795e09c406"
-      },
-      {
-        "provider": "s3",
-        "test": "cloud_s3_dedup_mutable_and_cold_recovery",
-        "functional_status": "passed",
-        "seconds": 33.16,
-        "log_sha256": "589ccc8b9edc5010843b4273002901e29604676b61eeac543a19338f68a2fbd7"
-      },
-      {
-        "provider": "azure",
-        "test": "cloud_azure_end_to_end",
-        "functional_status": "passed",
-        "seconds": 78.37,
-        "log_sha256": "38c992470cd655f480403820afaf75027cd31d54531b0b671605a378f683f480"
-      },
-      {
-        "provider": "gcs",
-        "test": "cloud_gcs_end_to_end",
-        "functional_status": "passed",
-        "seconds": 129.45,
-        "log_sha256": "39675f35e6634f3ae8bbd0acfa1ada6d36f56e46c1a19cb15d7c99c18fc9be3b"
-      }
-    ]
-  },
-  "privileged_and_perforce": {
-    "privileged_tests": {
-      "failed": 0,
-      "ignored": 0,
-      "passed": 2,
-      "skipped": 0
-    },
-    "perforce_tests": {
-      "failed": 0,
-      "ignored": 0,
-      "passed": 8,
-      "skipped": 0
-    },
-    "same_uid_exact_cold_reads": 4,
-    "different_uid_expected_permission_denials": 4,
-    "state_directory_modes": [
-      "0750",
-      "0710"
+    "noncloud_cases_exercised": 8,
+    "cloud_cases_not_exercised": 5,
+    "perforce_server_and_client": "2026.1/3089746",
+    "actual_perforce_scenarios": [
+      "warm and cold archive reads through the packaged daemon and shim",
+      "writer submits and mutable RCS archives, historical reads, verification and acknowledged deletion",
+      "read-only freshness and outage refusal",
+      "concurrent cold reads and refused read-only obliterate preserving siblings"
     ],
-    "source_files_reverified": 291,
-    "runtime_artifacts_reverified": 9
+    "null_device_intact_after_root_run": true,
+    "log_sha256": "35991f00c2cb4317dfed5eab616713fec42526360d823866b736cc57c2d0cf34"
   },
-  "native_licensing": {
-    "synthetic_tests_passed": 18,
-    "skipped": 0,
-    "actual_native_signer_and_runtime": true,
-    "real_customer_state_used": false,
-    "source_preserved": true,
-    "receipt_sha256": "3bbeb0cfcd796faf0dbcb31f4d27c526db6a0d2584eb39c608f732ae6f94e1ca"
+  "debian_package_lifecycle": {
+    "assertions_passed": 75,
+    "environment": "Ubuntu 24.04.5 LTS container user space, glibc 2.39",
+    "upgrade_from_published_release": {
+      "version": "7.0.0",
+      "deb_sha256": "291e189f476cf5e4b9c287ca518d25ef886876db5de24ce9acc158a13f4a96f0"
+    },
+    "first_install": true,
+    "upgrade": true,
+    "removal": true,
+    "purge": true,
+    "active_writer_upgrade_and_removal_refused": true,
+    "tested_process_names": [
+      "p4d",
+      "p4d_2026.1",
+      "objectveil"
+    ],
+    "operator_config_license_state_and_archives_preserved": true,
+    "installed_runtime_identical_to_tar": 9,
+    "all_eight_tools_start": true,
+    "automatic_service_enable_or_start": false,
+    "note": "The Docker base image excludes package documentation; that exclusion was removed so documentation installs as on an ordinary host. Host systemd and service activation were not exercised."
   },
-  "interrupted_job_recovery": {
-    "existing_job_resumed_with_current_runtime": true,
-    "archives_verified": 3,
-    "original_source_and_manifest_identity_preserved": true,
-    "owned_S3_scopes_cleaned_in_supported_API_views": true,
-    "receipt_sha256": "da6c59de9ea15715ffaa0e07fccee9eccec86beb93dd30397858ba46e926f481"
+  "source_areas_unchanged_since_7_0_0": {
+    "compared_with_source_commit": "32ac7a1ef2484d86d7dbe6d6804614fb32cf0621",
+    "areas": [
+      "object-storage and NFS backends",
+      "migration upload, download and resume",
+      "cold restore",
+      "chunk packing",
+      "eviction",
+      "ingest",
+      "startup recovery",
+      "blob store and encryption",
+      "native format handling",
+      "license enforcement"
+    ],
+    "note": "No source file in these areas differs from the 7.0.0 RPM source commit, which the 7.0.0 records identify as carrying the same Rust sources as the 7.0.0 Debian and tar build. The garbage-collection change in this release reads the keystore and catalog through the unchanged storage backends."
   },
-  "identifier_audits": {
-    "runtime_and_extracted_package": {
-      "files": 57,
-      "negative_controls": 35,
-      "matches": 0
+  "not_run": [
+    {
+      "check": "Live cloud-provider functional tests (three Amazon S3 cases, Azure Blob Storage, Google Cloud Storage)",
+      "reason": "No provider credentials were available to the release build. The cases report success without contacting a provider when credentials are absent, so their results in the suite totals are not evidence.",
+      "last_recorded_for": "7.0.0"
     },
-    "packaging_source": {
-      "files": 291,
-      "git_objects": 464,
-      "reachable_objects": 380,
-      "unreachable_objects": 84,
-      "decoded_documents": 18,
-      "scope": "All available Git objects and active files; 17 current documents plus an earlier quick-start PDF in object history. PDF streams and slide parts were decoded; UTF-8 and both UTF-16 byte alignments were inspected.",
-      "matches": 0,
-      "receipt_sha256": "4404656532c0af074c420a98083d9d8f439aaa2394c03c8db0b8f156d49d2943"
+    {
+      "check": "S3-backed migration cases on the packaged runtime: live upload with busy-file skip and same-job resume, download and same-job resume, interrupted-job recovery, packaged cold reads after migration",
+      "reason": "They need the same S3 credentials. Five integration cases returned without exercising a provider.",
+      "last_recorded_for": "7.0.0"
     },
-    "website": {
-      "files": 27,
-      "git_objects": 39,
-      "decoded_PDFs": 3,
-      "matches": 0
+    {
+      "check": "Different-UID permission denials and same-UID cold reads on the installed service layout",
+      "reason": "Not repeated; the fixture is not part of the source workspace.",
+      "last_recorded_for": "7.0.0"
     },
-    "public_archive_scan": {
-      "requirement": "All seven completed assets must pass the final scan before publication.",
-      "scope": "Asset names and bytes; decoded tar and Debian data/control; UTF-8 and both UTF-16 byte alignments. Source PDF/PPTX documents are independently decoded.",
-      "receipt": "Private publication acceptance binds the resulting audit and all public asset SHA-256 values."
+    {
+      "check": "Licensing tests with the vendor signer",
+      "reason": "No vendor signing key is available to the release build. The workspace's own licensing suites ran in the gate.",
+      "last_recorded_for": "7.0.0"
+    },
+    {
+      "check": "Identifier audits of artifacts, packaging source and website",
+      "reason": "Not repeated; the audit inputs are not part of the source workspace.",
+      "last_recorded_for": "7.0.0"
     }
-  },
-  "test_resource_cleanup": {
-    "S3": {
-      "functional_test_scopes": 3,
-      "current_versions_delete_markers_and_multipart_API_views": "empty",
-      "additional_packaged_and_retained_job_scopes": "empty in the same supported API views",
-      "provider_backups_or_physical_multipart_part_storage_independently_verified": false
-    },
-    "Azure": {
-      "live_objects": 0,
-      "retained_soft_deleted_test_objects": 30,
-      "account_retention_days": 7,
-      "permanent_delete_enabled": false,
-      "policy_changed": false,
-      "history_empty": false
-    },
-    "GCS": {
-      "live_and_noncurrent_data_objects": 0,
-      "retained_soft_deleted_data_generations": 8,
-      "data_retention_seconds": 604800,
-      "owned_temporary_keystore_removed": true,
-      "owned_key_soft_history_API": "unsupported_or_unknown; no empty-history assertion",
-      "owned_key_bucket_policy": "explicit zero soft-delete and disabled versioning unchanged since owned creation",
-      "existing_policy_changed": false,
-      "history_empty": false
-    },
-    "retention_note": "Expected retention expiry is not observed erasure. No existing provider retention policy was weakened to purge test history."
+  ],
+  "private_evidence_sha256": {
+    "required-linux-gate.log": "1ed0e4f3d862dd3e89bb2f3415b6248cb5595b2c9f4fec2e83b3e86644d80f7f",
+    "build-tar.log": "8fbd521079f141da3636f9b29e536e38da796ce57af0aa79f8947ae8bb4bc2e7",
+    "build-deb.log": "cffc5d2eb83e16dcd70bbc355f01d530d426998cb5c570057dd892eeaddf6c4e",
+    "packaged-perforce-tar-deb.log": "35991f00c2cb4317dfed5eab616713fec42526360d823866b736cc57c2d0cf34",
+    "deb-lifecycle.log": "191ed98e1bc0b1df48574a1dac3de8221e4c30d34b1b81845fc452eaa4f40e57",
+    "deb-lifecycle.json": "6d0db7a044ffde7cd7ecfba1e01507ca8fb303e5b7bb94422ea748ba879c8a3c"
   },
   "limits": [
     "Uploads are asynchronous: loss of a writer and its disks before remote publication can lose unpublished file generations.",
     "Perforce metadata needs independent backups. A live migration pass is a per-file capture, not a transactionally consistent whole-server backup.",
-    "The retention-enabled Azure test account does not certify permanent cryptographic key erasure. Keystore retention and recoverable key copies must be independently excluded for that deployment requirement.",
-    "API inventory and bucket absence do not certify undisclosed provider backups or physical multipart part storage.",
+    "Package checksums are not a detached GPG signature or hosted attestation.",
     "No real customer data conversion or production service activation was performed by these tests."
-  ],
-  "packaging_required_linux_gate": {
-    "commit": "529390d6adc1e8165918ed0108350f08ddd146ca",
-    "runtime_code_identical_to": "a575b57c83cae2c120eb38799c396411d12bf666",
-    "status": "passed",
-    "rust_tests_passed": 1678,
-    "rust_suites": 29,
-    "receipt_sha256": "494e40401ec25e50e9e357eb5e4f40af53535be3d583d59f429eda98b1c60299",
-    "log_sha256": "774428713bf5e55e60706da9d38c8f9a3bdf38e67fe0bd2d856a469ea63b5de2"
-  }
+  ]
 }

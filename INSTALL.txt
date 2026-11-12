@@ -1,4 +1,4 @@
-ObjectVeil 7.0.0 — Linux installation and migration
+ObjectVeil 7.0.1 — Linux installation and migration
 ====================================================
 
 This release includes the cache daemon, its matching Perforce preload shim,
@@ -14,11 +14,16 @@ Requirements
   glibc 2.39 or newer. The RHEL 9 .rpm is built against glibc 2.34.
   Check `uname -m` and `getconf GNU_LIBC_VERSION`; select the package for
   your system. These builds do not support musl/Alpine, ARM, Windows or macOS.
-* A signed license valid for your deployment. No license, credentials or
-  private configuration is included. Use a vendor-signed version 2 license, or
-  request an evaluation license at https://rcjacksonconsulting.com/objectveil-product.html.
+* A signed license for production or continued use. No license, credentials
+  or private configuration is included. Use a vendor-signed version 2 license,
+  or request an evaluation license at https://rcjacksonconsulting.com/objectveil-product.html.
+  Without a license file the daemon starts on a built-in developer license
+  (1 TiB, expiring 30 days after the release build date), which is meant
+  only for a short first trial; see docs/LICENSING.md.
 * Access to the physical Perforce archive tree and the configured storage.
   S3, Azure and GCS need separate data and keystore buckets/containers.
+  Cloud backends verify TLS against the system trust store: the .deb and
+  .rpm depend on ca-certificates; install it yourself for a tar installation.
 * Write-mode caching needs fanotify/CAP_SYS_ADMIN and coordinated archive
   writers using the matching libobjectveil_shim.so. Read-only caches reject managed
   archive writes; do not use read-only mode on an active submit server.
@@ -29,7 +34,7 @@ Requirements
 Download and verify
 -------------------
 Use a new empty download directory. The release page is:
-  https://github.com/rcjackson0926/objectveil/releases/tag/v7.0.0
+  https://github.com/rcjackson0926/objectveil/releases/tag/v7.0.1
 
 Download SHA256SUMS and the .deb, .rpm or tar.gz asset from that release.
 Download all assets listed in SHA256SUMS to check them together, or verify
@@ -47,7 +52,7 @@ The .deb includes all eight executables, the matching shim, a systemd unit,
 an example configuration and documentation. Its dependency check enforces
 the required glibc version. From the download directory:
 
-  sudo apt install ./objectveil_7.0.0_amd64.deb
+  sudo apt install ./objectveil_7.0.1_amd64.deb
 
 For BOTH a first package installation and an upgrade, complete the
 coordinated stop described below BEFORE running apt. The package refuses
@@ -56,6 +61,11 @@ restart Perforce for you. To add the migration tool to a server that must
 remain online, use the verified tar bundle side by side and run only its
 bin/objectveil-migrate. Defer package installation and cache writer activation
 until the coordinated handoff; copying archives itself can remain online.
+
+Removal (apt remove/purge) needs the same coordinated stop: the package
+refuses to be removed while p4d or objectveil is running and never stops a
+service for you. The actual config.json, license, archives, state and key
+material are operator-owned and are retained.
 
 Executables: /usr/bin/objectveil and /usr/bin/objectveil-*
 Shim:        /usr/lib/objectveil/libobjectveil_shim.so
@@ -69,7 +79,11 @@ configuration is an accepted search path. Protect configuration and license
 permissions while allowing the service account to read them.
 
 Fresh default cache state is private (0700); the packaged same-UID deployment
-works with this default. Run serving applications under the same UID
+works with this default. The packaged /var/lib/objectveil is created by systemd
+with mode 0755, and the example config writes the collector-readable
+objectveil.prom there; the daemon keeps its own files in it, including the
+manifest database, owner-only.
+Run serving applications under the same UID
 as the daemon: restored files remain daemon-owned and private. Socket groups
 and UID allowlists alone do not support cross-UID archive serving. Existing
 and precreated state modes/groups are preserved. Follow "Socket access across Linux users" in
@@ -78,11 +92,11 @@ Do not broaden all state/license permissions to fix socket access.
 
 Red Hat Enterprise Linux 9 package
 ---------------------------------
-Use objectveil-7.0.0-1.el9.x86_64.rpm on RHEL 9 x86_64. It contains
+Use objectveil-7.0.1-1.el9.x86_64.rpm on RHEL 9 x86_64. It contains
 all eight tools, the matching shim, a systemd unit, examples and documentation.
 Complete the same coordinated writer/service stop required above, then run:
 
-  sudo dnf install ./objectveil-7.0.0-1.el9.x86_64.rpm
+  sudo dnf install ./objectveil-7.0.1-1.el9.x86_64.rpm
 
 The executable, shim and documentation paths match the .deb paths above;
 the RPM unit is /usr/lib/systemd/system/objectveil.service. Installation
@@ -104,13 +118,13 @@ Tar installation
 ----------------
 Verify the tarball first, then unpack it into a new directory:
 
-  tar -xzf objectveil-7.0.0-linux-x86_64.tar.gz
-  cd objectveil-7.0.0
+  tar -xzf objectveil-7.0.1-linux-x86_64.tar.gz
+  cd objectveil-7.0.1
   sha256sum -c SHA256SUMS
 
 Run bin/objectveil-migrate --help to confirm the migration command is present.
 For a system installation, keep each release in its own directory, for
-example /opt/objectveil/7.0.0. Copy this verified bundle there only if that
+example /opt/objectveil/7.0.1. Copy this verified bundle there only if that
 destination does not already contain another installation. Use absolute
 paths to that release's executables and shim in your service configuration.
 
@@ -126,7 +140,8 @@ Configure and start a cache
 
 Set format to "objectveil/1" and replace the nil namespace_id in templates with
 a generated UUID. Use that same UUID on every client of the shared namespace.
-Before starting the daemon, as the archive-owner account, run:
+Once the configuration from steps 1-3 below is complete, and before starting
+the daemon in step 5, run as the archive-owner account:
 
   objectveil-initialize /etc/objectveil/config.json
 
@@ -161,10 +176,8 @@ read-only clients require identity markers already created by a native writer.
    launch must also use the archive owner and appropriate capabilities; do
    not launch as root merely to bypass permissions, since restored files
    would then be owned by root.
-   Confirm readiness using the mode protocol in docs/OPERATIONS.md; the
-   existence of a socket alone does not establish readiness.
-6. With the configured cache role ready, start/restart every managed p4d
-   with this release's matching shim, then release the writer fence:
+6. Start/restart every managed p4d with this release's matching shim, then
+   release the writer fence:
 
      LD_PRELOAD=/usr/lib/objectveil/libobjectveil_shim.so \
      OBJECTVEIL_DEPOT=/p4/1/depots \
@@ -262,11 +275,11 @@ Coordinated upgrades and rollback
 Back up your configuration and retain the complete previous executable/shim
 set. Stop and fence Perforce writers/p4d and objectveil, including automatic
 restarts, before replacing binaries or the shim. Keep them stopped through
-the entire installation. The package guards conservatively checks all p4d
-processes on the host.
+the entire installation. The package guards conservatively check all p4d
+processes on the host, on installation, upgrade and removal.
 
-Install the complete new release, start objectveil, confirm its configured
-role/readiness, and then restart EVERY p4d with the new shim. A daemon-only
+Install the complete new release, start objectveil, and then restart EVERY
+p4d with the new shim. A daemon-only
 restart or a library replacement on disk does not update a shim already
 mapped into a running p4d. Rollback also requires a coordinated stop and
 the complete matching prior set. Never roll back remote keys, poison
