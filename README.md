@@ -60,9 +60,11 @@ the files inside this bundle. The release-level checksum file verifies the
 download assets. The release and Rust workspace versions identify this native
 format generation. [VALIDATION.json](VALIDATION.json) records the tested source,
 artifact hashes, the checks run for this release and the checks that were not.
-[CLOUD_VALIDATION.json](CLOUD_VALIDATION.json) records live S3/GCS testing,
-authentication coverage and verified cleanup; Azure write tests are explicitly
-excluded for this release.
+[CLOUD_VALIDATION.json](CLOUD_VALIDATION.json) records the original S3/GCS testing.
+[AZURE_VALIDATION.json](AZURE_VALIDATION.json) records subsequent live Azure tests
+against the same published binaries, including authentication coverage and
+cleanup under the account's seven-day soft-delete retention policy.
+The addendum has a [separate checksum](AZURE_VALIDATION.sha256).
 The initializer, daemon and migration executable carry verified integrity seals.
 
 Writer upgrades require a coordinated stop of p4d, ObjectVeil and any previous

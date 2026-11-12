@@ -1,0 +1,251 @@
+{
+  "schema": "objectveil-azure-validation/1",
+  "version": "7.0.1",
+  "status": "accepted_functional_scope_passed_with_authorized_retention",
+  "recorded_utc": "2026-11-12T22:52:43.939140+00:00",
+  "historical_release_evidence": {
+    "original_ten_asset_manifest_preserved": true,
+    "original_publication_asset_sha256": {
+      "CLOUD_VALIDATION.json": "06eae8ed642f85690f3403ae700cf714eadbcee74b16fe1e48180408cbf92270",
+      "INSTALL.txt": "f72a527b495a0d40042e179ddf94d0923d1e0c127e74d4ab76c90e5a60329cde",
+      "RELEASE_MANIFEST.json": "69c85deb3c5aa22d5620414f67a506c246f8ab5cd7c18f063e12aa3850e88ffd",
+      "RELEASE_NOTES.md": "ec4fde9cef89e21026b94c8407fe77040458eb93e0f719437beb4e74118e4e52",
+      "RPM_VALIDATION.json": "4f93269379423f0851a99222884c610130e26a73222fef8d9e9255d0d89a1fa7",
+      "SHA256SUMS": "6254cc4855eeaa81a615cc319de887681c0b969bb5c572ec17fa57844470a2c4",
+      "VALIDATION.json": "74a443fe44b3fcee6095a1c927646b157ace0436911e4b2dc09012eb1c43e5b5",
+      "objectveil-7.0.1-1.el9.x86_64.rpm": "f9bd3696444922777637a6f07164e5a8e84c8ba754e6931f8485f1e8a6c0221d",
+      "objectveil-7.0.1-linux-x86_64.tar.gz": "1dcf5d2e35f202c6d82eb20e0f4ec7b3862ff10dd606582321ba737d61f6977e",
+      "objectveil_7.0.1_amd64.deb": "6ba4e1c6b1f9ce571c883f4fd7c28cc55b2773e67f8f395255aaf2ac4f8f53ac"
+    },
+    "original_cloud_validation_sha256": "06eae8ed642f85690f3403ae700cf714eadbcee74b16fe1e48180408cbf92270"
+  },
+  "platforms": {
+    "host": {
+      "runtime_source_commit": "8692e29dc7eedc02c86a892ca549cc53008141bc",
+      "release_source_commit": "239e256c59033eae52f37cd305b9959fdba5a774",
+      "runtime_sha256": {
+        "objectveil": "91213353ee3b1b08314100e34ce7acc86e713bf434aa6df7fbf0222ca4e8d329",
+        "objectveil-verify": "0cf4fd7303a0f22fa8c992dbcd4396e0e01ecd4d004abd0fe0d02500f9996dab",
+        "objectveil-manifest-summary": "bc99048c156f8d4621e575ea5f5d09cccff9752a430d5a760e746a8a38f173d2",
+        "objectveil-rebuild-catalog": "aba1ab086c47097eabdc118e1cbf3fba22ca356b96d7a1c91842d4b692e7a570",
+        "objectveil-rescan": "f259c3d96bc7119fb4f280c4b49f50d0f27ed0716fb5623c94e091ad9e9bfb25",
+        "objectveil-dedup-measure": "f3e25f62fca7ec0ae97190aa5e5dd9af7c2b929f636494b652c86f018732ff09",
+        "objectveil-migrate": "76a84553bc54c77408e8aa0d9df7dcf1400d65f46583c2391cdf0f50497f4f31",
+        "objectveil-initialize": "be64c35069457e025334e7b257f8c97293f5c1828f67395e21a767705dfdd43f",
+        "libobjectveil_shim.so": "9f8aeefe04a3a5a8c56c569db5d936bbdc70007796736a792331dbc55c12cf14"
+      },
+      "package_sha256": {
+        "objectveil-7.0.1-linux-x86_64.tar.gz": "1dcf5d2e35f202c6d82eb20e0f4ec7b3862ff10dd606582321ba737d61f6977e",
+        "objectveil_7.0.1_amd64.deb": "6ba4e1c6b1f9ce571c883f4fd7c28cc55b2773e67f8f395255aaf2ac4f8f53ac"
+      },
+      "original_provider_test_executable_sha256": "79e7fa6b5f2e6cf70ad073e2c3ec5a3de2039b773a69e2b70875596251116fba",
+      "supplemental_contract_test_executable_sha256": "b69084db4a82b7c22d2cb39bcaa31b990acaead9d411261a4a8c4917825271f7",
+      "supplemental_test_source_sha256": "cb0757021a9633041e5c350aad4fa53742c441c77c53b312fb22610cb2bbc4ca",
+      "supplemental_test_patch_sha256": "b3f77df2a015e9558830246d8fd3108a97381d233b5ba8ceaff8f8e6e03785e0",
+      "accepted_case_executions": 4,
+      "accepted_case_names": [
+        "cloud_azure_end_to_end",
+        "cloud_azure_dedup_mutable_and_cold_recovery",
+        "cloud_azure_obliterate_and_readd_lifecycle",
+        "cloud_azure_backend_contract"
+      ],
+      "provider_run_log_sha256": "151c3db180ae6ea49e200957bccb6044f19cbe8870d182b18c7d3c094443f7f4",
+      "contract_run_log_sha256": "e87c80608f6a08dbe06813036dbbc03da424c6f4b856c776ed9f059b3855daf5",
+      "all_nine_runtime_and_test_hashes_verified_before_and_after": true,
+      "completion_markers_verified": [
+        "[azure] migration download: 21 verified archives; same job existing files verified",
+        "[azure] corruption refused without local publication",
+        "[azure-dedup] shared upload, mutable rewrite",
+        "[azure-obliterate] cold daemon:",
+        "[azure-contract] both roles and keystore startup probes passed"
+      ],
+      "supplemental_test_base_commit": "239e256c59033eae52f37cd305b9959fdba5a774"
+    },
+    "native": {
+      "runtime_source_commit": "fa1dcc82dd1f0ecf7d2d5442646c1a2e2b39d347",
+      "release_source_commit": "239e256c59033eae52f37cd305b9959fdba5a774",
+      "runtime_sha256": {
+        "objectveil": "d2aeaa339735d44a5b000f1e612ed01a7859ebd2e7cdfc5b8d79077a3a3ac308",
+        "objectveil-verify": "7c5a6ae574dd9754dae262bf4e5c0729b4cb192d883d60a19e218e70549efc39",
+        "objectveil-manifest-summary": "ead2121e8bb07e0a552ceb4f266d0d6d37cea8d572f9b2c006d9d3eb305af99a",
+        "objectveil-rebuild-catalog": "129da0cc229b0bdd53ecd2de3ebbfc28ecdf34de1b0764b1e4abd82088b50154",
+        "objectveil-rescan": "d2374c431ae3b094f61bf4d2e89ad18a697b3bdabd3bc7467907e11f326a93d9",
+        "objectveil-dedup-measure": "bdd2eab1da6565a0e0d25cc676358fef589c8704ea24e25bf89ee24c5020cc88",
+        "objectveil-migrate": "a04e4415df4e6ff847e1f0dcc5d076f7d09370998a10bf120269e12413bab76c",
+        "objectveil-initialize": "a6cf54679ae9eece8e64d8b4e11ee7a4807d0a4b7aaaa38d73dbe363ae28cb63",
+        "libobjectveil_shim.so": "1a7cf6ea134aa8a5aa94649a0b17a59b243f54b69f53ba349ce99a73561ae309"
+      },
+      "package_sha256": {
+        "objectveil-7.0.1-1.el9.x86_64.rpm": "f9bd3696444922777637a6f07164e5a8e84c8ba754e6931f8485f1e8a6c0221d"
+      },
+      "original_provider_test_executable_sha256": "07ba71beafd2fb8544ef0a4f73677b0845cf1351809ab1b8d25d2c769e23de3c",
+      "supplemental_contract_test_executable_sha256": "cf152fe5e10e3df40efe408181b2f712fdb0ac6d144011a3110afeee923c0fd7",
+      "supplemental_test_source_sha256": "fe1723c0d002ed067569bd46d6d5386e8d0ae1289306c61e3f600a25eb750cc8",
+      "supplemental_test_patch_sha256": "b3f77df2a015e9558830246d8fd3108a97381d233b5ba8ceaff8f8e6e03785e0",
+      "accepted_case_executions": 4,
+      "accepted_case_names": [
+        "cloud_azure_end_to_end",
+        "cloud_azure_dedup_mutable_and_cold_recovery",
+        "cloud_azure_obliterate_and_readd_lifecycle",
+        "cloud_azure_backend_contract"
+      ],
+      "provider_run_log_sha256": "cce111b6033f10f56be32aaf40b34248450e88a530d9af82ce3e32f96f989ca8",
+      "contract_run_log_sha256": "7ded910726c067b0625eb956798f45ea3f42cdd60ce9271fb886cb476b6e078c",
+      "all_nine_runtime_and_test_hashes_verified_before_and_after": true,
+      "completion_markers_verified": [
+        "[azure] migration download: 21 verified archives; same job existing files verified",
+        "[azure] corruption refused without local publication",
+        "[azure-dedup] shared upload, mutable rewrite",
+        "[azure-obliterate] cold daemon:",
+        "[azure-contract] both roles and keystore startup probes passed"
+      ],
+      "supplemental_test_base_commit": "fa1dcc82dd1f0ecf7d2d5442646c1a2e2b39d347"
+    }
+  },
+  "accepted_case_executions": 8,
+  "execution_scope": {
+    "per_platform": "Three in-process production-engine fixtures plus one in-process storage-backend contract test.",
+    "actual_packaged_process": "The original end-to-end fixture invokes the sealed migration CLI for download and same-job resume on each platform.",
+    "reverse_cli_archives_per_pass": 21,
+    "reverse_cli_bytes_verified_per_pass": 26234897,
+    "checks": [
+      "packed and multipart standalone integrity",
+      "cold catalog and concurrent restore",
+      "corruption rejected without local publication; unrelated archive intact; original ciphertext restored",
+      "dedup sharing and mutable rewrite",
+      "logical obliterate/re-add isolation",
+      "conditional create collision preserves original bytes and HEAD metadata",
+      "overwrite and exact nonzero-offset range bytes",
+      "limit-one exclusive cursor paging, including a deleted cursor",
+      "idempotent deletion and current-object absence"
+    ],
+    "keystore_startup_probes": [
+      "create_once_self_test",
+      "delete_destroys_self_test",
+      "overwrite_replaces_self_test",
+      "versioning_self_test"
+    ],
+    "observed_keystore_put_version_id": "absent, asserted by both supplemental contract runs",
+    "production_safeguards_weakened": false
+  },
+  "authentication": {
+    "mode": "account SAS",
+    "scope": "Existing account SAS used only for Blob operations in two configured containers and exact unique test prefixes. The credential itself is not prefix-scoped.",
+    "original_credential_files_modified": false,
+    "managed_identity_or_account_key_live_tested": false
+  },
+  "storage_policy": {
+    "blob_soft_delete_enabled": true,
+    "retention_days": 7,
+    "allow_permanent_delete": false,
+    "versioning_flag_in_data_plane_response": null,
+    "operator_explicitly_authorized_soft_delete_exception": true,
+    "retention_policy_modified": false,
+    "immutability_or_legal_hold_observed_on_either_container": false
+  },
+  "cleanup": {
+    "verified_utc": "2026-11-12T22:09:07.665154+00:00",
+    "owned_test_namespaces_including_diagnostic_attempts": 14,
+    "container_prefix_scopes_verified": 28,
+    "roles": {
+      "data": {
+        "container_prefix_scopes": 14,
+        "active_records_remaining": 0,
+        "uncommitted_blob_names_remaining": 0,
+        "uncommitted_blocks_remaining": 0,
+        "retained_soft_deleted_blob_or_snapshot_records": 125,
+        "retained_logical_content_length_bytes": 393538066,
+        "remaining_retention_days_reported": [
+          6
+        ]
+      },
+      "keystore": {
+        "container_prefix_scopes": 14,
+        "active_records_remaining": 0,
+        "uncommitted_blob_names_remaining": 0,
+        "uncommitted_blocks_remaining": 0,
+        "retained_soft_deleted_blob_or_snapshot_records": 172,
+        "retained_logical_content_length_bytes": 6422,
+        "remaining_retention_days_reported": [
+          6
+        ]
+      }
+    },
+    "total_retained_soft_deleted_records": 297,
+    "total_retained_logical_content_length_bytes": 393544488,
+    "logical_size_note": "Sum of listed Content-Length values; snapshots may share backing blocks. This is not measured physical or billed storage.",
+    "uncommitted_verification": "Enumerated uncommitted blobs and queried Get Block List for every observed owned blob name.",
+    "shared_account_policy_changes": false,
+    "unrelated_objects_modified": false,
+    "copied_credential_environment_files_remaining": 0
+  },
+  "revocation_and_erasure_limits": {
+    "logical_serving_revocation_verified": true,
+    "physical_deletion_verified": false,
+    "cryptographic_erasure_verified": false,
+    "reason": "Soft-deleted payloads, snapshots, and keystore records remain retained under the unchanged seven-day policy; provider-authorized recovery may restore them. These tests do not demonstrate permanent destruction of historical key material."
+  },
+  "diagnostic_attempts": {
+    "additional_case_executions": 6,
+    "passed_case_executions": 4,
+    "failed_case_executions": 2,
+    "failed_case": "cloud_azure_end_to_end",
+    "initial_attempt": "The original container overlay fixture failed during CLI resume; its TempDir diagnostics were lost on panic.",
+    "faithful_reproduction": "An unchanged-byte overlay rerun retained the resume log and confirmed the explicit local-filesystem allowlist refusal.",
+    "captured_guard": "network, FUSE, overlay and unknown filesystems are refused",
+    "captured_resume_log_sha256": "87c55f5bcd1734c358c1af930bb656df097e765fbe16ac10f60cebece11e06d7",
+    "supported_filesystem_result": "Both builds passed the complete original suite on a supported ext4 fixture without weakening the guard."
+  },
+  "coverage_limits": [
+    "No Azure forward daemon/shim/Perforce migration scenario was run.",
+    "The paging contract uses small logical pages; it does not cross Azure\u2019s 5,000-entry service continuation boundary.",
+    "Managed identity and account-key authentication were not live exercised."
+  ],
+  "independent_artifact_audit_sha256": "4332bb4b53cb0733421d9311d945df239b70022080c81dee2cdb9f964fab2b57",
+  "provider_reference_links": [
+    "https://learn.microsoft.com/en-us/rest/api/storageservices/list-blobs",
+    "https://learn.microsoft.com/en-us/rest/api/storageservices/delete-blob",
+    "https://learn.microsoft.com/en-us/rest/api/storageservices/get-block-list"
+  ],
+  "supplemental_test_source_commit": "6ed59f102c86ee5742706dc10854593f7bdfc138",
+  "azure_evidence_recorded_utc": "2026-11-12T22:13:42.992637+00:00",
+  "supplemental_test_source_equivalence": {
+    "host_and_native_executable_test_code_identical": true,
+    "only_difference": "The native test retains older initial module documentation comments.",
+    "equivalence_receipt_sha256": "8188142b9a53ccb3cdef3c4992afe516c9a64ca73b79c2ab1a807bfe166d619d"
+  },
+  "supplemental_source_equivalence": {
+    "base_release_source_commit": "239e256c59033eae52f37cd305b9959fdba5a774",
+    "changed_paths": [
+      "rust/objectveil/tests/cloud_backend_e2e.rs"
+    ],
+    "added_test_lines": 178,
+    "production_source_dependencies_configuration_and_packaging_unchanged": true
+  },
+  "supplemental_required_gate": {
+    "command": "scripts/gate.sh",
+    "status": "passed",
+    "source_commit": "6ed59f102c86ee5742706dc10854593f7bdfc138",
+    "checks": [
+      "offline operational scripts",
+      "rustfmt",
+      "clippy (incl. bench compile gate)",
+      "feature matrix (nfs-only)",
+      "tests (full offline suite; available live integration prerequisites)",
+      "cargo deny (advisories/bans/licenses/sources)",
+      "cargo audit (--deny warnings)",
+      "MSRV (1.96.1) build --locked",
+      "binary size budget"
+    ],
+    "reported_rust_tests_passed": 1709,
+    "reported_failed": 0,
+    "reported_ignored": 0,
+    "python_operational_tests": 80,
+    "python_soak_tests": 7,
+    "node_tests": 5,
+    "live_scope_note": "Provider and privileged bodies remain environment-gated in the ordinary suite; actual Azure execution is evidenced separately above.",
+    "extended_coverage_fuzz_and_performance_rerun": false,
+    "original_extended_gate_receipt": "VALIDATION.json",
+    "gate_log_sha256": "aef02c29d0f11af8f8bcabae66d537c966086c224f91bc82bb1382aff62cc6d6"
+  }
+}

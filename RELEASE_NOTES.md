@@ -72,6 +72,11 @@ the client a path that cannot exist.
 and [CLOUD_VALIDATION.json](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/CLOUD_VALIDATION.json)
 record the exact source commit, artifact hashes and results.
 
+The subsequent [Azure validation addendum](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/AZURE_VALIDATION.json)
+supersedes the Azure-not-tested statements in those original receipts. The
+published binaries, release tags and original checksum files are unchanged;
+`AZURE_VALIDATION.sha256` verifies the addendum.
+
 - The Linux gate passed on the host runtime source. The final tag adds only
   corrections to test fixtures, test documentation and gate reporting; receipts
   record the exact build and test identities and unchanged production sources.
@@ -86,7 +91,7 @@ record the exact source commit, artifact hashes and results.
 - All 26 native Rust test executables passed on Red Hat UBI 9 user space
   (1,708 harness-reported passes; gated cases are documented in the receipts).
 
-- Live S3 and GCS tests exercise packing, multipart upload, range and concurrent
+- Live S3, GCS and Azure tests exercise packing, multipart upload, range and concurrent
   cold reads, mutable deduplication, revocation, cold recovery, and corruption
   refusal without partial local publication. The provider fixtures link the
   production engine into their release test executables; reverse migrations
@@ -100,11 +105,26 @@ record the exact source commit, artifact hashes and results.
   and unfinished multipart uploads. Dedicated GCS test buckets are deleted
   after acceptance; existing storage outside the test namespaces is untouched.
 
-**Not tested for this release:** live Azure storage writes. The available
-account retains deleted blobs for seven days and the supplied credentials cannot
-create a separate account with a suitable deletion policy. Writing test keys
-there would prevent verified cleanup and cryptographic deletion. No Azure test
-data was written. This remains an explicit provider-validation gap.
+**Azure follow-up validation:** all four Azure cases passed on each published
+build: three storage scenarios and an additional backend contract test. The
+added case checks conditional key creation without changing existing bytes or
+metadata, overwrite/readback, exact ranges,
+exclusive listing cursors, idempotent deletion, and the four keystore startup
+probes. Authentication used the available account SAS; other Azure credential
+modes were not exercised.
+
+The initial container run and a diagnostic repeat refused download resume on
+OverlayFS. Captured CLI diagnostics confirmed the existing local-filesystem
+safeguard; the same
+published executables passed on private ext4 scratch space. No production
+guard was weakened.
+
+Azure cleanup verified no active test blobs or uncommitted blocks remained.
+Soft-deleted blobs and snapshots, including test key material, remain under the
+unchanged seven-day account policy. These tests establish current serving and
+revocation behavior, not physical or cryptographic erasure of retained copies.
+Production keystores must still
+meet the [retention requirements](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/docs/CONFIGURATION.md#azure).
 
 RHEL testing uses UBI 9 user space on the build host's kernel; it does not certify
 a booted RHEL kernel, host service activation or enforcing SELinux policy.
