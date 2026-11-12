@@ -3,8 +3,8 @@
 A maintenance release in the same native format generation as 7.0.0. It changes
 no configuration, catalog, key or manifest format and needs no conversion.
 Replace 7.0.0 by following
-[Updating a compatible installation](docs/upgrading.md#updating-a-compatible-installation);
-[From 7.0.0 to 7.0.1](docs/upgrading.md#from-700-to-701) lists what behaves
+[Updating a compatible installation](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/docs/upgrading.md#updating-a-compatible-installation);
+[From 7.0.0 to 7.0.1](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/docs/upgrading.md#from-700-to-701) lists what behaves
 differently afterwards.
 
 ## Check `/dev/null` if you ran the 7.0.0 verifier as root
@@ -28,7 +28,7 @@ the client a path that cannot exist.
   thousand keys. Records that cannot be collected yet are retried with a delay
   and no longer hold up the others, and every pass logs what it destroyed, what
   it retained and why. See
-  [Garbage-collection cost and timing](docs/enabling-content-dedup.md#garbage-collection-cost-and-timing).
+  [Garbage-collection cost and timing](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/docs/enabling-content-dedup.md#garbage-collection-cost-and-timing).
 - **The manifest database is owner-only.** In the packaged layout the state
   directory is searchable by every local account, which left the list of
   tracked depot paths and content hashes readable. New manifests are created
@@ -52,7 +52,7 @@ the client a path that cannot exist.
 
 ## What was tested
 
-[VALIDATION.json](VALIDATION.json) and [RPM_VALIDATION.json](RPM_VALIDATION.json)
+[VALIDATION.json](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/VALIDATION.json) and [RPM_VALIDATION.json](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/RPM_VALIDATION.json)
 record the exact source commit, artifact hashes and results.
 
 - The required Linux gate passed on the release source commit.
@@ -69,7 +69,7 @@ recorded for 7.0.0. Storage behavior in 7.0.1 was exercised only against the
 test suite's local backends. No source file of the storage backends, migration,
 cold restore, packing or eviction changed since 7.0.0; the garbage-collection
 change above does read the keystore and catalog through those backends. The
-[migration guide](docs/migration.md) asks for a release whose validation covers
+[migration guide](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/docs/migration.md) asks for a release whose validation covers
 migration and cold reads: for that purpose 7.0.0 remains the validated release.
 
 ## Downloads
@@ -78,11 +78,11 @@ migration and cold reads: for that purpose 7.0.0 remains the validated release.
   `objectveil_7.0.1_amd64.deb` or `objectveil-7.0.1-linux-x86_64.tar.gz`. Both
   carry byte-identical executables.
 - **RHEL 9 x86-64** (glibc 2.34): `objectveil-7.0.1-1.el9.x86_64.rpm`, a separate
-  native build. See the [Red Hat guide](docs/redhat.md).
+  native build. See the [Red Hat guide](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/docs/redhat.md).
 
 Verify downloads against `SHA256SUMS`. Keep each build's executables and its
 preload shim together, and complete the coordinated writer stop in
-[INSTALL.txt](INSTALL.txt) before installing, upgrading or removing a package.
+[INSTALL.txt](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/INSTALL.txt) before installing, upgrading or removing a package.
 Installation never enables or starts the daemon. No license, credentials or
 implementation source is bundled.
 
@@ -92,4 +92,4 @@ documentation and configuration templates.
 Uploads remain asynchronous. Losing a writer and its disks before remote
 publication can lose recent acknowledged submissions. Retain independent
 Perforce metadata backups and a verified archive recovery point; see
-[disaster recovery](docs/disaster-recovery.md).
+[disaster recovery](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/docs/disaster-recovery.md).
