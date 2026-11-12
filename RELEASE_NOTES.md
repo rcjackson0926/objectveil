@@ -22,25 +22,41 @@ the client a path that cannot exist.
 - **Shared-content garbage collection scales.** With deduplication and
   `dedup_gc_single_writer_ack` enabled, the collector that destroys content no
   path references any more now reads the remote catalog and the keystore once
-  per pass for a whole batch of records, and does so without pausing uploads or
-  cold restores. In 7.0.0 it repeated both reads for every record while uploads
+  per pass for a whole batch of records. Uploads and cold restores continue
+  during those inventories; they may wait during the final key recheck and
+  destruction. In 7.0.0 it repeated both reads for every record while uploads
   and restores waited, and it could not finish on a keystore of more than a few
   thousand keys. Records that cannot be collected yet are retried with a delay
   and no longer hold up the others, and every pass logs what it destroyed, what
   it retained and why. See
   [Garbage-collection cost and timing](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/docs/enabling-content-dedup.md#garbage-collection-cost-and-timing).
-- **The manifest database is owner-only.** In the packaged layout the state
-  directory is searchable by every local account, which left the list of
+- **New manifests are owner-only; existing ones lose world access.** In the
+  packaged layout the state directory is searchable by every local account,
+  which left the list of
   tracked depot paths and content hashes readable. New manifests are created
-  `0600`, and the daemon removes world access from an existing one at startup.
+  `0600`, and the daemon removes world access from an existing one at startup,
+  preserving its existing group permissions.
+- **GC notices publications already in progress.** Catalog publications report
+  their completion or cancellation before releasing the writer drain, including
+  publications that started before the collector began watching. Concurrent
+  ingestion and deletion also retain their retry wakeups instead of allowing
+  an old decision to delay collection for up to a day.
+- **Contradictory catalog descriptors are refused.** Each deduplication descriptor
+  in a remote delta or snapshot must agree with its enclosing catalog entry on
+  the content hash, shared object address and encryption format.
+  Invalid records cannot establish authority for restoration, compaction or
+  garbage collection, and the remote history is retained for repair.
+- **Cloud namespace prefixes are consistent.** Leading and trailing slashes
+  are normalized before requests and paginated listings, so a listed object
+  can be read again using its returned key. Listings outside the configured
+  namespace are rejected.
 - **Configuration mistakes are caught when the file is loaded.** An Azure
   backend without `account_name`, and an S3 backend with only one of
   `access_key` and `secret_key`, are now rejected instead of failing later.
 - **Debian package removal no longer stops the service.** It refuses while the
   service or a Perforce server is running, as installation, upgrade and the RPM
   already did. The Debian package now depends on `ca-certificates`.
-- **The cross-region warning reaches the EC2 metadata service directly**,
-  whatever proxy the environment configures.
+- **The cross-region warning's EC2 metadata query bypasses configured proxies.**
 - **The example configurations load.** They are now checked by the real parser.
   The packaged example manages the Perforce depots directory, `/p4/1/depots`,
   as the installation guide describes.
@@ -52,25 +68,46 @@ the client a path that cannot exist.
 
 ## What was tested
 
-[VALIDATION.json](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/VALIDATION.json) and [RPM_VALIDATION.json](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/RPM_VALIDATION.json)
+[VALIDATION.json](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/VALIDATION.json), [RPM_VALIDATION.json](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/RPM_VALIDATION.json)
+and [CLOUD_VALIDATION.json](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/CLOUD_VALIDATION.json)
 record the exact source commit, artifact hashes and results.
 
-- The required Linux gate passed on the release source commit.
+- The Linux gate passed on the host runtime source. The final tag adds only
+  corrections to test fixtures, test documentation and gate reporting; receipts
+  record the exact build and test identities and unchanged production sources.
+- Configured workspace line coverage reached 90.48%, using the repository's
+  exclusions and including unit-test code. Two 60-second AddressSanitizer fuzz
+  targets completed more than 18 million executions without a crash.
 - Daemon, preload shim and tools were exercised against a real Perforce 2026.1
   server using the exact packaged executables of both builds.
 - Each package was installed, upgraded from the published 7.0.0 package and
   removed in a disposable container, including the refusals while a Perforce
   server or cache daemon is running.
-- The RPM build passed the complete test suite on Red Hat UBI 9 user space.
+- All 26 native Rust test executables passed on Red Hat UBI 9 user space
+  (1,708 harness-reported passes; gated cases are documented in the receipts).
 
-**Not tested for this release:** the live Amazon S3, Azure Blob Storage and
-Google Cloud Storage tests, and the S3-backed migration tests, that were
-recorded for 7.0.0. Storage behavior in 7.0.1 was exercised only against the
-test suite's local backends. No source file of the storage backends, migration,
-cold restore, packing or eviction changed since 7.0.0; the garbage-collection
-change above does read the keystore and catalog through those backends. The
-[migration guide](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/docs/migration.md) asks for a release whose validation covers
-migration and cold reads: for that purpose 7.0.0 remains the validated release.
+- Live S3 and GCS tests exercise packing, multipart upload, range and concurrent
+  cold reads, mutable deduplication, revocation, cold recovery, and corruption
+  refusal without partial local publication. The provider fixtures link the
+  production engine into their release test executables; reverse migrations
+  invoke the sealed migration CLI.
+- S3 migration tests invoke the packaged daemon, tools and shim with real
+  Perforce: concurrent live imports, busy-file deferral, same-job resume,
+  historical archives and shelves, and recovery after actual SIGKILL during
+  upload and download. Byte comparisons and namespace checks verify preserved
+  source data and remote catalog/key state.
+- Test cleanup checks current objects, historical S3 versions, delete markers
+  and unfinished multipart uploads. Dedicated GCS test buckets are deleted
+  after acceptance; existing storage outside the test namespaces is untouched.
+
+**Not tested for this release:** live Azure storage writes. The available
+account retains deleted blobs for seven days and the supplied credentials cannot
+create a separate account with a suitable deletion policy. Writing test keys
+there would prevent verified cleanup and cryptographic deletion. No Azure test
+data was written. This remains an explicit provider-validation gap.
+
+RHEL testing uses UBI 9 user space on the build host's kernel; it does not certify
+a booted RHEL kernel, host service activation or enforcing SELinux policy.
 
 ## Downloads
 
@@ -83,8 +120,8 @@ migration and cold reads: for that purpose 7.0.0 remains the validated release.
 Verify downloads against `SHA256SUMS`. Keep each build's executables and its
 preload shim together, and complete the coordinated writer stop in
 [INSTALL.txt](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/INSTALL.txt) before installing, upgrading or removing a package.
-Installation never enables or starts the daemon. No license, credentials or
-implementation source is bundled.
+Installation never enables or starts the daemon. No customer license file,
+credentials or implementation source is bundled.
 
 GitHub's automatic Source code archives contain only this public repository's
 documentation and configuration templates.
@@ -93,3 +130,8 @@ Uploads remain asynchronous. Losing a writer and its disks before remote
 publication can lose recent acknowledged submissions. Retain independent
 Perforce metadata backups and a verified archive recovery point; see
 [disaster recovery](https://github.com/rcjackson0926/objectveil/blob/v7.0.1/docs/disaster-recovery.md).
+
+Dropping a client request does not cancel a write already accepted by an object
+store. Ambiguous writes need reconciliation before treating key erasure as
+complete; local cancellation alone is not proof of instantaneous cryptographic
+erasure.

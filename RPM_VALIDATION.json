@@ -3,66 +3,167 @@
   "product": "ObjectVeil",
   "version": "7.0.1",
   "rpm_release": "1.el9",
-  "status": "passed_without_cloud_provider_tests",
+  "status": "passed_s3_gcs_azure_not_exercised",
   "recorded_on": "2026-11-12",
   "platform": "RHEL 9 x86_64",
   "minimum_glibc": "2.34",
-  "source_commit": "396f47f5d07b4d28e27fd434620aa4694191919a",
+  "source_commit": "fa1dcc82dd1f0ecf7d2d5442646c1a2e2b39d347",
+  "final_release_source_commit": "239e256c59033eae52f37cd305b9959fdba5a774",
+  "source_equivalence": {
+    "native_runtime_and_packaging_source": "fa1dcc82dd1f0ecf7d2d5442646c1a2e2b39d347",
+    "final_release_source": "239e256c59033eae52f37cd305b9959fdba5a774",
+    "changed_paths": [
+      "rust/objectveil/fuzz/Cargo.lock",
+      "rust/objectveil/fuzz/Cargo.toml",
+      "rust/objectveil/tests/cloud_backend_e2e.rs",
+      "rust/objectveil/tests/e2e_daemon_p4d_shim/migration.rs",
+      "rust/tests/README.md",
+      "scripts/gate.sh",
+      "scripts/tests/test_gate_artifacts.py"
+    ],
+    "all_production_runtime_source_dependencies_shipped_docs_config_and_packaging_identical": true,
+    "cloud_test_changes_are_initial_header_comments_only": true,
+    "explanation": "Only development gate/fuzz inputs, the archive-only migration test fixture, cloud-test header comments, and developer test documentation differ. Production runtime, primary workspace manifests/lockfile, shipped docs, configuration and package inputs are unchanged."
+  },
   "package": {
     "filename": "objectveil-7.0.1-1.el9.x86_64.rpm",
-    "bytes": 23452190,
-    "sha256": "5dbe8206617fe159686ec6f32c1f52abeb17d7cdbbe1d33ee783c0025d22e40c"
+    "bytes": 23454494,
+    "sha256": "f9bd3696444922777637a6f07164e5a8e84c8ba754e6931f8485f1e8a6c0221d"
   },
   "runtime_sha256": {
-    "objectveil": "23c17b250d50166fe7b065d009b6c8c7be8382ee6f8a592839784b219a68e9ac",
-    "objectveil-verify": "7a5548ebba189c86f64ed0f3373acca4b9db94b2738a33ef49a0373803b38590",
-    "objectveil-manifest-summary": "db7f15b7166a3cafe787a35a56573bbe34889cc75d41c685c218237e634304e9",
-    "objectveil-rebuild-catalog": "039231a5d6d4dfae027a1302b1516de8a6a933a185454b6db229abf3e45c7c81",
-    "objectveil-rescan": "8b8ac5bc9f0832e4aec0981493bc73a58d5f4eb78c651062f7a7f6936edfc41e",
-    "objectveil-dedup-measure": "eda33fa5128697c8020aceece36f19d1c6eea401c27668d7f1a0490e6aa396fb",
-    "objectveil-migrate": "8a2c273370cb3a6ff633a96baa50b9a3423b88dde02ebe3fbdf171ee0339774d",
-    "objectveil-initialize": "d6c01650509d418c4c7771449831f99351f670c92ea8867d9dece753fcfcacc3",
-    "libobjectveil_shim.so": "87193db23e98d065cb6fe67cd2c16c0a5473146676ec80627380982f21aa0904"
+    "objectveil": "d2aeaa339735d44a5b000f1e612ed01a7859ebd2e7cdfc5b8d79077a3a3ac308",
+    "objectveil-verify": "7c5a6ae574dd9754dae262bf4e5c0729b4cb192d883d60a19e218e70549efc39",
+    "objectveil-manifest-summary": "ead2121e8bb07e0a552ceb4f266d0d6d37cea8d572f9b2c006d9d3eb305af99a",
+    "objectveil-rebuild-catalog": "129da0cc229b0bdd53ecd2de3ebbfc28ecdf34de1b0764b1e4abd82088b50154",
+    "objectveil-rescan": "d2374c431ae3b094f61bf4d2e89ad18a697b3bdabd3bc7467907e11f326a93d9",
+    "objectveil-dedup-measure": "bdd2eab1da6565a0e0d25cc676358fef589c8704ea24e25bf89ee24c5020cc88",
+    "objectveil-migrate": "a04e4415df4e6ff847e1f0dcc5d076f7d09370998a10bf120269e12413bab76c",
+    "objectveil-initialize": "a6cf54679ae9eece8e64d8b4e11ee7a4807d0a4b7aaaa38d73dbe363ae28cb63",
+    "libobjectveil_shim.so": "1a7cf6ea134aa8a5aa94649a0b17a59b243f54b69f53ba349ce99a73561ae309"
   },
   "integrity_seals_verified": 3,
   "build": {
-    "base_image": "registry.access.redhat.com/ubi9/ubi@sha256:8b212f75a0e5a156ac28b1c5c030d2e8a07715254e19d522286118279399af81",
-    "os": "Red Hat Enterprise Linux release 9.9 (Plow)",
-    "glibc": "glibc-2.34-290.el9_9.x86_64",
-    "gcc": "gcc-11.5.0-17.el9_9.x86_64",
-    "rust_toolchain": "1.96.1-x86_64-unknown-linux-gnu",
-    "umask": "077",
-    "built_from_clean_clone_of_source_commit": true,
-    "payload_rewriting_disabled": true
+    "os": "Red Hat Enterprise Linux release 9.8 (Plow)",
+    "glibc": "glibc-2.34-283.el9_8.x86_64",
+    "gcc": "gcc-11.5.0-14.el9.x86_64",
+    "rustc": "rustc 1.96.1 (31fca3adb 2026-06-26)",
+    "perforce_client": "P4/LINUX26X86_64/2026.1/2972966 (2026/06/10)",
+    "perforce_server": "P4D/LINUX26X86_64/2026.1/2972966 (2026/06/10)",
+    "container_image_id": "4c5df66c782c4909975466bb9384126a20c0a414722bd39566925006b216e121",
+    "umask": "077"
   },
   "native_rust_suite": {
-    "rust_suites": 29,
-    "rust_tests_passed": 1698,
+    "test_executables": 26,
+    "rust_reported_passed": 1708,
     "rust_failed": 0,
     "rust_ignored": 0,
-    "environment": "Compiled in the build container and run in a container started from its snapshot, on Red Hat UBI 9 user space with an init process and p4d and p4 2026.1; temporary storage on bound ext4.",
-    "limits": "Cloud-provider cases return without exercising a provider when credentials are absent. No cloud credentials were supplied."
+    "initial_environment_gated_cases": 21,
+    "initial_gates": {
+      "cloud_providers": 9,
+      "s3_migration": 5,
+      "nonroot_permissions": 5,
+      "capabilities": 2
+    },
+    "gated_cases_subsequently_executed": 18,
+    "remaining_unexecuted_cases": 3,
+    "remaining_unexecuted_reason": "Three Azure live provider cases were not exercised.",
+    "original_e2e_test_executable_sha256": "593d88bfca177b94ff89de360690d02dffb32e3e5084e486cc135ffd07f00c7f",
+    "environment": "Native release test executables in RHEL 9 user space; actual RPM runtime bytes placed at all integration-test launch paths. Private root-owned fixtures, umask077, and init/subreaper.",
+    "scope": "Current Cargo --no-run test executables; native doctests are not claimed."
   },
-  "exact_packaged_integration_tests": {
-    "runtime": "The nine runtime files extracted from the RPM, placed at the paths the integration-test executable launches, on UBI 9 user space.",
-    "rust_reported_passed": 13,
-    "failed": 0,
-    "noncloud_cases_exercised": 8,
-    "cloud_cases_not_exercised": 5,
-    "perforce_server_and_client": "2026.1/3089746",
-    "actual_perforce_scenarios": [
-      "warm and cold archive reads through the packaged daemon and shim",
-      "writer submits and mutable RCS archives, historical reads, verification and acknowledged deletion",
-      "read-only freshness and outage refusal",
-      "concurrent cold reads and refused read-only obliterate preserving siblings"
+  "native_platform_rechecks": {
+    "nonroot_permission_tests": [
+      {
+        "test": "engine_primary_backend_error_does_not_fallback_to_secondary",
+        "executable_sha256": "502e35f54db8cbe0eedf289380b8a5c0c1309e132e82b2c7dea15147c7c40264",
+        "exit_code": 0,
+        "skipped": false
+      },
+      {
+        "test": "engine_secondary_backend_error_does_not_count_terminal_restore_failure",
+        "executable_sha256": "502e35f54db8cbe0eedf289380b8a5c0c1309e132e82b2c7dea15147c7c40264",
+        "exit_code": 0,
+        "skipped": false
+      },
+      {
+        "test": "cache_rescan::tests::quarantine_move_failure_leaves_original_in_place_byte_unchanged",
+        "executable_sha256": "d00c9151bdbf0e4fd4127a49ec5f4ee2c2b13d132afe87ec367c34a2c29f4d3f",
+        "exit_code": 0,
+        "skipped": false
+      },
+      {
+        "test": "engine::compaction::tests::failed_repack_write_leaves_old_chunk_and_catalog_intact",
+        "executable_sha256": "d00c9151bdbf0e4fd4127a49ec5f4ee2c2b13d132afe87ec367c34a2c29f4d3f",
+        "exit_code": 0,
+        "skipped": false
+      },
+      {
+        "test": "engine::packing::tests::seal_local_staging_write_failure_requeues_no_put_no_pointer",
+        "executable_sha256": "d00c9151bdbf0e4fd4127a49ec5f4ee2c2b13d132afe87ec367c34a2c29f4d3f",
+        "exit_code": 0,
+        "skipped": false
+      }
     ],
-    "null_device_intact_after_root_run": true,
-    "log_sha256": "fae763846947ee49e62f36213822726e426b7872f0f5461c2348a09f6cf17e4a"
+    "capability_tests": [
+      {
+        "test": "watcher::tests::fanotify_live_watch_or_skip",
+        "executable_sha256": "d00c9151bdbf0e4fd4127a49ec5f4ee2c2b13d132afe87ec367c34a2c29f4d3f",
+        "exit_code": 0,
+        "skipped": false
+      },
+      {
+        "test": "binary_replays_dirty_queue_after_sigkill_while_queued",
+        "executable_sha256": "502e35f54db8cbe0eedf289380b8a5c0c1309e132e82b2c7dea15147c7c40264",
+        "exit_code": 0,
+        "skipped": false
+      }
+    ],
+    "capability_scope": "Only SYS_ADMIN added to a disposable container for live fanotify and actual dirty-queue SIGKILL/restart recovery."
+  },
+  "provider_acceptance": {
+    "providers": [
+      "Amazon S3",
+      "Google Cloud Storage"
+    ],
+    "provider_cases_passed": 6,
+    "admission_helpers_passed": 2,
+    "failed": 0,
+    "execution": "Production core linked into the native release cloud_backend_e2e test executable (in-process EngineHarness), plus sealed migration CLI for download/resume. These six fixture bodies are not each separate daemon processes.",
+    "test_executable_sha256": "07ba71beafd2fb8544ef0a4f73677b0845cf1351809ab1b8d25d2c769e23de3c",
+    "verified_behaviors": [
+      "packed and standalone upload, exact cold range/burst recovery",
+      "mutable dedup, warm refresh, revocation and cold recovery",
+      "corrupted ciphertext refused before local publication, independent archive preserved",
+      "obliterate/re-add leaves removed content inaccessible and sibling/new content intact",
+      "download/resume verifies all bytes"
+    ],
+    "runtime_hashes_verified_before_and_after": true,
+    "log_sha256": "9c7bd36bfe94e5d3c3c35b4ba93cd8210d27b797e1d72bfd012eaf9ece24f447"
+  },
+  "packaged_migration_acceptance": {
+    "cases_passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "execution": "Native integration executable launches exact sealed RPM CLI, daemon and shim against owned S3 scopes and real private Perforce servers.",
+    "test_base_source_commit": "fa1dcc82dd1f0ecf7d2d5442646c1a2e2b39d347",
+    "test_only_patch_sha256": "bdf72b26d6d38746154088386c5babe0401c17ac4b88c0ac5d9b51da46827b3f",
+    "corrected_test_source_sha256": "1b6b63469ebf74f3bc0d29578b2d2e2dc77a47277d81a3e64995bc705089c4d2",
+    "test_executable_sha256": "20536823ba72cf0ff4fbe4613dfa89763cd60fbb99d7955b2b1168ecf4e14bf5",
+    "fixture_correction": "Running Perforce archive source remains uninitialized and archive-only; replacement ObjectVeil cache roots are initialized. Production reserved-state guard is unchanged.",
+    "verified_behaviors": [
+      "direct live upload with paused-writer deferral and concurrent real submit",
+      "same-job resume after rewritten/new/deleted paths, with and without dedup",
+      "actual upload and download SIGKILL recovery; no partial final publication",
+      "cold historical RCS, shelf, packed and multipart recovery through daemon/shim",
+      "source archive bytes and cloud data/catalog/keys preserved across download"
+    ],
+    "runtime_hashes_verified_before_and_after": true,
+    "log_sha256": "a29a13ebce4f95b8d18fc0656af9913b36b6dfabdb5f4fee30dfd1a0053628b7"
   },
   "rpm_lifecycle": {
     "assertions_passed": 174,
     "first_install": true,
-    "upgrade_with_identical_runtime": true,
+    "release1_to_release2_upgrade": true,
     "removal": true,
     "active_writer_install_and_removal_refused": true,
     "tested_process_names": [
@@ -71,21 +172,19 @@
       "objectveil"
     ],
     "operator_config_license_state_and_archives_preserved": true,
-    "edited_example_preserved_on_upgrade_and_retained_as_rpmsave": true,
-    "ordinary_user_can_read_shim_and_provenance_and_traverse_config_directory": true,
-    "automatic_service_enable_or_start": false,
-    "test_only_upgrade_package_sha256": "320900f9b1ca94bd48ec9c9b809068d600bba805f887e99a9188eb62cbb3632f",
-    "note": "Run in a disposable Docker container; the Podman marker file the script requires was created inside it."
+    "edited_example_preserved_and_retained_as_rpmsave": true,
+    "ordinary_user_package_access_verified": true,
+    "test_only_upgrade_package_sha256": "ca2caa5a1f64c5fc39a3818fc80cffdc27887f2dc2d8d89594f67c75c7b8ba65"
   },
   "upgrade_from_published_release": {
-    "assertions_passed": 68,
+    "assertions_passed": 39,
     "previous": "7.0.0-1.el9",
+    "candidate": "7.0.1-1.el9",
     "previous_rpm_sha256": "9aeb690d7526a94b8f446d3b9282a483457aebdd3b5baa1e39162d314f14c4fd",
-    "active_writer_upgrade_and_removal_refused": true,
-    "operator_config_license_state_and_archives_preserved": true,
+    "previous_rpm_verified_against_public_checksums": true,
     "installed_runtime_identical_to_package": 9,
-    "all_eight_tools_start_on_glibc_2_34": true,
-    "unedited_example_replaced": true
+    "operator_config_license_state_and_archives_preserved": true,
+    "edited_example_preserved_through_upgrade_and_removal": true
   },
   "package_audit": {
     "regular_files": 42,
@@ -141,52 +240,37 @@
       "systemd",
       "systemd"
     ],
-    "private_source_credentials_signing_and_stamping_tools_included": false,
+    "exact_shipped_file_inventory_verified": true,
+    "known_secret_and_cloud_identifier_scan": {
+      "files_scanned": 42,
+      "bytes_scanned": 78662895,
+      "files_with_credential_matches": 0,
+      "files_with_identifier_matches": 0,
+      "findings": []
+    },
     "gpg_signed": false
   },
-  "not_run": [
-    {
-      "check": "Live cloud-provider functional tests (three Amazon S3 cases, Azure Blob Storage, Google Cloud Storage)",
-      "reason": "No provider credentials were available to the release build. The cases report success without contacting a provider when credentials are absent, so their results in the suite totals are not evidence.",
-      "last_recorded_for": "7.0.0"
-    },
-    {
-      "check": "S3-backed migration cases on the packaged runtime: live upload with busy-file skip and same-job resume, download and same-job resume, interrupted-job recovery, packaged cold reads after migration",
-      "reason": "They need the same S3 credentials. Five integration cases returned without exercising a provider.",
-      "last_recorded_for": "7.0.0"
-    },
-    {
-      "check": "Identifier audits of artifacts, packaging source and website",
-      "reason": "Not repeated; the audit inputs are not part of the source workspace.",
-      "last_recorded_for": "7.0.0"
-    }
-  ],
-  "private_evidence_sha256": {
-    "build-rpm.log": "68d07dfae6c0b27eadba002b454c0f3103fc78b7deb390b67d27360888f26210",
-    "build-environment.txt": "56e52ca3dec111e138b025e3de9e25b688b7127749ba4c62d933962720ee0aee",
-    "rpm-requires.txt": "20fc04cad2ac6dc7c33ceacc236e84634a8c51e97fd0dd5bc0f3b708ea677edc",
-    "rpm-files.txt": "4b9161c821136144ef085570e018c658ce0690ff9ce3e1f203d4530440afb161",
-    "rpm-scripts.txt": "a4db7626720aa29ec1282e5c6f90426335fbd911ff134208fc9bef75118b575d",
-    "rpm-native-suite.log": "725dd86732ee82139d9f879ea05e45d69bc5fdc8f1e89120d98272dc83e78529",
-    "rpm-native-suite.first-run-umask0.log": "7f4b32ddb66751a3533a4a8d0d13718574d097cff996a84ac533cd6137c0c9c9",
-    "rpm-native-suite.second-run-tmp-under-cargo-registry.log": "01e9b3f4cac03d59b01e13f1379c62cdc13fa6b6157b7c3ef685ea06148d9eb0",
-    "rpm-native-suite.third-run-no-init.log": "69e1e8535b2f135fb07bcca4dd00a60fe8d589b3ee9a42fe51dc9d99faeb9792",
-    "packaged-perforce-rpm.log": "fae763846947ee49e62f36213822726e426b7872f0f5461c2348a09f6cf17e4a",
-    "rpm-lifecycle.log": "4b6593968bc7c02a4b5a838b7df6a06d80f5516773e40d34dc7b5159a730196a",
-    "rpm-lifecycle.json": "fd070e2eaf502a6fcf81e6b81ce69302275b26eecebfcc77dc27de57b5c6c772",
-    "rpm-upgrade-from-published.log": "afb1ea37cfbfd61530113c700c572706aebeecf7f1c45e97d51ca7e0d63498d1",
-    "rpm-upgrade-from-published.json": "aefc6fda6d569b77c4054b9d12b53b9aabff97923dd01ace027c3b9ed135ba24"
+  "cloud_cleanup": {
+    "owned_s3_current_versions_delete_markers_and_multipart_verified_empty": true,
+    "owned_gcs_current_and_historical_objects_verified_empty": true,
+    "gcs_soft_delete_disabled_since_fixture_creation": true,
+    "scope": "Only explicitly owned test prefixes and dedicated ephemeral GCS buckets; account policy unchanged.",
+    "private_cleanup_receipt_sha256": "b798634a8ad2db4159fc2d62619c9f03006eb517158ad62407853ada28af4fbc"
   },
   "limitations": [
-    "Testing used official Red Hat UBI 9 user space on an Ubuntu-hosted Linux kernel; it does not certify a RHEL host kernel, booted host systemd or enforcing SELinux policy.",
-    "No live cloud-provider test is claimed for this release.",
-    "Uploads remain asynchronous and can lose unpublished writes after complete writer/disk loss. Independent application metadata backups and an archive recovery point are required.",
-    "Package checksums are not a detached GPG signature or hosted attestation."
+    "RHEL 9 user-space container on the host kernel; no booted RHEL systemd or enforcing SELinux certification.",
+    "Azure live destructive lifecycle tests were not run because the configured account retains soft-deleted data; no Azure policy was changed.",
+    "Checksums and embedded integrity seals are not a detached package GPG signature."
   ],
-  "environment_corrections": [
-    "The first native run started with umask 0 and a world-writable temporary root; the verifier correctly refused to write its logs there (58 failures). It was repeated with umask 022 and a private root.",
-    "The second run placed temporary storage inside Cargo's registry directory, where Cargo ignores file changes, so one build-metadata case that depends on change detection failed. It was repeated with a separately bound ext4 directory.",
-    "The third run's container had no init process: an exited daemon remained a zombie and one daemonization case could not observe its exit. It was repeated with an init process.",
-    "The complete suite passed on the fourth run. No source or packaged byte changed between runs; the three earlier logs are retained with the evidence."
-  ]
+  "private_evidence_sha256": {
+    "native-suite.json": "503f72e7c654dad2c397a62d27f111e01878c4be1b200ad7c7c7ba6ae2adcd48",
+    "evidence/package-audit.json": "2dbd4681bd5b9331cac8b61a116a7f7e7f75e078003aa6b15d2f545de828f8c9",
+    "evidence/lifecycle.json": "92ba22f0cb31e7e41073c65378690d9b39ff8a318a91b80cc3e2795f8732748e",
+    "evidence/published-upgrade.json": "693ddff248ead0fec1edd4f9161aa79da964350d34c11e6de9576240439542ee",
+    "evidence/permission.json": "7d47b1613883ef42502e5e4ccd4eb3fa5d8da8c1b1b51865545cb273ec3e05bc",
+    "evidence/fanotify.json": "7e141f82bef6f67d306dc817ed8d3523250a1faae977208123fff41444375966",
+    "evidence/provider-acceptance.json": "40956e5e4c14fd1c5d4c3068610e01290617b1612fd20ac8bc60a62cbb477824",
+    "evidence/migration-fixture.json": "245c52a8642bcd7bd08df093036fece933b0da6b1e7de01afcd8e4604bca64e3",
+    "original-e2e-test-executable": "593d88bfca177b94ff89de360690d02dffb32e3e5084e486cc135ffd07f00c7f"
+  }
 }

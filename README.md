@@ -8,8 +8,11 @@ paths below refer to the extracted tar bundle.
 This Linux release contains the cache daemon, its matching Perforce preload
 shim, the migration uploader/downloader, and the verification and recovery
 utilities and native initializer. This release requires `objectveil/1` configuration,
-a deployment namespace UUID, native stored formats, and version 2 signed licenses.
-No license or private configuration is bundled.
+a deployment namespace UUID and native stored formats. Customer license files
+use the version 2 signed format; no customer license file or private configuration
+is bundled. Without a license file, the binary's developer fallback permits
+1 TiB for 30 days from its build date. Production deployments must override it;
+see [Licensing](docs/LICENSING.md).
 
 Start with [INSTALL.txt](INSTALL.txt). Choose the build for your system:
 
@@ -57,6 +60,9 @@ the files inside this bundle. The release-level checksum file verifies the
 download assets. The release and Rust workspace versions identify this native
 format generation. [VALIDATION.json](VALIDATION.json) records the tested source,
 artifact hashes, the checks run for this release and the checks that were not.
+[CLOUD_VALIDATION.json](CLOUD_VALIDATION.json) records live S3/GCS testing,
+authentication coverage and verified cleanup; Azure write tests are explicitly
+excluded for this release.
 The initializer, daemon and migration executable carry verified integrity seals.
 
 Writer upgrades require a coordinated stop of p4d, ObjectVeil and any previous
