@@ -1,20 +1,36 @@
 # Native causal catalog
 
 The remote catalog is the authority for logical archive paths. A local redb
-catalog is a recoverable mirror. Every native catalog envelope requires
-`format: "objectveil-catalog"`, version `3`, and a checksum over the complete
-canonical JSON payload under the `objectveil-catalog-v3` domain. Other versions,
-missing labels and invalid checksums are refused. Checksums detect corruption;
-they are not signatures against an actor able to replace both record and hash.
+catalog is a recoverable mirror. The primary role marker identifies the layout.
+Legacy records use version 3 and partitioned records use version 4. Catalog
+envelopes carry the format identifier `objectveil-catalog` and a checksum of
+canonical JSON under the corresponding `objectveil-catalog-v3` or
+`objectveil-catalog-v4` domain. A layout mismatch or damaged envelope makes
+the read incomplete.
 
 ## Objects and ordering
 
-A path selects a four-character lowercase hexadecimal shard from its packing
-bucket. A writer publishes immutable objects under:
+The legacy layout selects four lowercase hexadecimal digits from the hash of
+the packing bucket. The partitioned layout selects the first two BLAKE3 bytes
+of the entire canonical storage key, encoded as four lowercase hexadecimal
+digits following `p`. A pack may span several catalog partitions. Its members
+become clean after publication succeeds for all affected partitions.
 
-- `catalog/<prefix>/<era>.<daemon_id>.<seq>.delta`: batches of Put and Remove.
-- `catalog/<prefix>/<era>.<daemon_id>.base.<seq>.idx`: merged snapshots.
-- `catalog/epochs/`: permanent create-once writer-era tickets.
+- `catalog/<prefix>/<era>.<daemon_id>.<seq>.delta` stores a batch of Put and Remove records.
+- `catalog/<prefix>/<era>.<daemon_id>.base.<seq>.idx` commits a compacted base.
+- `catalog/<partition>/conversion.base.idx` seeds a partition during offline conversion.
+- `catalog/segments/<partition>/<digest>.seg` stores an immutable, sorted range of live entries and tombstones.
+- `catalog/epochs/` contains permanent create-once writer-era tickets.
+
+Small partition bases hold their entries inline. A larger base contains an
+ordered range directory with each leaf's first and last key, row count, byte
+length and BLAKE3 digest. The writer targets 1 MiB per leaf and allows one
+larger record within the 32 MiB object limit. It creates all leaves before
+publishing the immutable base. Existing content at a reused name must match
+byte for byte. An exact lookup validates the root and reads the intersecting
+leaf. A complete partition scan validates every referenced leaf. Old leaves
+remain available to readers through compaction, and offline reclamation uses
+all configured data namespaces. [Segment reclamation](../disaster-recovery.md#reclaim-retired-partition-catalog-segments)
 
 Era/order receipts establish causal precedence. Process identity and sequence
 avoid same-name publication collisions. A replacement writer reserves a later
@@ -67,8 +83,9 @@ so losing their catalog as well as local state is not a supported reconstruction
 
 ## Namespace boundary
 
-A paired native storage marker validates the configured deployment UUID and role
-before backend operations. The format marker is control metadata, not a catalog
+A plaintext primary verifies its own native format marker before backend
+operations. Encrypted storage verifies the primary and keystore markers against
+the same deployment UUID and their respective roles. The format marker is control metadata, not a catalog
 shard. Internal key prefixes cannot alias depot paths. Native marker validation
 does not verify all archive bytes or prove a converted dataset is complete;
 conversion and cutover require independent verification.

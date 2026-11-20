@@ -47,12 +47,12 @@ writer contention stays retryable and preserves the last durable catalog pointer
 | --- | --- |
 | Primary `chunks/<hash>`, immutable `standalone/<id>` payloads and `.meta` descriptors, deduplicated `blobs/<hash>` | Archive bytes and recovery identity. A missing final copy cannot be reconstructed from an index. |
 | Primary `catalog/` deltas, bases, and permanent `catalog/epochs/` writer tickets | Authoritative mappings, deletion records, and causal publication order. Footers and standalone descriptors can reconstruct unambiguous missing mappings. Tickets fence delayed requests from a lost writer and must never be deleted or rolled back. |
-| Separate keystore, including live path keys, dedup content-key anchors, and poison markers | Required to decrypt encrypted archives and locate the current epoch after delete/re-add. Loss of a live key makes its ciphertext unrecoverable. Missing poison history can hide later live epochs. |
+| Encrypted deployments only: separate keystore, including live path keys, dedup content-key anchors, and poison markers | Required to decrypt encrypted archives and locate the current epoch after delete/re-add. Loss of a live key makes its ciphertext unrecoverable. Missing poison history can hide later live epochs. |
 | Perforce checkpoints/journals and archive metadata | Establish the expected revisions and a consistent server recovery point. objectveil objects alone are not a complete Perforce backup. |
-| Configuration, credentials, and backend identity | Reconnect the recovered server to the correct object namespace and keystore. |
+| Configuration, credentials, and backend identity | Reconnect the recovered server to its primary and, for encrypted deployments, its original keystore. |
 
 The local redb catalog can be rebuilt, but its loss is not proof that remote
-objects are garbage. Fresh writers reconcile path epochs from the remote key
+objects are garbage. Encrypted writers reconcile path epochs from the remote key
 history before mutation. Packing is always enabled; files below
 `pack_max_file_bytes` normally live in chunks rather than standalone objects.
 
@@ -62,8 +62,13 @@ replication process before counting that secondary as a durable backup.
 
 ## Key durability and cryptographic deletion
 
-Protect the primary data bucket against accidental deletion using the provider's
-retention and versioning features where appropriate. The **keystore is different**:
+The plaintext primary contains the complete remote archive namespace, including
+pack members' catalog mappings. Protect its payloads, catalog and format marker
+together. Provider retention can preserve obsolete versions after obliterate.
+Keep independent Perforce metadata backups for a consistent recovery point.
+
+The following key-retention requirements apply only to ObjectVeil-encrypted
+deployments. On the separate keystore,
 versioning, soft-delete, WORM/object-lock, historical backups, and key replication
 that retain revoked keys defeat cryptographic obliteration. Do not enable these
 or restore old key versions as an emergency workaround.
@@ -86,8 +91,8 @@ on either disaster recovery or permanent deletion.
    stopped. Only one writer may mutate a depot. Preserve all surviving primary
    objects and key history; do not run cleanup scripts against them.
 2. Install the shipped recovery utilities, restore the configuration and
-   credentials, and confirm primary/keystore namespaces and their native role
-   markers. Preserve the original namespace UUID. Restore Perforce's database
+   credentials, and confirm the primary location and native marker. For an
+   encrypted depot, also verify the original keystore and its marker. Preserve the original namespace UUID. Restore Perforce's database
    to the selected consistent checkpoint/journal position. Initialize the new
    archive-only local root with `objectveil-initialize <config>` (add
    `--existing-archives` only after reviewing an existing archive-only tree).
@@ -184,14 +189,15 @@ and `standalone/` payloads and does not convert a foreign namespace or catalog.
 
 ## Cleanup and upgrade behavior
 
-Physical chunk and unknown-blob sweeps are disabled. Even a complete catalog
-and validated replacement payloads cannot prevent a delayed DELETE from removing
-a later publication at a reusable address. Superseded and unmapped chunks, seal
-markers and recovery metadata remain stored until a durable address-retirement
-protocol exists. Missing mappings, unreadable metadata and damaged footers never
-establish that retained bytes are disposable. Account for remote storage growth.
-Recovery's incomplete marker also prevents ordinary spatial repacking from
-acting on partially reconstructed liveness counts.
+The plaintext cloud compactor can reclaim a superseded pack from the primary.
+Each pack publication has a unique address. Before deleting it, the writer must
+verify that every original member has a durable tombstone or a readable
+replacement, then durably record the retirement. Repeated deletes address the
+same old pack. Historical catalogs require matching historical payload backups.
+Cloud soft deletion, versions, and snapshots follow the account's retention.
+Encrypted and older reusable pack addresses and unknown blobs are retained.
+Missing mappings, unreadable metadata and damaged footers do not authorize
+cleanup. An incomplete catalog rebuild suspends compaction.
 
 Each writer reserves a permanent, atomically created ticket in `catalog/epochs/`
 before publishing. Deltas and bases carry that writer era; within an era, each
@@ -208,7 +214,7 @@ pointer is durable before the local row becomes Clean. Old full-object versions
 and their descriptors are retained conservatively; object storage usage can grow
 after rewrites or deletion. Current cleanup does not reclaim these versions
 without a separate proof of safety. Crypto-shred still revokes their shared path
-key epoch; plaintext NFS storage does not provide permanent physical obliteration.
+key epoch; plaintext cloud and NFS standalones may remain at their previous addresses.
 Tombstones remain while a descriptor could reconstruct the deleted mapping.
 
 Deduplicated archives publish through the same causal catalog. Mutable rewrites
@@ -220,9 +226,10 @@ blobs are retained: a delayed deletion of a deterministic blob address could
 otherwise destroy a later reuse. This deliberately favors recoverability over
 immediate space reclamation or unconditional cryptographic-erasure completion.
 
-Catalog records use checksummed native version 3 with format `objectveil-catalog`.
-Other versions are refused. Native storage identity markers bind both roles to
-the configured namespace UUID. Preserve those markers alongside objects.
+Catalog records use checksummed native format `objectveil-catalog`, version 4
+for partitioned catalogs and version 3 for legacy catalogs. The primary format
+marker binds the storage mode, catalog layout and deployment UUID. An encrypted
+deployment also has a role-specific marker in its keystore. Preserve those markers alongside objects.
 Upgrade every reader and writer together and fence old binaries before publishing
 with the new ordering and standalone pointers. Preserve all writer tickets and
 recovery descriptors in primary-storage backups. A catalog restored to an older
@@ -242,7 +249,7 @@ upload them using the corrected writer; do not bypass authentication to migrate.
 Read-only shim processes query the daemon's role once and retain that role for
 their lifetime. Restart the shim-bearing `p4d` process whenever its cache role
 or deployment configuration changes. Every new read-only open starts a fresh
-authority check against the complete remote catalog and the current key epoch.
+authority check against the remote catalog and, for encrypted storage, the current key epoch.
 It verifies the local inode and full plaintext digest before allowing a warm
 hit; a newer remote revision is downloaded and authenticated while the verified
 tracked Clean local copy remains protected from eviction. Only successful
@@ -278,3 +285,23 @@ revision inside an RCS archive. Recovery acceptance must also run actual
 
 - [Packing configuration](enabling-chunk-packing.md)
 - [Operations](OPERATIONS.md)
+
+### Reclaim retired partition catalog segments
+
+A partitioned catalog retains immutable metadata segments after compaction so
+an active reader can finish using the root it already read. To reclaim these
+segments, stop or fence **all readers, writers, migrations and maintenance
+tools** on every host that can access the configured data namespaces. Keep that
+fence until the following command exits.
+
+```sh
+objectveil-rebuild-catalog /etc/objectveil/config.json --prune-catalog-segments
+```
+
+Use the partitioned writer configuration with all of its data backends. The
+command locks the local manifest and checks the storage identity markers. It
+validates the roots and referenced segments, stores reachability on disk, and
+checks the catalog inventory again before removing orphaned metadata segments.
+A reference on either data backend protects the corresponding segment on both.
+Interrupted reclamation can be rerun under the same fence. The reported count
+is the number of metadata segment copies removed.

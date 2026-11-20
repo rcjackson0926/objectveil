@@ -144,11 +144,11 @@ latency so an incomplete workload cannot appear cheaper merely by doing less wor
   prepared path-addressed candidates inside a native namespace. A catalog miss
   does not fall back to an uncatalogued raw object, and backfill is not an
   incompatible-format converter.
-- Compaction can improve layout but retains old chunk payloads, seals and recovery
-  metadata. Physical chunk and unknown-blob sweeps are disabled pending a durable
-  address-retirement protocol. Immutable standalone history can also remain.
-  Model retained physical capacity rather than assuming current logical bytes
-  equal billed remote storage. Known-content dedup GC has separate safety rules.
+- A plaintext cloud writer can remove an old pack after verifying the replacement
+  or tombstone for every member. Provider versions and backups follow their own
+  retention policy. Older reusable pack addresses, unknown blobs and immutable
+  standalone history can remain. Model retained physical storage as well as live
+  archive bytes.
 - Use immediately readable storage classes. Class minimum-duration/size charges,
   retrieval fees and asynchronous archival transitions can invalidate a model
   based only on nominal GB-month rates.

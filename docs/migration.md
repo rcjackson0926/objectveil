@@ -10,11 +10,20 @@ and artifact hashes, including migration and cold-read acceptance. This runbook
 describes the workflow; it does not itself establish acceptance of a build.
 
 `objectveil-migrate` copies physical archive files directly from a running
-Perforce server into the cache's normal packed chunks or standalone objects,
-separate key storage and causal catalog. A new cache can discover these archives without
-the migration machine or its local manifest. The tool preserves the originals
+Perforce server into packed chunks or standalone objects with a durable catalog.
+A new cache can discover these archives using the same primary location and
+namespace UUID, independently of the migration machine or its local manifest. The tool preserves the originals
 and checks every imported file by downloading it through a separate read-only
 cache. Large uploads use the cache's parallel multipart transfer.
+
+For a new plaintext depot, set `primary` to the version-file container or
+bucket and prefix. Leave both `secondary` and `keystore` absent.
+The same namespace holds the catalog, packs and standalone archives. Fresh
+plaintext cloud depots default to the partitioned catalog. Packing
+preserves separate paths and checksums even when revisions have identical bytes.
+Keep the original configuration and keys to read or resume an encrypted depot.
+The local ownership markers and remote storage marker prevent switching a
+populated installation between these two formats. Provider-managed encryption at rest can stay enabled.
 
 ## Copying a running server
 
@@ -66,27 +75,22 @@ change production Perforce configuration or switch the live writer.
 
 ## Prepare addressing and source scope
 
-Use the intended writer's validated cache configuration. Cloud data and keys
-must use different buckets/containers, with independently verified key-retention
-policies. See [configuration](CONFIGURATION.md) and
-[disaster recovery](disaster-recovery.md). Existing Azure account soft deletion
-or GCS bucket retention can defeat permanent key erasure; a successful archive
-copy does not validate erasure policies.
+Use the intended writer's validated cache configuration. A plaintext migration
+needs one initially empty data namespace. An encrypted migration also needs a
+separate key bucket or container with the appropriate retention policy. See
+[configuration](CONFIGURATION.md) and [disaster recovery](disaster-recovery.md).
 
 Set `format` to `objectveil/1` and choose a canonical non-nil `namespace_id`.
-Preserve that UUID on the migration job and every eventual reader/writer sharing
-its remote deployment. The migration creates native role markers in empty data
-and key namespaces before claiming its own job receipts. Read-only download
-requires matching preexisting role markers; it never creates remote identities.
-
-Use a dedicated, initially empty effective data namespace and key namespace.
-The program claims both using conditional ownership receipts. Another migration
+Preserve that UUID on the migration job and every eventual reader or writer
+sharing its remote deployment. Migration creates a native role marker and a
+conditional ownership receipt in each configured namespace. Read-only download
+requires matching preexisting markers. A conflicting migration
 job or foreign objects prevent a new claim. General cache writers do not honor
 migration receipts: keep all other writers away from these namespaces until the
 import has finished and the writer handoff is coordinated. Never delete an owner
 receipt to bypass a conflict.
 
-Set explicit `primary.path_prefix` and `keystore.path_prefix` for a migration that
+Set an explicit `primary.path_prefix` and, for encrypted storage, `keystore.path_prefix` for a migration that
 runs on a different host or filesystem layout. Otherwise configuration derives
 them from the configured depot directory name. Private spool directories never
 replace those already resolved cloud prefixes. The source and live cache roots
@@ -105,9 +109,16 @@ traversal, a replaced path or a symlink below that root is disclosed as a change
 entry and skipped without following it. Busy and missing entries are also skipped;
 sealed modes reject these unsafe entries and source changes. Raw Unix pathname
 bytes are preserved.
-Traversal accepts at most 100,000 entries per directory, 16 MiB of buffered
-pathname names across the walk, directory depth 128 and relative paths of
-4 KiB. Exceeding a bound is an error, not a busy-file skip.
+
+The upload walker has no fixed file count per directory or per tree. It sorts
+raw names in memory while they fit a 16 MiB allowance shared across the active
+directories. Wider directories spill to a temporary disk index and are read
+back in the same order. A live pass can start copying after it enumerates the
+directories leading to the first eligible files. A snapshot pass inventories
+the complete source before copying. The index shares the upload job's spool budget.
+Upload `--plan` uses temporary space outside the source and leaves the job
+directory untouched. A full scratch filesystem or exhausted budget stops the
+pass. The traversal depth limit is 128 and relative paths can be up to 4 KiB.
 
 The program verifies the bytes it captures, not that the selected tree contains
 every archive referenced by Perforce. Verify source coverage against the matching
@@ -165,20 +176,57 @@ The tool streams copies into a private spool, uses the cache's existing encrypti
 and publication pipeline, then cold-restores and hashes every archive. It does
 not start cache eviction, garbage collection or legacy backfill. Progress is
 recorded only after the restored size and BLAKE3 match the captured file.
+The verification reader checks remote catalog and key authority before and
+after decoding. It hashes the decoded bytes as they stream through the reader,
+which avoids writing and syncing a second plaintext file for each verification.
+For encrypted standalone uploads, the writer pins the already captured spool
+file, verifies its size and digest before minting a key, and authenticates the
+plaintext again while encrypting it. This saves one plaintext copy and sync
+per standalone archive. Concurrent verifiers checking different keys in the
+same catalog shard can share a listing that starts after their requests arrive.
+
+Live import starts processing the first batch while it is still discovering
+the rest of the archive tree. Discovery stays bounded by the job's concurrency.
+If a later entry stops the scan, batches already published remain in the
+owned destination and the job remains incomplete. Fix the reported issue and
+resume using the same job. Use upload `--plan` when you need to inspect the
+entire source before allowing any writes. Snapshot and replica imports still
+verify the complete sealed inventory before publishing anything.
 
 Large stored objects use the same bounded parallel multipart uploader as the
-cache: four in-flight parts of 8 MiB per object. `--jobs` bounds concurrent archive
-work and defaults to four; it accepts 1 through 64. Small archives follow the same `pack_max_file_bytes` threshold, path bucket,
-compression choice and per-file encryption as the cache. Eligible files share a
-chunk; larger files follow the ordinary standalone/dedup route. Packing therefore
-does not bypass per-path key revocation. The finite importer flushes its bounded
-worker batch before cold-verifying every member, including a final partial chunk.
-Batch boundaries can produce different chunk membership than a long-running daemon;
-the storage format, addressing and eligibility rules are the same. Encryption uses
-fresh keys/nonces, so objects are not promised to be byte-for-byte identical to a
-separate hypothetical run of the daemon. The fixed multipart format permits at most 10,000 parts per stored object
+cache, with four in-flight parts of 8 MiB per object. `--jobs` bounds concurrent
+archive publishers and defaults to four. It accepts 1 through 64. Each free
+publisher can admit another archive while an unrelated upload is still running.
+Cold verification has up to 16 workers, also bounded by `--jobs`. Small
+archives share packs according to the cache's `pack_max_file_bytes` threshold,
+path bucket and compression settings. Standalone transfers can continue while
+a partial pack seals. Both modes verify every selected member, including the tail.
+The fixed multipart format permits at most 10,000 parts per stored object
 (83,886,080,000 bytes, including encryption framing); larger uploads are refused.
 The normal configured cache/file limits also apply.
+
+For same-host upload scheduling, add `--upload-first` to the normal upload
+command. The uploader refills individual publishing slots as work completes.
+The tool accumulates up to eight times `--jobs` archives or the available
+spool budget, whichever comes first. It then cold-verifies that window before
+uploading again. Verification uses up to 16 workers and respects `--jobs`.
+A final partial window also verifies. The ordinary upload mode overlaps
+publication and verification across the stream of archives. Both modes keep the captures
+and their full staging reservations through verification and record the same
+durable per-archive results. Reuse the same job after an interruption.
+`--upload-first` applies to uploads only. Compare `last_publication_seconds`
+and total verified elapsed time separately on the same source and fresh targets.
+
+For a throughput trial, compare `--jobs 8` and `--jobs 16` on representative
+archive sizes if the uploader has the disk space and network capacity.
+An active multipart transfer can hold up to 32 MiB of part payloads per
+archive, in addition to staging and SDK buffers. Measure job time and both
+backend byte counters in the completion log. The same line reports
+`backend_gets`, `backend_heads`, `backend_lists` and `backend_puts`.
+Compare these counts per verified archive when testing a workload with many
+small files. A multipart upload counts as one PUT in this log. The verified
+source rate includes cold reads, so it will usually differ from the upload-only
+wire rate.
 
 `--spool-budget-gb` reserves space for the bounded active file copies, immutable
 upload snapshots, encryption and cold verification. It does not reserve or require
@@ -269,13 +317,51 @@ objectveil-migrate /etc/objectveil/config.json --download \
 output directory and its descendant directories must be private and owned by the
 account running the tool. Existing-file resume requires Linux kernel read leases;
 a file currently open for writing is refused rather than trusted.
-Use a separate restore tree, not the archive tree of a running Perforce server.
+Restore outside the archive tree of a running Perforce server. Use a dedicated,
+initially empty directory for an exact copy of the selected generation. Completion verifies every selected path. An existing destination
+can also contain unrelated files, which the tool leaves in place.
 The tool preserves relative archive names, including non-UTF-8 Unix names, and
 reconstructs ordinary plaintext version files from standalone, deduplicated and
 packed cloud objects. Supply `--license` if needed. Download mode does not use
 `--source-id`, `--source-kind` or `--verify-only`.
 
-The tool reads a complete current catalog inventory before publishing files.
+With a partitioned catalog you can separate the inventory from the payload
+restore. Stop catalog writers, compaction, and garbage collection for the
+inventory. Run the download with `--plan --sealed-inventory` using a new job
+directory. Wait for `download_planned` and a `sealed_catalog_fingerprint` in
+the report before resuming writers. Then run the same command with
+`--sealed-inventory` and omit `--plan`. This restore and subsequent retries use
+the exact archive selection saved on local disk. Unrelated submissions after
+the seal do not trigger a new inventory. Every selected path must still have
+the recorded descriptor and usable keys at verification time. If a selected
+archive was superseded or obliterated, the restore reports the conflict. A
+new job directory can capture a later selection. Pack compaction can also
+relocate an unchanged member. Keep payload repacking paused for the selected archives until restore
+finishes, or create a new sealed plan after a relocation.
+
+The partition inventory reads a bounded page of namespace keys at a time and
+checks the selected catalog metadata before and after the walk. A changed
+generation interrupts the live scan. A retry can reuse completed partitions
+when all catalog validators were strong and still match. For metadata without
+a strong ETag, the reader downloads the bounded object and fingerprints its
+bytes on each pass. Allow local workspace for the on-disk inventory of the
+whole depot plus temporary verification files. Reopening the job streams the
+restore tree once to account for interrupted staging files, including in
+directories with more than 100,000 children. Long-term recovery from a sealed
+inventory also requires preserving its matching payloads and any required encryption keys.
+
+When restoring plaintext packs, ObjectVeil groups selected members by pack,
+downloads each selected pack once, validates its address and footer, and checks
+each selected member's length and digest before publishing its local file.
+The default download rechecks the current catalog as each group is processed.
+For a partitioned catalog whose writers, obliterates, catalog maintenance and
+pack compaction are fenced for the entire download, add `--quiescent-catalog`
+to avoid repeated metadata reads.
+It checks the catalog generation again before reporting success. If writers
+must continue during a download, omit this flag. A previously sealed inventory
+alone does not establish that the current catalog is quiescent.
+
+A default download reads a complete current catalog inventory before publishing files.
 It authenticates/decrypts each selected file, checks its size and BLAKE3, then
 publishes it atomically without replacing an existing path. Existing files must
 match exactly and are checked again on every invocation; differing contents,
@@ -301,9 +387,10 @@ archives or resurrecting an obsolete payload. Download requires a healthy, compl
 that its listing and reads finished; it does not independently prove that every
 payload or Perforce metadata reference has a catalog entry. Missing catalog
 history needs the separate recovery procedure before downloading. Malformed,
-capped or unreadable catalog data stops the download. The current inventory
-limits are one million namespace objects and one million archives, plus the
-normal per-shard authority limits; exceeding a limit is an error.
+capped or unreadable catalog data stops the download. The legacy layout limits an inventory to one million namespace objects and one
+million archives. Partitioned downloads process a bounded page at a time and
+checkpoint the completed partitions in the private job ledger. A changed
+catalog invalidates an incomplete pass before any such inventory is accepted.
 
 Packed member decoding also enforces the cache's configured chunk size ceiling.
 Use pack size settings compatible with the writer that created those chunks;

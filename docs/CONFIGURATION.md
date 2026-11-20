@@ -12,7 +12,7 @@ objectveil /path/to/objectveil.json
 ```
 
 Configuration requires `"format": "objectveil/1"` and a canonical, non-nil
-`namespace_id` UUID. All clients sharing a data/key namespace must use the same
+`namespace_id` UUID. All clients sharing an archive namespace must use the same
 UUID. The namespace is immutable during reload. Templates deliberately contain
 a nil UUID that must be replaced.
 
@@ -31,9 +31,14 @@ The full annotated reference file, showing every top-level and backend key:
 
 For provider-specific templates with example thread/packing settings, use
 one of the files below. Replace credentials, paths and the nil UUID, remove
-JSONC comments before loading, and review the deployment guide. A configured
-secondary must be an explicitly owned native backend with matching identity
-and catalog/key dependencies; it is not an arbitrary read-only NFS fallback:
+JSONC comments before loading, and review the deployment guide. The cloud
+templates configure a single version-file location in `primary`. One Azure
+container, S3 bucket or GCS bucket holds the packed files, standalone archives,
+catalog and deployment marker under the same `path_prefix`. The writer creates
+these objects. The default plaintext layout uses a partitioned catalog and
+leaves `keystore` and `secondary` absent. Provider-level encryption at rest
+can be used with this layout. Existing ObjectVeil-encrypted deployments
+must retain their original keystore and catalog layout.
 
 - [`docs/examples/objectveil.s3.example.jsonc`](examples/objectveil.s3.example.jsonc) (AWS S3)
 - [`docs/examples/objectveil.azure.example.jsonc`](examples/objectveil.azure.example.jsonc) (Azure Blob Storage)
@@ -61,19 +66,21 @@ hard-linked outputs are refused before modification.
 | --- | --- | --- | --- |
 | `format` | string | required | Exactly `objectveil/1`. |
 | `namespace_id` | UUID | required | Canonical non-nil UUID shared by this deployment; immutable on reload. |
+| `catalog_layout` | string | `partitioned` for plaintext cloud, otherwise `legacy` | Use `partitioned` for full-path catalog partitions. All clients sharing a primary must select the same layout. Changing an existing catalog requires offline conversion and a restart. |
 | `depot_path` | path | required | Existing local depot root to manage. |
 | `read_only` | bool | `false` | Disables fanotify, startup scan, and uploads. Cold restores still work through the shim socket. |
 | `max_cache_gb` | u64 | `100` | Used only when `max_cache_bytes` is not set. |
 | `max_cache_bytes` | u64 | unset | Overrides `max_cache_gb`. Must be `> 0`. |
 | `low_watermark_gb` | u64 | unset | Low watermark in GiB. Mutually exclusive with `low_watermark_bytes`: setting both is rejected. |
 | `low_watermark_bytes` | u64 | unset | Low watermark in bytes. Mutually exclusive with `low_watermark_gb`. If both are unset, the daemon uses `80%` of the effective max cache size. The effective value must be at least 1 MiB and no larger than the effective max cache size. |
-| `upload_threads` | u16 | `8` | Write-mode upload coordinators. Must be `> 0` unless `read_only = true`. Runtime upload concurrency is `4 x upload_threads`. |
+| `upload_threads` | u16 | `8` | Write-mode upload coordinators. Must be `> 0` unless `read_only = true`. The writer admits up to `4 × upload_threads` concurrent payloads, capped at 4,096. |
+| `upload_publication_overlap` | bool | `false` | Allow the cache to start additional standalone transfers while previously uploaded archives publish recovery metadata. Intended for an existing disk backlog. Leave disabled for normal live submits. Requires a daemon restart. |
 | `restore_threads` | u16 | `16` | Writer-mode restore workers; must be `> 0`. Read-only authority validation has a separate fixed admission limit of 16, including unfinished blocking hashes. Raising this setting does not raise that limit. |
 | `restore_chunk_threshold_mb` | u64 | `8` | Cloud-backend large-restore threshold (Azure, S3, GCS). Files at or above this size switch to parallel range GETs when `restore_chunk_threads > 1`. `0` disables the threshold for all cloud backends. NFS ignores the field. |
 | `restore_chunk_threads` | u16 | `8` | Cloud-backend parallel-range fan-out (Azure, S3, GCS). Must be `> 0` and `<= 64`; a value above `64` is rejected at load (not silently clamped). NFS ignores the field. |
 | `primary` | object | required | Main storage backend. Uploads always go here. |
 | `secondary` | object | unset | Optional restore fallback; not a mirrored write target. Normal deletion, backfill, and reconciliation can modify it, so it must be an explicitly owned backend, not an authoritative archive tree assumed to be read-only. See [OPERATIONS](OPERATIONS.md). |
-| `keystore` | object | required for a cloud primary | Dedicated split-bucket backend holding the per-file crypto-shred keys (`keys/{storage_key}`). Must be a cloud backend (`azure`/`s3`/`gcs`) — `nfs` is rejected. **Mandatory whenever `primary` is a cloud backend**; the loader rejects a cloud primary that has no `keystore` (there is no single-bucket fallback). Must resolve to a **different bucket/container than `primary`** — a keystore pointing at the data bucket is rejected (a data bucket's versioning/soft-delete would preserve a shredded key). A **GCS** keystore additionally requires `gcs_versioning_disabled_confirmed: true` (see [GCS](#gcs)). Only an NFS primary (unencrypted dev/test) may omit it. |
+| `keystore` | object | optional | Omit for a new plaintext cloud namespace. The primary stores packs, standalone archives and the catalog. Configure a separate cloud keystore to enable ObjectVeil encryption and per-path cryptographic revocation. Existing encrypted namespaces require their original keystore. A GCS keystore requires `gcs_versioning_disabled_confirmed: true`. |
 | `skip_startup_scan` | bool | `false` | Skips writer reconciliation of untracked and changed local archives. Normally untracked files are queued as Dirty on every startup, and changed Clean files are marked Dirty before eviction is enabled. Leave false unless independent controls prove there were no unrecorded archive changes; skipping can leave writes unpublished and metadata stale. Eviction's final file identity/hash checks still apply. Ignored in `read_only` mode, where this scan does not run. |
 | `stats_interval_secs` | u64 | `60` | **Hot-reloadable.** Periodic daemon stats log interval. `0` disables the periodic stats logger. |
 | `daemon` | bool | `false` | When `true`, detaches with `libc::daemon(1, 1)` before Tokio starts. Prefer a service manager for production supervision. |
@@ -118,7 +125,7 @@ hard-linked outputs are refused before modification.
 | `pack_target_chunk_bytes` | u64 | `67108864` | Target sealed-chunk size. An open L0 packer seals once it reaches this many compressed bytes. Must be `> 0`. |
 | `pack_max_file_bytes` | u64 | `8388608` | Standalone bypass cutoff. Files at or above this size skip packing and upload/restore as standalone objects (bounding over-fetch). Must be `> 0` and `<= 1073741824` (the 1 GiB packed-reader limit). In-memory packing capture is separately capped at 16 MiB, so the effective cutoff is the smaller of the two. |
 | `pack_flush_deadline_secs` | u64 | `30` | Flush deadline for a partially-filled open packer, so a trickle of submits still lands durably without waiting for the size target. Must be `> 0`. |
-| `compaction_live_fraction` | f64 | `0.5` | A chunk with live members becomes a repacking candidate once its live-byte fraction (`live_bytes / total_bytes`) falls below this. Must be in `(0.0, 1.0]`. Old chunks and recovery metadata are retained; this does not reclaim remote bytes. |
+| `compaction_live_fraction` | f64 | `0.5` | A chunk with live members becomes a repacking candidate once its live-byte fraction (`live_bytes / total_bytes`) falls below this. Must be in `(0.0, 1.0]`. After a plaintext cloud pack is rewritten, the writer removes its old primary pack and seal once it has verified every surviving member and catalog change. Encrypted and older reusable pack addresses are retained. |
 | `backfill_enabled` | bool | `false` | Opt-in batch repacker for eligible, explicitly prepared path-addressed objects inside the native namespace. It walks only unreserved keys, so native `standalone/<id>` payloads, chunks, blobs, catalog and keys are never candidates. Gated behind this flag; with it off the repacker loop is never spawned. See [enablement](enabling-chunk-packing.md). |
 | `backfill_rate` | u64 | `50` | Backfill pacing in objects/second (per-object delay = `1 / backfill_rate`). Must be `> 0`. Inert unless `backfill_enabled` is `true`. |
 | `backfill_prefix` | string | unset | Restricts the backfill walk to storage keys under this depot-path prefix. Unset walks the whole object space while excluding all reserved internal namespaces and authoritative dedup objects. Inert unless backfill is enabled. |
@@ -166,7 +173,7 @@ restart it:
 
 - Identity / paths: `namespace_id`, `depot_path`, `state_dir`, `read_only`,
   `daemon`, `pid_file`, `keep_caps`, `skip_startup_scan`
-- Sizing committed to runtime structures: `upload_threads`,
+- Sizing committed to runtime structures: `upload_threads`, `upload_publication_overlap`,
   `restore_threads`, `restore_chunk_threshold_mb`,
   `restore_chunk_threads`
 - Cold-read chunk packing (captured at engine-construct / loop-spawn
@@ -217,7 +224,7 @@ The `primary`, `secondary`, and `keystore` blocks all use the same object shape.
 | `project_id` | string | gcs | Accepted and carried through the config, but currently **dead**: it is never passed to the GCS client (no `x-goog-user-project` header is sent). Safe to omit. |
 | `credentials_file` | path | gcs | Optional service account JSON key file. When omitted, the client uses the gcloud application-default credentials file in the daemon user's home directory if one exists, otherwise the GCE/GKE metadata server (see [GCS](#gcs)). Rejected on an `s3` backend. |
 | `path` | path | nfs | Required by the config schema and runtime for NFS. Must already exist as a directory. |
-| `path_prefix` | string | all | Storage key prefix. `prefix` is accepted as an alias in the JSON input. For NFS this is validated as a safe relative path. |
+| `path_prefix` | string | all | Storage key prefix. `prefix` is accepted as an alias in the JSON input. For S3, Azure and GCS, one leading and one trailing `/` are ignored: `depot`, `/depot` and `depot/` name the same namespace. Any remaining empty, `.` or `..` segment is rejected when the daemon starts. An empty string or a lone `/` selects the bucket or container root. For NFS this is validated as a safe relative path. |
 | `ca_cert_path` | path | azure, s3, gcs | **Rejected at config load for every backend type.** The `object_store`-backed cloud builders don't honour a custom CA bundle; setting this field at all (any backend) fails validation rather than silently no-op'ing. Install the CA in the system trust store instead. |
 | `verify_ssl` | bool | azure, s3, gcs | Defaults to `true` (accepted). **`false` is rejected at config load for every cloud backend** — the `object_store` builders always use the system trust store, so a `false` value would silently not take effect; the loader fails closed instead. There is no working override (not even via `ca_cert_path`, which is also rejected). |
 | `server_side_encryption` | bool | s3 | Defaults to `false` (accepted). **`true` is rejected at config load** — SSE-S3 is not wired through the `object_store` S3 builder. Configure default bucket encryption on the AWS side instead. |
@@ -392,7 +399,6 @@ The daemon rejects the config file when any of the following are true:
 - a log, PID or metrics path breaks the [output destination](#output-destinations) rules
 - `shim_socket_mode` exceeds `0o770` or grants any world access (`mode & 0o007 != 0`), or is a decimal value that looks like an octal mode typed by mistake
 - `access_socket_mode` exceeds `0o770` or grants any world access (`mode & 0o007 != 0`), or is a decimal value that looks like an octal mode typed by mistake
-- `primary` is a cloud backend (`azure`/`s3`/`gcs`) and no `keystore` block is configured (a cloud primary requires a separate split-bucket keystore; there is no single-bucket fallback)
 - the `keystore` backend is `nfs` (the keystore must be a cloud object store that can do create-once)
 - the `keystore` resolves to the **same bucket/container as `primary` or `secondary`** (split-bucket is mandatory: keys must live in their own non-versioned bucket, else a data-bucket's versioning/soft-delete preserves a shredded key)
 - the `keystore` backend is `gcs` and `keystore.gcs_versioning_disabled_confirmed` is not `true` (the current backend interface cannot inspect GCS bucket policies; the operator must attest the keystore bucket has no versioning/soft-delete/retention)
@@ -459,7 +465,7 @@ When `metrics_file` is set, the daemon writes the following metrics:
   `objectveil_catalog_shard_fetches_total`, `objectveil_compactions_total`,
   `objectveil_chunks_reclaimed_total` and `objectveil_orphan_deletes_total`.
   Read them with the [cost model](cost-model.md#interpret-the-daemon-counters-correctly);
-  the last two stay at zero while physical chunk cleanup is deferred.
+  the reclaimed count records verified primary plaintext pack deletions. Unknown orphan packs and reusable addresses are retained.
 - license gauges — `objectveil_license_info`, `objectveil_license_capacity_state`,
   `objectveil_license_managed_bytes`, `objectveil_license_soft_ceiling_bytes`,
   `objectveil_license_hard_ceiling_bytes`, `objectveil_license_expiry_state` and

@@ -1,0 +1,134 @@
+{
+  "schema": "objectveil-cloud-validation/1",
+  "version": "7.0.1",
+  "status": "accepted_scope_passed_and_test_storage_removed",
+  "recorded_utc": "2026-11-12T06:47:03.358198+00:00",
+  "platforms": {
+    "host_tar_and_deb": {
+      "runtime_source_commit": "8692e29dc7eedc02c86a892ca549cc53008141bc",
+      "runtime_sha256": {
+        "objectveil": "91213353ee3b1b08314100e34ce7acc86e713bf434aa6df7fbf0222ca4e8d329",
+        "objectveil-verify": "0cf4fd7303a0f22fa8c992dbcd4396e0e01ecd4d004abd0fe0d02500f9996dab",
+        "objectveil-manifest-summary": "bc99048c156f8d4621e575ea5f5d09cccff9752a430d5a760e746a8a38f173d2",
+        "objectveil-rebuild-catalog": "aba1ab086c47097eabdc118e1cbf3fba22ca356b96d7a1c91842d4b692e7a570",
+        "objectveil-rescan": "f259c3d96bc7119fb4f280c4b49f50d0f27ed0716fb5623c94e091ad9e9bfb25",
+        "objectveil-dedup-measure": "f3e25f62fca7ec0ae97190aa5e5dd9af7c2b929f636494b652c86f018732ff09",
+        "objectveil-migrate": "76a84553bc54c77408e8aa0d9df7dcf1400d65f46583c2391cdf0f50497f4f31",
+        "objectveil-initialize": "be64c35069457e025334e7b257f8c97293f5c1828f67395e21a767705dfdd43f",
+        "libobjectveil_shim.so": "9f8aeefe04a3a5a8c56c569db5d936bbdc70007796736a792331dbc55c12cf14"
+      },
+      "test_executable_sha256": {
+        "cloud": "79e7fa6b5f2e6cf70ad073e2c3ec5a3de2039b773a69e2b70875596251116fba",
+        "migration": "e97f807ba8acd180672397a04c12a4721e7e8d86802e160ac081208d26e514a0"
+      },
+      "package_sha256": {
+        "objectveil-7.0.1-linux-x86_64.tar.gz": "1dcf5d2e35f202c6d82eb20e0f4ec7b3862ff10dd606582321ba737d61f6977e",
+        "objectveil_7.0.1_amd64.deb": "6ba4e1c6b1f9ce571c883f4fd7c28cc55b2773e67f8f395255aaf2ac4f8f53ac"
+      },
+      "provider_engine_cases_passed": 6,
+      "s3_forward_migration_cases_passed": 5,
+      "all_nine_runtime_hashes_verified_before_and_after_tests": true
+    },
+    "native_rhel9_rpm": {
+      "runtime_source_commit": "fa1dcc82dd1f0ecf7d2d5442646c1a2e2b39d347",
+      "runtime_sha256": {
+        "objectveil": "d2aeaa339735d44a5b000f1e612ed01a7859ebd2e7cdfc5b8d79077a3a3ac308",
+        "objectveil-verify": "7c5a6ae574dd9754dae262bf4e5c0729b4cb192d883d60a19e218e70549efc39",
+        "objectveil-manifest-summary": "ead2121e8bb07e0a552ceb4f266d0d6d37cea8d572f9b2c006d9d3eb305af99a",
+        "objectveil-rebuild-catalog": "129da0cc229b0bdd53ecd2de3ebbfc28ecdf34de1b0764b1e4abd82088b50154",
+        "objectveil-rescan": "d2374c431ae3b094f61bf4d2e89ad18a697b3bdabd3bc7467907e11f326a93d9",
+        "objectveil-dedup-measure": "bdd2eab1da6565a0e0d25cc676358fef589c8704ea24e25bf89ee24c5020cc88",
+        "objectveil-migrate": "a04e4415df4e6ff847e1f0dcc5d076f7d09370998a10bf120269e12413bab76c",
+        "objectveil-initialize": "a6cf54679ae9eece8e64d8b4e11ee7a4807d0a4b7aaaa38d73dbe363ae28cb63",
+        "libobjectveil_shim.so": "1a7cf6ea134aa8a5aa94649a0b17a59b243f54b69f53ba349ce99a73561ae309"
+      },
+      "test_executable_sha256": {
+        "cloud": "07ba71beafd2fb8544ef0a4f73677b0845cf1351809ab1b8d25d2c769e23de3c",
+        "migration": "20536823ba72cf0ff4fbe4613dfa89763cd60fbb99d7955b2b1168ecf4e14bf5"
+      },
+      "rpm_package_sha256": "f9bd3696444922777637a6f07164e5a8e84c8ba754e6931f8485f1e8a6c0221d",
+      "provider_engine_cases_passed": 6,
+      "s3_forward_migration_cases_passed": 5,
+      "all_nine_runtime_hashes_verified_before_and_after_tests": true
+    }
+  },
+  "fixture_patch_sha256": "bdf72b26d6d38746154088386c5babe0401c17ac4b88c0ac5d9b51da46827b3f",
+  "provider_engine_validation": {
+    "execution": "Production engine code linked into release integration-test executables; these six cases are not standalone packaged daemon processes.",
+    "cases_per_platform": {
+      "s3": 3,
+      "gcs": 3
+    },
+    "checks": [
+      "packed and multipart standalone byte integrity",
+      "cold catalog recovery and concurrent reads",
+      "ciphertext corruption rejected without local publication; unrelated archive intact; original ciphertext repaired and restored",
+      "dedup sharing and mutable rewrite",
+      "obliterate and re-add isolation"
+    ],
+    "pure_admission_retry_helpers_not_counted_as_provider_cases": 2
+  },
+  "reverse_migration_cli_validation": {
+    "execution": "Actual sealed migration CLI binaries from the accepted packages.",
+    "providers_per_platform": [
+      "s3",
+      "gcs"
+    ],
+    "checks": [
+      "download preserves archive bytes",
+      "same-job resume"
+    ],
+    "additional_s3_checks": [
+      "non-UTF archive paths",
+      "local conflicting contents preserved",
+      "cloud payload/catalog/keys unchanged",
+      "SIGKILL during 128 MiB local publication followed by exact resume"
+    ]
+  },
+  "forward_migration_process_validation": {
+    "execution": "Actual sealed daemon, tools, and preload shim with isolated real Perforce servers.",
+    "provider": "s3",
+    "cases_per_platform": 5,
+    "checks": [
+      "direct live primary with dedup disabled and enabled",
+      "busy writer skipped and later revisited",
+      "live Perforce submission and RCS history/shelves preserved",
+      "same-job rewritten/new/deleted path handling",
+      "frozen source preserved and cold restored",
+      "actual SIGKILL and same-job resume for live and frozen migration"
+    ]
+  },
+  "authentication_live_tested": {
+    "s3": "static access and secret keys",
+    "gcs": "service-account JSON"
+  },
+  "live_coverage_limits": {
+    "azure": {
+      "live_cases": 0,
+      "reason": "Available account retained deleted blobs; a dedicated account suitable for destructive lifecycle testing was unavailable. Shared account policy was not changed."
+    },
+    "authentication": "Other credential modes, including EC2 IMDS/IAM-role refresh, were not live tested; applicable offline unit tests are separate.",
+    "forward_migration": "Forward process-level migration scenarios were exercised on S3 only."
+  },
+  "cleanup": {
+    "scope": "All recorded exploratory and acceptance namespaces, including failed fixture attempts.",
+    "s3": {
+      "owned_namespaces_verified": 24,
+      "bucket_prefix_scopes_verified": 48,
+      "remaining_current_objects": 0,
+      "remaining_versions_or_delete_markers": 0,
+      "remaining_multipart_uploads": 0,
+      "final_sweep_removed_version_entries": 0,
+      "final_sweep_aborted_multipart_uploads": 0
+    },
+    "gcs": {
+      "dedicated_buckets_created": 2,
+      "dedicated_buckets_deleted": 2,
+      "deletions_confirmed_by_http_404": 2,
+      "remaining_current_or_historical_objects": 0,
+      "soft_delete_disabled_since_creation": true
+    },
+    "shared_account_policies_modified": false,
+    "azure_storage_modified": false
+  }
+}

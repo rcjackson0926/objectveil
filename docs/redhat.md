@@ -1,5 +1,9 @@
 # Red Hat Enterprise Linux installation
 
+For the 7.1.0 release candidate on RHEL 9 x86-64, use the glibc 2.17 tarball. Check `getconf GNU_LIBC_VERSION`, verify the archive against the release checksums and follow its `INSTALL.txt` for a coordinated installation. [7.1.0-rc.1 downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.1)
+
+## Stable 7.0.1 RPM
+
 Use `objectveil-7.0.1-1.el9.x86_64.rpm` for RHEL 9 on Intel/AMD 64-bit.
 This native build uses glibc 2.34. The Debian/Ubuntu package and generic Linux
 tarball are separate builds requiring glibc 2.39; do not use those on RHEL 9.
@@ -65,7 +69,9 @@ Run only this copy of the migration tool following [migration.md](migration.md).
 Do not preload its shim or activate a cache writer until the coordinated
 handoff. Busy files are skipped and reported; resume later. The capture is per
 file, not an atomic snapshot or a deletion mirror. Uploads use the cache's
-packing, encryption, deduplication and parallel multipart pipeline.
+packing and parallel multipart pipeline. A new cloud configuration needs one
+primary location for the archives and their catalog. Encryption and shared-content
+deduplication are optional.
 
 ## Upgrade and removal
 

@@ -4,7 +4,7 @@
   // An NFS primary stores archives UNENCRYPTED and has no keystore, so
   // `p4 obliterate` is local cleanup only, not a cryptographic deletion
   // (see docs/OPERATIONS.md). The guides treat it as a dev/test or
-  // proof-of-concept layout; use a cloud primary where that matters.
+  // proof-of-concept layout; use an encrypted cloud primary for per-path key revocation.
   //
   // Cache:
   //   - local cache root: /p4/1/depots, the directory p4d itself reads and
@@ -23,7 +23,7 @@
 
   "format": "objectveil/1",
   // REPLACE-ME: generate one UUID per deployment and use it on every cache
-  // sharing this data/key namespace. The nil placeholder is rejected.
+  // sharing this archive namespace. The nil placeholder is rejected.
   "namespace_id": "00000000-0000-0000-0000-000000000000",
   "depot_path": "/p4/1/depots",  // REPLACE-ME
   "read_only": false,

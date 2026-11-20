@@ -14,7 +14,7 @@ flowchart TD
     D --> M[Private manifest and recovery journals]
     D --> H[Local plaintext archives]
     D --> B[Primary: catalog and immutable objects]
-    D --> K[Separate key namespace]
+    D -. encrypted deployments .-> K[Separate key namespace]
     S --> A[Versioned access datagrams]
     A --> L[Bounded access logger and optional spool]
 ```
@@ -32,10 +32,12 @@ ownership and archive-root proof. It does not copy archives, establish a source
 snapshot or convert incompatible state. The daemon requires that proof before
 license anchors, manifests or watchers can write. See [upgrading](upgrading.md).
 
-Primary and key backends carry role-specific `objectveil-native-storage`
-version 1 markers bound to the same namespace UUID. A writer may claim fresh
-empty namespaces. A partially initialized pair can resume only while both remain
-empty except for their markers. Read-only clients cannot initialize stores.
+A new plaintext cloud writer claims an empty primary with a single
+`catalog/objectveil-format-v1.json` marker. The marker binds the namespace
+UUID and storage mode. Its version is 4 for plaintext partitioned storage or 3
+for plaintext legacy storage. Encrypted deployments also validate the original
+keystore marker. A partially initialized pair can resume only while both
+locations are empty except for their markers. Read-only clients cannot initialize stores.
 Missing, malformed, foreign-role or foreign-UUID identity fails closed.
 
 The shim requires canonical `OBJECTVEIL_*` configuration and `OBJECTVEIL/1`
@@ -48,10 +50,10 @@ Socket pointer files and access datagrams also have mandatory native headers.
 | State | Purpose |
 | --- | --- |
 | Local `manifest.redb` | File generations, durable dirty work, LRU, pending deletion/eviction recovery and catalog mirrors. Native file records use the `OV` binary discriminator. |
-| Remote catalog | Native version 3 checksummed causal Put/Remove history for packed, standalone and deduplicated objects. Local catalog rows are mirrors. |
+| Remote catalog | Checksummed, ordered Put/Remove records for packed, standalone and deduplicated objects. Legacy v3 groups by leading directory. Partitioned v4 uses the full archive key, immutable base segments and a version-fenced storage marker. The local catalog mirrors remote records. |
 | Writer-era tickets | Permanent create-once records ordering a replacement writer after prior writers; not leader election. |
 | Primary payloads | Immutable standalone objects, packed chunks and shared encrypted blobs. |
-| Separate keystore | Live path/content keys and exact poison histories; loss of a live key loses encrypted data. |
+| Separate keystore (ObjectVeil encryption only) | Live path/content keys and exact poison histories; loss of a live key loses encrypted data. |
 | Migration/verifier state | Dedicated owned directories and locks, separate from the daemon manifest. |
 | Access spool | Optional owned, bounded telemetry persistence; never an archive durability substitute. |
 
@@ -63,7 +65,7 @@ a populated independent `routes/` namespace is unsupported and refused.
 
 Supported shim writers coordinate open descriptors with eviction. The watcher
 records dirty observations durably and periodically reconciles the archive tree.
-An upload captures a private stable generation, resolves its key, publishes
+An upload captures a private stable generation, resolves its encryption key when configured, publishes
 immutable data and durable catalog authority, then marks only that generation
 Clean. Uploads target the primary; a secondary is not synchronous replication.
 
@@ -89,17 +91,22 @@ rejects managed writes and authoritative deletion.
 
 ## Deletion and recovery limits
 
-Deletion persists a generation-specific intent, removes local plaintext durably,
-poisons the selected key epoch, publishes a catalog tombstone and clears the
-intent last. Deduplicated paths revoke access individually; destruction of the
-shared content key requires complete last-reference proof. Unknown orphan blobs
-are retained. See [crypto-shred](design/obliterate-crypto-shred.md) and
+Deletion persists a generation-specific intent, removes the local archive, and
+publishes a durable tombstone for that archive path. In plaintext cloud mode,
+other paths in the same pack remain readable. The compactor can retire the
+old pack after publishing and verifying every surviving member. A fresh
+publication uses a new pack address even if the contents are identical.
+
+In encrypted deployments the deletion also poisons the path key epoch.
+Optional content deduplication can give two paths a shared blob. The shared
+content key can be destroyed only after the last reference is proved gone.
+See [crypto-shred](design/obliterate-crypto-shred.md) and
 [content deduplication](design/content-dedup.md).
 
 Perforce submit acknowledgement is asynchronous with respect to cloud publication.
 Total loss of the writer and its disks can lose acknowledged but unpublished
-archives. Recovery needs the surviving catalog, payloads, live keys, poison
-histories and writer-era tickets, plus independent Perforce metadata backups.
+archives. Recovery needs the surviving catalog, payloads and writer-era tickets, plus live keys and poison
+histories for encrypted deployments, and independent Perforce metadata backups.
 Checksums are corruption checks, not authenticity against a storage administrator
 who can replace both data and checksum. Provider retention or key backups can
 defeat permanent erasure.

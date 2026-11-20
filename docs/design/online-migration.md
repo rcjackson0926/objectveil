@@ -11,8 +11,8 @@ document does not claim those checks passed for a pending candidate.
 
 ## Required outcome
 
-Copy an existing Perforce installation's physical archives into the exact
-encrypted object, key and catalog format consumed by ObjectVeil. The primary
+Copy an existing Perforce installation's physical archives into the native
+object and catalog format consumed by ObjectVeil. The primary
 Perforce service must remain online. Preserve the original archives. Resume
 after interruption and verify every copied archive through a fresh cache.
 
@@ -48,8 +48,8 @@ or cold verification.
 Live traversal tolerates unrelated directory membership changes and skips busy,
 changed or disappeared files without suppressing successfully captured neighbors.
 It preserves no-follow confinement, special-file rejection, byte-exact names,
-bounded directory buffers and depth limits (100,000 entries per directory,
-16 MiB of buffered names, depth 128 and 4 KiB relative paths). Bound failures are
+bytewise-sorted traversal with disk spill above the 16 MiB name-buffer
+allowance, depth 128 and 4 KiB relative paths. Storage or bound failures are
 fatal, not source-busy deferrals. Root ownership binds its path, device
 and inode rather than mutable directory timestamps.
 
@@ -75,14 +75,14 @@ prepare those alternative sources for ordinary live import.
 ## Native destination and durable execution
 
 The destination configuration must declare `objectveil/1` and an explicit
-namespace UUID. Paired primary/key role markers, native catalog authority and
+namespace UUID. Mode-specific storage markers, native catalog authority and
 dedicated job ownership bind the destination. Existing incompatible data cannot
 be silently adopted; a private external conversion process must establish the
 native format before a runtime uses converted data.
 
 The migration journal records source/configuration identity, per-file expected
 generations and verified progress under an exclusive process lock. The private
-writer reuses ordinary key custody, packing, immutable publication and shared
+writer reuses ordinary packing, optional encryption, immutable publication and shared
 multipart transfers. It starts no eviction, backfill or garbage collection;
 both writer and cold-verification clients have secondary fallback disabled.
 

@@ -1,234 +1,92 @@
 {
-  "format": "objectveil-release-validation/1",
-  "product": "ObjectVeil",
-  "version": "7.0.1",
-  "status": "passed_s3_gcs_azure_not_exercised",
-  "recorded_utc": "2026-11-12T06:51:05.653927+00:00",
-  "source_commit": "8692e29dc7eedc02c86a892ca549cc53008141bc",
-  "packaging_commit": "8692e29dc7eedc02c86a892ca549cc53008141bc",
-  "final_release_source_commit": "239e256c59033eae52f37cd305b9959fdba5a774",
-  "source_equivalence": {
-    "changed_paths": [
-      "rust/objectveil/tests/cloud_backend_e2e.rs",
-      "rust/objectveil/tests/e2e_daemon_p4d_shim/migration.rs",
-      "rust/tests/README.md",
-      "scripts/gate.sh"
-    ],
-    "all_production_sources_dependencies_shipping_docs_config_and_packaging_identical": true,
-    "explanation": "Final commit corrects an archive-only migration test fixture, clarifies coverage reporting, and updates cloud-test module comments and the development test README. Production source, dependencies, shipping documentation, configuration and packaging are unchanged. Gate commands, thresholds and exclusions remain unchanged.",
-    "coverage_label_equivalence_receipt_sha256": "8d4b729ce9c5302cdab895ec758bf687d24c76d64ae025d125ac4dfc8ab9f14b",
-    "cloud_test_documentation_equivalence": {
-      "patch_sha256": "94c7a3f3ac7d2dcb580d03cf5636556d382095aaee024b1cc897c9b84f6360e8",
-      "cloud_test_base_sha256": "e2d56fd2d2633d165dff3559ebb271a88af06b2ff04230e0037aa346eba26cbf",
-      "cloud_test_final_sha256": "2fdeb11a3241077daba49f124556465b0f8ad732f9944432649fd640361dd25c",
-      "test_readme_final_sha256": "2b5292d5ddc4f432d58f9914c99d92768793b0e14bc51acc667c4263f80b0c35",
-      "rust_change_limited_to_leading_module_documentation": true,
-      "all_following_rust_bytes_identical": true
+  "release": "v7.1.0-rc.1",
+  "source_commit": "989cd4e258aeda10af27e09d78f30fc7d50ef180",
+  "stage": "release candidate",
+  "architecture": "Linux x86-64",
+  "archive_validation": [
+    {
+      "actual_glibc_all_tools_loaded_and_shim_preloaded": true,
+      "bytes": 33766080,
+      "exact_integrity_verifications": 3,
+      "file": "objectveil-7.1.0-rc.1-linux-x86_64-glibc2.17.tar.gz",
+      "glibc_baseline": "2.17",
+      "internal_checksums_verified": true,
+      "matches_first_runtime": true,
+      "matches_live_cloud_tested_binaries": true,
+      "max_glibc_symbol": "2.16",
+      "public_member_allowlist_verified": true,
+      "real_glibc217_perforce_workloads_passed": 4,
+      "repack_matches_sha256": true,
+      "runtime_sha256": {
+        "libobjectveil_shim.so": "2c2c557d44f8b7e1d8c09963c8986a13caf05208f6065a11c5ebb1e606429995",
+        "objectveil": "9f67b4a628d1d0aebfdfc482ec96a62536ed3676d1dcb35c63eb7846488bd362",
+        "objectveil-dedup-measure": "7befb7f3d96c5c0f561b81cbddffa06b6f5f3a4a4bbfa472031c2443ffa3d695",
+        "objectveil-initialize": "4381d4233fb0601a8fb002bb8d2f7842051c637410bbc63729c53830863cd784",
+        "objectveil-manifest-summary": "4f0c86c0dd61651298b5dc25890ea7390f30b2c5b5c06bdb1edce4430df1c257",
+        "objectveil-migrate": "400f614e8efcbbb6c17a45db18252cd3a259d9a04e2442084c1a158a3f3a475e",
+        "objectveil-rebuild-catalog": "b9bfa0cd562e33925e9e223d739db3c060e5aec2d81ee8ef9dfcb484ae6d19fd",
+        "objectveil-rescan": "884b9c703741565e06ae8681abf54652f5c18655816cef55fdd776471dbfab76",
+        "objectveil-verify": "5dbf9c8a4f69dc75076305690216618b968eba0a57b7b0c69cb42487ecf7de40"
+      },
+      "sha256": "404880b07286a695ba9b5f911264c7c5b12e6d149f9de060a9f9e8f2570c5db9",
+      "source_commit": "989cd4e258aeda10af27e09d78f30fc7d50ef180",
+      "verified_tar_members": 46,
+      "version": "7.1.0-rc.1"
+    },
+    {
+      "actual_glibc_all_tools_loaded_and_shim_preloaded": true,
+      "bytes": 33804677,
+      "exact_integrity_verifications": 3,
+      "file": "objectveil-7.1.0-rc.1-linux-x86_64-glibc2.39.tar.gz",
+      "glibc_baseline": "2.39",
+      "internal_checksums_verified": true,
+      "matches_first_runtime": true,
+      "matches_live_cloud_tested_binaries": true,
+      "max_glibc_symbol": "2.39",
+      "public_member_allowlist_verified": true,
+      "repack_matches_sha256": true,
+      "runtime_sha256": {
+        "libobjectveil_shim.so": "8b54fb6f8613e8c6a4b76e5d44e7415dc5fb12916574626baf968f1614fb3852",
+        "objectveil": "b9f238f2e02f5a5c02bb62231fb8b85b61541147ed9da720ce698f18a2467e46",
+        "objectveil-dedup-measure": "893a4b364564e37b74dc04c6ed6cdbc47b1656ef7fe83d784b9ae45cd30c874e",
+        "objectveil-initialize": "4e6903cbb665cf27685f77535fd777f840f41f11e19db6e30675329d5a6db9c1",
+        "objectveil-manifest-summary": "da40ea9bf34a340f80043decb292443fd11bda8fa00e7ea1d97ec5fc1550a115",
+        "objectveil-migrate": "20a34301c65d1d612370835a52eb4b4355e4b335bd1ce8961933ccea82fdcf2b",
+        "objectveil-rebuild-catalog": "33834d6288a857f3ab9301d52a57a68a3f460dce50bf6232585208b2b65ad8e3",
+        "objectveil-rescan": "5362885989681d16b256dd8322437e121b9049137690212686013fb51b85ebce",
+        "objectveil-verify": "f2ae0f3d2adc07b17422b1c4a716fa3e5b0cfb4adcaafd8ad0f9f4efe594364a"
+      },
+      "sha256": "56d377a1564f7fd84c73fe5254600b5a30ba29f03dd0f835d8f9b10f679b9051",
+      "source_commit": "989cd4e258aeda10af27e09d78f30fc7d50ef180",
+      "verified_tar_members": 46,
+      "version": "7.1.0-rc.1"
     }
-  },
-  "platform": "Linux x86-64",
-  "minimum_glibc": "2.39",
-  "rust_toolchain": "1.96.1",
-  "build_environment": {
-    "rust": "rustc 1.96.1 (31fca3adb 2026-06-26)",
-    "gcc": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
-    "glibc": "ldd (Ubuntu GLIBC 2.39-0ubuntu8.7) 2.39",
-    "kernel": "Linux 6.8.0-124-generic x86_64",
-    "p4": "Rev. P4/LINUX26X86_64/2026.1/2972966 (2026/06/10).",
-    "p4d": "Rev. P4D/LINUX26X86_64/2026.1/2972966 (2026/06/10).",
-    "os_release": "PRETTY_NAME=\"Ubuntu 24.04.4 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.4 LTS (Noble Numbat)\"\nVERSION_CODENAME=noble\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=noble\nLOGO=ubuntu-logo\n"
-  },
-  "runtime_sha256": {
-    "objectveil": "91213353ee3b1b08314100e34ce7acc86e713bf434aa6df7fbf0222ca4e8d329",
-    "objectveil-verify": "0cf4fd7303a0f22fa8c992dbcd4396e0e01ecd4d004abd0fe0d02500f9996dab",
-    "objectveil-manifest-summary": "bc99048c156f8d4621e575ea5f5d09cccff9752a430d5a760e746a8a38f173d2",
-    "objectveil-rebuild-catalog": "aba1ab086c47097eabdc118e1cbf3fba22ca356b96d7a1c91842d4b692e7a570",
-    "objectveil-rescan": "f259c3d96bc7119fb4f280c4b49f50d0f27ed0716fb5623c94e091ad9e9bfb25",
-    "objectveil-dedup-measure": "f3e25f62fca7ec0ae97190aa5e5dd9af7c2b929f636494b652c86f018732ff09",
-    "objectveil-migrate": "76a84553bc54c77408e8aa0d9df7dcf1400d65f46583c2391cdf0f50497f4f31",
-    "objectveil-initialize": "be64c35069457e025334e7b257f8c97293f5c1828f67395e21a767705dfdd43f",
-    "libobjectveil_shim.so": "9f8aeefe04a3a5a8c56c569db5d936bbdc70007796736a792331dbc55c12cf14"
-  },
-  "packages": {
-    "objectveil-7.0.1-linux-x86_64.tar.gz": {
-      "sha256": "1dcf5d2e35f202c6d82eb20e0f4ec7b3862ff10dd606582321ba737d61f6977e",
-      "bytes": 31954938
-    },
-    "objectveil_7.0.1_amd64.deb": {
-      "sha256": "6ba4e1c6b1f9ce571c883f4fd7c28cc55b2773e67f8f395255aaf2ac4f8f53ac",
-      "bytes": 23445510
-    }
-  },
-  "runtime_artifacts_identical_in_tar_and_deb": 9,
-  "integrity_seals_verified": 3,
-  "runtime_glibc_maximum": {
-    "objectveil": "2.39",
-    "objectveil-verify": "2.39",
-    "objectveil-manifest-summary": "2.34",
-    "objectveil-rebuild-catalog": "2.39",
-    "objectveil-rescan": "2.39",
-    "objectveil-dedup-measure": "2.34",
-    "objectveil-migrate": "2.39",
-    "objectveil-initialize": "2.34",
-    "libobjectveil_shim.so": "2.34"
-  },
-  "linux_gate": {
-    "command": "scripts/gate.sh --full",
-    "source_commit": "8692e29dc7eedc02c86a892ca549cc53008141bc",
-    "status": "passed",
-    "checks": [
-      "--full dependency preflight",
-      "offline operational scripts",
-      "rustfmt",
-      "clippy (incl. bench compile gate)",
-      "feature matrix (nfs-only)",
-      "tests (full offline suite; available live integration prerequisites)",
-      "cargo deny (advisories/bans/licenses/sources)",
-      "cargo audit (--deny warnings)",
-      "MSRV (1.96.1) build --locked",
-      "binary size budget",
-      "coverage floor (85%)",
-      "fuzz smoke",
-      "perf gate",
-      "advisory-ignore hygiene"
-    ],
-    "reported_rust_tests_passed": 1708,
-    "reported_failed": 0,
-    "reported_ignored": 0,
-    "executable_suites": 26,
-    "empty_doctest_summaries": 3,
-    "python_operational_tests": 80,
-    "python_soak_tests": 7,
-    "node_tests": 5,
-    "early_return_limits": "Sixteen live bodies returned early in the ordinary nonroot gate: nine provider, five S3 migration and two privileged filesystem/recovery cases. Separate acceptance exercised S3/GCS and migration; fanotify ran under sudo in coverage. Native privileged process recovery is recorded in RPM_VALIDATION.json. Three Azure cases remain unexecuted.",
-    "dependency_policy": "cargo audit --deny warnings and cargo deny passed under repository policy; two unmaintained development-tool dependencies have documented audit exceptions.",
-    "gate_log_sha256": "377915fe5e11f73bae6c9f17b04707847e68211b9acce57a5baaa1d2d4750bf7",
-    "release_suite_count_receipt_sha256": "54e4a2b6da55e22010cc3d6e778686058be1d16f0623f540a98b65ced7d05939"
-  },
-  "coverage": {
-    "metric": "Configured workspace line coverage after filename exclusions; includes test code. Not production-only, whole-program, branch, or live-provider coverage.",
-    "minimum_line_percent": 85,
-    "lines": {
-      "count": 67162,
-      "covered": 60771,
-      "percent": 90.48420237634377
-    },
-    "regions": {
-      "count": 111302,
-      "covered": 100747,
-      "notcovered": 10555,
-      "percent": 90.51679215108443
-    },
-    "functions": {
-      "count": 5412,
-      "covered": 4826,
-      "percent": 89.17220990391722
-    },
-    "includes_cfg_test_code": true,
-    "exclusion_regex": "checkpoint_verify/|(license-tool|integrity-stamp)/src/main\\.rs$|/bin/|metrics\\.rs$|banner\\.rs$|objectveil-shim/src/(hooks/(open|stat|syscall|real)|test_support)\\.rs$",
-    "privileged_fanotify_merge": "passed via sudo",
-    "export_sha256": "9ac587036b3fcefb0a62ee89d00edc14047d76b9dcbf8fb527f88aa702c3a545"
-  },
-  "fuzz": {
-    "sanitizer": "AddressSanitizer",
-    "requested_seconds_per_target": 60,
-    "targets": {
-      "fuzz_handle_request": 15623302,
-      "fuzz_checkpoint_parser": 2421242
-    },
-    "crashes": 0,
-    "fuzz_lockfile_unchanged": true
-  },
-  "performance": {
-    "tool": "iai-callgrind",
-    "status": "first instruction-count baseline established",
-    "comparison_to_previous_baseline_performed": false
-  },
-  "packaged_perforce_integration": {
-    "passed": 8,
-    "failed": 0,
-    "ignored": 0,
-    "log_sha256": "a3381ac85d87b6583690fe95e6d61c820fce58e3ee24608d2b49719bbdea41e9"
-  },
-  "packaged_preload_integration": {
-    "passed": 4,
-    "failed": 0,
-    "ignored": 0,
-    "log_sha256": "ad169c73a209f81ddda8e8d0a361c9b879c12dffb866d98255ef960eb30532f2"
-  },
-  "test_executable_provenance": {
-    "cloud_backend_e2e": {
-      "sha256": "79e7fa6b5f2e6cf70ad073e2c3ec5a3de2039b773a69e2b70875596251116fba"
-    },
-    "e2e_daemon_p4d_shim": {
-      "sha256": "e97f807ba8acd180672397a04c12a4721e7e8d86802e160ac081208d26e514a0",
-      "base_source_commit": "8692e29dc7eedc02c86a892ca549cc53008141bc",
-      "fixture_patch_sha256": "bdf72b26d6d38746154088386c5babe0401c17ac4b88c0ac5d9b51da46827b3f",
-      "production_source_unchanged": true
-    },
-    "preload_smoke": {
-      "sha256": "f90c424b0a47103e0803e23eab303ffccb237c2a2bccc8283e8edb0d47156031"
-    }
-  },
-  "cloud_validation": {
-    "receipt": "CLOUD_VALIDATION.json",
-    "sha256": "06eae8ed642f85690f3403ae700cf714eadbcee74b16fe1e48180408cbf92270",
-    "per_provider_engine_cases": {
-      "s3": 3,
-      "gcs": 3
-    },
-    "s3_migration_process_cases": 5,
-    "cleanup_verified": true,
-    "azure_write_tests": "not run; available account retains deleted blobs"
-  },
-  "debian_package_lifecycle": {
-    "status": "passed",
-    "assertions_passed": 206,
-    "environment": "PRETTY_NAME=\"Ubuntu 24.04.5 LTS\"\nNAME=\"Ubuntu\"\nVERSION_ID=\"24.04\"\nVERSION=\"24.04.5 LTS (Noble Numbat)\"\nVERSION_CODENAME=noble\nID=ubuntu\nID_LIKE=debian\nHOME_URL=\"https://www.ubuntu.com/\"\nSUPPORT_URL=\"https://help.ubuntu.com/\"\nBUG_REPORT_URL=\"https://bugs.launchpad.net/ubuntu/\"\nPRIVACY_POLICY_URL=\"https://www.ubuntu.com/legal/terms-and-policies/privacy-policy\"\nUBUNTU_CODENAME=noble\nLOGO=ubuntu-logo\n",
-    "upgrade_from": "7.0.0",
-    "previous_deb_sha256": "291e189f476cf5e4b9c287ca518d25ef886876db5de24ce9acc158a13f4a96f0",
-    "fresh_install_upgrade_removal_and_purge": true,
-    "active_writer_upgrade_and_removal_refused": true,
-    "tested_writer_names": [
-      "p4d",
-      "p4d_2026.1",
-      "objectveil"
-    ],
-    "operator_config_license_state_and_archives_preserved_through_purge": true,
-    "edited_example_preserved_on_upgrade_and_removal": true,
-    "registered_example_removed_on_purge": true,
-    "installed_runtime_identical_to_tar": 9,
-    "all_eight_tools_start": true,
-    "automatic_service_enable_or_start": false,
-    "limits": [
-      "Disposable container user space; host systemd activation was not tested."
-    ]
-  },
-  "limits": [
-    "Live Azure storage writes and other credential modes, including EC2 IAM-role refresh, were not exercised.",
-    "Forward process-level migration proof uses S3; actual reverse migration CLI download/resume uses S3 and GCS.",
-    "Coverage includes unit-test code and documented exclusions; it is not production-only or whole-program coverage.",
-    "Uploads remain asynchronous; unpublished writes can be lost with the writer and its disks. Independent Perforce metadata backups and an archive recovery point remain necessary.",
-    "Dropping a local request does not fence provider-side completion; uncertain writes require reconciliation before key erasure can be treated as complete.",
-    "Container package lifecycle does not certify booted host systemd or enforcing SELinux.",
-    "Checksums and embedded integrity seals are not detached GPG signatures or hosted attestations."
   ],
-  "private_evidence_sha256": {
-    "final-gate.log": "377915fe5e11f73bae6c9f17b04707847e68211b9acce57a5baaa1d2d4750bf7",
-    "build-tar.log": "be78ea58ece26fd07b33c3b92044f005ba207395ae7f16984a0221205a4271d4",
-    "build-deb.log": "0e066c4ff54cf41b8991de575eed22b97082f9ae8375a24bc6ee9516635dbb2e",
-    "host-artifact-identity.json": "e4de6625fce1f71806e360f279c69f967f495f8ef1ee897753b2d7d9138493da",
-    "host-release-acceptance.json": "af16c31d9de47c8190cd9adf453f048743fe5935d5c943aa1d748362faf105c5",
-    "host-packaged-perforce.log": "a3381ac85d87b6583690fe95e6d61c820fce58e3ee24608d2b49719bbdea41e9",
-    "host-packaged-preload.log": "ad169c73a209f81ddda8e8d0a361c9b879c12dffb866d98255ef960eb30532f2",
-    "host-corrected-fixture-build.jsonl": "8f1ef42d221899a7b4a2c94400461a51a1809c617a9f294efb8a67f0a36ba1b6",
-    "host-cloud-supervisor.log": "479c46ee5d220ab5087760393f01db740023204bf62de57c1b3ea8b010006d8b",
-    "deb-lifecycle.log": "4f295cd70d830471493d753e268fd95d69ca5043c0d3292799bdf8c06c0a0949",
-    "debian/lifecycle.json": "50f43fd32e304e095cfbd7a68727ce1a99e58d94f46d44a7d355a36d6a8a8321",
-    "coverage-receipt.json": "f3ec966d4eb2e876c8305ff1f5bf691d921f768cb3ff29417d534b7bf26d0d84",
-    "final-gate-summary.json": "ed68f7b974cb93fef3ae686d34dc6985791911e2f32383d8d1a89a1770025c8b",
-    "host-build-environment.json": "d375031a817eac2d962abc787b53e494a1359ccf32ce4c0a0b8445b048311f8d",
-    "cloud/cloud-cleanup-docs.patch": "94c7a3f3ac7d2dcb580d03cf5636556d382095aaee024b1cc897c9b84f6360e8",
-    "gate-receipt-SHA256SUMS": "de06f8928bc5ef571a25d8e471b986a50e1bc45bbc0f36eabd98e61eb03e44fd"
-  }
+  "source_gate": {
+    "result": "passed",
+    "workspace_rust_tests_reported_passed": 1793,
+    "workspace_rust_tests_failed": 0,
+    "workspace_rust_tests_ignored": 5,
+    "rustfmt": "passed",
+    "strict_clippy": "passed",
+    "audit_policy_commit": "fdfa9222514a3d8e58967c554111b56223859e2c",
+    "supply_chain": {
+      "cargo_deny": "passed",
+      "cargo_audit_deny_warnings": "passed with reviewed audit policy",
+      "reviewed_runtime_maintenance_advisories": [
+        {
+          "package": "humantime 2.4.0",
+          "url": "https://rustsec.org/advisories/RUSTSEC-2026-0542.html"
+        },
+        {
+          "package": "chrono 0.4.45",
+          "url": "https://rustsec.org/advisories/RUSTSEC-2026-0543.html"
+        }
+      ],
+      "rationale": "The production cloud SDK object_store 0.14.1 requires both packages. The latest published SDK at review, 0.14.2, still requires both. RustSec lists no patched version for either. The separately recorded policy revision changes only rust/.cargo/audit.toml. The source tag and both tested archives use source_commit."
+    },
+    "privileged_fanotify": "passed",
+    "sigkill_recovery": "three queued archives replayed byte-identically"
+  },
+  "live_provider_checks": "CLOUD_VALIDATION.json covers independent cold restores and cleanup for both published runtimes."
 }

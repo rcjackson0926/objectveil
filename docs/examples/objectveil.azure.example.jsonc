@@ -8,24 +8,15 @@
   // docs/TUNING.md if your workload is heavily write- or read-skewed enough
   // to want different thread counts than the balanced defaults below.
   //
-  // Storage layout:
-  //   - primary: Azure, data container (chunks/catalog/standalone objects)
-  //   - keystore: Azure, a SEPARATE container for crypto-shred keys —
-  //     REQUIRED for any cloud primary. Must be its own container with
-  //     versioning / soft-delete all OFF (a key overwrite has to actually
-  //     destroy bytes). Azure sets both per STORAGE ACCOUNT, not per
-  //     container: if the data account keeps versions or deleted blobs, put
-  //     the keystore in a separate account. See
-  //     docs/design/object-storage-best-practices.md.
-  //   - secondary: OPTIONAL, explicitly owned native ObjectVeil storage.
-  //     It must carry the same namespace and supported current catalog/key
-  //     dependencies. It is NOT an unconverted archive-root fallback and may
-  //     receive deletions or reconciliation. Remove the block if not provisioned.
+  // Set primary to the Azure container and prefix for Perforce version files.
+  // ObjectVeil writes small files in chunks/, large files in standalone/, and
+  // their authoritative mappings and format marker in catalog/ at that location.
 
   "format": "objectveil/1",
   // REPLACE-ME: generate one UUID per deployment and use it on every cache
-  // sharing this data/key namespace. The nil placeholder is rejected.
+  // sharing this archive namespace. The nil placeholder is rejected.
   "namespace_id": "00000000-0000-0000-0000-000000000000",
+  "catalog_layout": "partitioned",
   "depot_path": "/mnt/perforce/depots/depot",  // REPLACE-ME
   "read_only": false,
 
@@ -59,21 +50,6 @@
     // NOTE: verify_ssl: false and ca_cert_path are REJECTED at config load (not
     // silently ignored) — the object_store-backed Azure client doesn't honour
     // either. Leave verify_ssl at its default; configure TLS trust on the Azure side.
-  },
-
-  "keystore": {
-    "type": "azure",
-    "account_name": "REPLACE-ME",
-    "container": "REPLACE-ME-objectveil-keystore",  // MUST differ from primary's container
-    "sas_token": "REPLACE-ME",
-    "path_prefix": "depot"
-  },
-
-  "secondary": {
-    // Optional native restore fallback; this is not a mirror or source archive.
-    // Remove this entire block unless a matching native store is provisioned.
-    "type": "nfs",
-    "path": "/srv/objectveil-secondary-objects"  // REPLACE-ME (or delete block)
   },
 
   "skip_startup_scan": false,

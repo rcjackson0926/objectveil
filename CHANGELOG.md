@@ -1,5 +1,13 @@
 # ObjectVeil release changes
 
+## 7.1.0-rc.1
+
+- A new cloud deployment can store Perforce version files, packed objects, recovery metadata and the partitioned catalog together in one `primary` Azure container, S3 bucket or GCS bucket. Existing encrypted deployments continue using their original keystore.
+- Small-file packs can seal concurrently. A rewrite supersedes the older generation in an open pack. Independent archive paths and catalog partitions can publish concurrently, and cache writers can compact a busy partition in the background.
+- The optional `upload_publication_overlap` setting enables more concurrent work when a cache drains an existing disk backlog. It defaults to `false` for live Perforce submits.
+- Migration can capture and copy files while discovery continues, spill large directory listings to disk and restore multiple members from a single downloaded pack. Catalog and content verification still guard publication and recovery.
+- Linux x86-64 tarballs are available for glibc 2.17 and glibc 2.39.
+
 ## 7.0.1
 
 A maintenance release in the same native format generation as 7.0.0. It changes

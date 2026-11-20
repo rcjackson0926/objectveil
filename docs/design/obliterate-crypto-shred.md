@@ -1,5 +1,7 @@
 # Obliterate and crypto-shred
 
+This contract applies to archives stored with ObjectVeil encryption. A plaintext cloud namespace uses catalog tombstones for deletions. A live neighbor with identical bytes keeps its own archive identity. Anyone who can read an old pack or a retained provider version may recover its bytes until storage reclamation and retention complete.
+
 ## Current native contract
 
 An encrypted archive uses a random per-path, per-epoch key in a separate keystore.

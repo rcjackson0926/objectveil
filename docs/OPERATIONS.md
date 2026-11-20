@@ -26,23 +26,31 @@ migration tool and initializer check their own integrity seal at startup.
 Preserve native state and follow [upgrading](upgrading.md) for format
 compatibility requirements.
 
-Executable examples below use the package paths under `/usr/bin`. For a tar
-installation, use absolute paths to the same tools inside the verified
-versioned bundle.
+The 7.1.0-rc.1 release provides two Linux x86-64 tarballs. Run
+`getconf GNU_LIBC_VERSION` and choose the glibc 2.39 build on hosts with 2.39
+or newer, or the glibc 2.17 build on hosts with 2.17 through 2.38. Follow
+`INSTALL.txt` to verify and extract the archive. All executables and
+`libobjectveil_shim.so` are in its `bin/` directory. In commands shown with
+stable package paths, substitute the absolute paths to these files. For
+systemd, adapt the bundled unit's `ExecStart` to the extracted daemon and
+set `LD_PRELOAD` on the managed Perforce service to the matching shim.
 
 ### Cloud backends
 
-One set of binaries serves every backend: S3, Azure and GCS share a single
-object-store client and NFS is always available. Which backend a deployment
-uses is chosen entirely by the `primary`/`secondary` config.
+Set `primary` to the Azure container, S3 bucket or GCS bucket for Perforce
+version files. Use a dedicated prefix. The same location holds `chunks/`,
+`standalone/` and `catalog/`, including the native format marker. The
+single-location setup leaves `keystore` and `secondary` absent. All three
+cloud providers and NFS use the same release binaries.
 
-## Packages
+## Stable 7.0.1 Debian and RHEL packages
 
-Install the verified `.deb` (Debian/Ubuntu) or `.rpm` (RHEL 9) release asset as
-described in `INSTALL.txt`; [Red Hat installation](redhat.md) covers the RPM in
-detail. Complete the coordinated writer stop first.
+The following layout and lifecycle instructions apply to the stable 7.0.1
+Debian/Ubuntu package and RHEL 9 RPM. Use that release's installation guide
+and complete the coordinated writer stop before a package change.
+[Red Hat installation](redhat.md) covers the RPM.
 
-Package contents:
+The stable packages install these files:
 
 - all eight executables in `/usr/bin` (`objectveil` and the seven `objectveil-*` tools)
 - `/usr/lib/objectveil/libobjectveil_shim.so`
@@ -308,11 +316,20 @@ verification, including actual `p4 verify`, establishes the recovery point.
 See [`disaster-recovery.md`](disaster-recovery.md) for the full recovery
 procedure and the acknowledged-submit loss window before asynchronous upload.
 
-## Obliterate (compliance delete)
+## Obliterate
 
-When p4d runs `p4 obliterate` it removes the archive file; the shim's
-delete hook forwards that to the daemon, which **crypto-shreds** the content:
-in encrypted deployments each archive uses a per-path key epoch. Revoking that
+In a plaintext cloud depot, the shim forwards archive deletion to the daemon.
+The daemon persists the deletion intent, removes the local archive and publishes
+a durable catalog tombstone before acknowledging success. A subsequent open of
+the deleted path is refused. A different live path with identical content
+retains its own mapping. An eligible pack can be reclaimed when compaction
+has verified its surviving members and published their new locations. Older
+standalone objects, provider versions, backups and already-open file handles
+can retain bytes. [Packing and reclamation](design/cold-read-chunk-packing.md#compaction-backfill-and-deletion)
+
+### ObjectVeil-encrypted namespaces
+
+In encrypted deployments each archive uses a per-path key epoch. Revoking that
 key revokes that path's access. For ordinary standalone and packed contents,
 ciphertext becomes undecodable only if no recoverable old key survives.
 Deduplicated contents have a shared anchor: poisoning one path does not destroy
@@ -673,8 +690,8 @@ Recommended lifecycle configuration on the **data** bucket:
 - Consider supported immediate-retrieval tiering for data payload prefixes,
   including `chunks/`, `standalone/` and `blobs/`, based on measured access and
   provider costs. Keep catalog metadata immediately available.
-- **Keep keys in a separate bucket/container**, as native cloud configuration
-  requires. Apply data lifecycle rules only to the data bucket. The keystore
+- **For ObjectVeil encryption only**, keep keys in their own bucket or
+  container and apply data lifecycle rules only to the primary. The keystore
   must have no versioning, soft-delete, object-lock, retention or replication
   that preserves revoked keys; independently verify those provider policies
   before claiming cryptographic erasure (see the keystore requirements).

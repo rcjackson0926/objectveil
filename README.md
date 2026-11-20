@@ -1,9 +1,4 @@
-# ObjectVeil 7.0.1
-
-This repository contains public documentation and configuration templates.
-Executable tools are supplied as named Linux release assets. Start with
-[INSTALL.txt](INSTALL.txt); the `bin/`, `MANIFEST.txt` and inner `SHA256SUMS`
-paths below refer to the extracted tar bundle.
+# ObjectVeil 7.1.0-rc.1
 
 This Linux release contains the cache daemon, its matching Perforce preload
 shim, the migration uploader/downloader, and the verification and recovery
@@ -14,12 +9,16 @@ is bundled. Without a license file, the binary's developer fallback permits
 1 TiB for 30 days from its build date. Production deployments must override it;
 see [Licensing](docs/LICENSING.md).
 
-Start with [INSTALL.txt](INSTALL.txt). Choose the build for your system:
+## Download the release candidate
 
-- **RHEL 9 x86-64:** `objectveil-7.0.1-1.el9.x86_64.rpm`, built against glibc 2.34. See [Red Hat installation](docs/redhat.md).
-- **Debian/Ubuntu or generic Linux x86-64:** the `.deb` or named Linux tar bundle, requiring glibc 2.39 or newer.
+Run `getconf GNU_LIBC_VERSION` on your x86-64 Linux server. Choose the
+`glibc2.39` archive on glibc 2.39 or newer, or `glibc2.17` on glibc
+2.17 through 2.38. Verify the download against the release’s `SHA256SUMS`
+and keep the daemon and preload library from the same archive together.
+[Release downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.1) · [Installation](INSTALL.txt)
 
-Keep each build's executables and matching shim together. The RPM is a separate native build; [RPM_VALIDATION.json](RPM_VALIDATION.json) records its tests, hashes and container-testing limits.
+This page and its configuration examples describe the release candidate.
+For an installed 7.0.1 server, use the [7.0.1 documentation](https://github.com/rcjackson0926/objectveil/tree/v7.0.1/docs).
 
 GitHub also displays automatic **Source code (zip)** and **Source code (tar.gz)** links. Those archives contain only this public repository’s documentation and configuration templates. The Rust implementation is maintained privately and is not included in those archives. Download the named Linux release assets for the executable tools.
 
@@ -38,8 +37,11 @@ GitHub also displays automatic **Source code (zip)** and **Source code (tar.gz)*
 | `bin/objectveil-dedup-measure` | Deduplication measurement |
 
 The uploader detects active writers, reports skipped files, and uses the
-cache's normal packing, compression, encryption, deduplication and parallel
-multipart pipeline. `--download` reconstructs the supported current cloud
+cache's normal packing and parallel multipart uploads. For a new cloud
+deployment, configure one `primary` bucket or container for Perforce version
+files. Small files, standalone revisions and the catalog share that location.
+Omit `keystore` and `secondary` for this plaintext layout. Existing encrypted
+deployments require their original keystore. `--download` reconstructs the supported current cloud
 catalog into a separate local tree and preserves conflicting local files.
 
 ## Documentation
@@ -55,17 +57,10 @@ catalog into a separate local tree and preserves conflicting local files.
 - [Tuning](docs/TUNING.md) and [architecture](docs/ARCHITECTURE.md)
 - [Licensing](docs/LICENSING.md) and [evaluation terms](EVALUATION-TERMS.md)
 
-`MANIFEST.txt` identifies the release and source revision. `SHA256SUMS` verifies
+In each tarball, `BUILD-INFO.json` identifies the release and source revision and `ABI.json` lists the binary dependencies. `SHA256SUMS` verifies
 the files inside this bundle. The release-level checksum file verifies the
-download assets. The release and Rust workspace versions identify this native
-format generation. [VALIDATION.json](VALIDATION.json) records the tested source,
-artifact hashes, the checks run for this release and the checks that were not.
-[CLOUD_VALIDATION.json](CLOUD_VALIDATION.json) records the original S3/GCS testing.
-[AZURE_VALIDATION.json](AZURE_VALIDATION.json) records subsequent live Azure tests
-against the same published binaries, including authentication coverage and
-cleanup under the account's seven-day soft-delete retention policy.
-The addendum has a [separate checksum](AZURE_VALIDATION.sha256).
-The initializer, daemon and migration executable carry verified integrity seals.
+download assets. The initializer, daemon and migration executable carry
+verified integrity seals.
 
 Writer upgrades require a coordinated stop of p4d, ObjectVeil and any previous
 cache daemon, followed by restarting every p4d with the matching new shim.

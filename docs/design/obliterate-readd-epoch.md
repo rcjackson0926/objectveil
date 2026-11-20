@@ -1,5 +1,8 @@
 # Obliterate and re-add: per-path key epochs
 
+This key-epoch protocol applies to ObjectVeil-encrypted namespaces. Plaintext
+cloud depots order deletions and re-adds through the [primary catalog](catalog-shard-crdt.md).
+
 Perforce can reuse a physical archive path after obliteration, and mutable RCS
 archives can change in place. ObjectVeil therefore tracks content generations and
 key epochs separately from pathnames. This is a single authoritative writer

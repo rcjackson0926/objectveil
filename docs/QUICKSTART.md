@@ -22,11 +22,8 @@ is the full field-by-field config reference.
   your `p4d` server's depot filesystem and your chosen cloud backend.
 - An existing `p4d` you can restart (the shim is loaded via `LD_PRELOAD`
   when `p4d` starts — no `p4d` patches, no protocol changes).
-- **Two** cloud buckets/containers if you're using S3/Azure/GCS: one for
-  the archive data, one **separate** one for the crypto-shred keystore.
-  The split is mandatory (the daemon refuses to start without it) — see
-  [the note below](#2-provision-storage). Skip this if you're doing an
-  NFS-only proof of concept.
+- One Azure Blob container, S3 bucket or GCS bucket for the Perforce version files.
+  The cache and the migration tool share the same primary location and catalog.
 - The complete matching Linux release artifacts. No license is bundled: use
   a vendor-signed version 2 license for anything beyond a short trial. Without
   one the daemon starts on its built-in developer license (1 TiB, expiring 30
@@ -34,14 +31,18 @@ is the full field-by-field config reference.
 
 ## 1. Install the matching release
 
-Follow `INSTALL.txt` to verify and install the Debian package, the RHEL 9 RPM
-or a tar bundle in a new versioned directory. Use all nine runtime artifacts
+Run `getconf GNU_LIBC_VERSION` on the target Linux x86-64 host. For the RC,
+select the glibc 2.39 tarball on hosts with 2.39 or newer and the glibc 2.17
+tarball on hosts with 2.17 through 2.38. Follow `INSTALL.txt` to verify its
+release checksum, extract into a new directory
+and check the packaged files. Use all nine runtime artifacts
 from that same release: the daemon, initializer, migration tool, verifier,
 manifest summary, catalog rebuild, rescan, deduplication measurement and
 preload library. Do not mix a new daemon with an already mapped older shim.
 
-The commands below use installed executable names. For a tar installation,
-substitute the absolute paths under that verified bundle's `bin/` directory.
+Use absolute paths to the daemon, tools and shim under the extracted bundle's
+`bin/` directory wherever examples below show stable package paths. Adapt
+`ExecStart` in the supplied systemd template to the extracted daemon path.
 
 ## 2. Provision storage
 
@@ -54,37 +55,24 @@ Pick one of [`docs/examples`](examples) as your starting point:
 | Google Cloud Storage | [`objectveil.gcs.example.jsonc`](examples/objectveil.gcs.example.jsonc) |
 | NFS only (no cloud) | [`objectveil.nfs.postgres.example.jsonc`](examples/objectveil.nfs.postgres.example.jsonc) |
 
-Each cloud template already has the recommended thread/packing settings
-filled in and active (see [`TUNING.md`](TUNING.md) and
-[`design/cold-read-chunk-packing.md`](design/cold-read-chunk-packing.md) for
-the reasoning) — the only things you need to change are marked
-`REPLACE-ME`: `depot_path`, bucket/container names, region, and
-credentials.
+Create one container or bucket and choose an empty prefix dedicated to this
+deployment. Set the template's `primary` to that location. On Azure, for
+example, container `p4-archives` and `path_prefix` `depot` place the
+packed archives in `depot/chunks/`, larger archives in `depot/standalone/`
+and the format marker and archive mappings in `depot/catalog/`. ObjectVeil
+creates these objects. The catalog tracks the files inside each pack.
 
-**Before you fill in the config**, provision the cloud side:
+The templates use the single-location plaintext layout. Leave `keystore` and
+`secondary` absent and use the same deployment UUID, primary location and
+catalog layout for the writer, readers and migration jobs. Set provider
+retention and storage encryption at rest according to your data policy.
+For an existing ObjectVeil-encrypted deployment, retain its original keystore
+and catalog layout. Follow the [upgrade guide](upgrading.md) to change formats.
 
-1. Create the **data** bucket/container (versioning/replication policy is
-   up to you — this one benefits from durability features).
-2. Create a **separate** **keystore** bucket/container for the per-file
-   crypto-shred keys. This one must have **versioning OFF, soft-delete
-   OFF, object-lock/WORM OFF, and no replication** — `p4 obliterate`
-   destroys a key by overwriting it, and that actually destroys the revoked
-   key only when no historical copy survives. Startup probes check
-   visible storage behavior and exposed version IDs; they do not prove that
-   soft delete, retention, backups or replication are absent. Independently
-   verify those policies on every provider. GCS also requires the explicit
-   `gcs_versioning_disabled_confirmed: true` attestation. Details:
-   [`design/object-storage-best-practices.md`](design/object-storage-best-practices.md).
-3. A secondary is an explicitly owned native ObjectVeil backend, not an
-   arbitrary plaintext archive tree. It must have a matching native primary-role
-   marker and catalog/key dependencies. Import existing local archives through
-   `objectveil-migrate` instead of pointing a fallback at an unconverted tree.
-   Secondary configuration alone does not establish a redundant copy.
-
-Copy the template, fill in the `REPLACE-ME` values, and drop the
-`.jsonc`-only comments if you prefer a plain `.json` file (the loader
-doesn't parse `//` comments — the shipped `.jsonc` files are references to
-copy from, not something you point the daemon at unmodified).
+Set the archive path, UUID, cache capacity and provider connection details.
+Remove the `//` comments from the provider template before saving it as JSON.
+The packaged `config.json.example` is plain JSON and uses Azure managed
+identity by default. [Azure authentication options](CONFIGURATION.md#azure)
 
 ## 3. Initialize the local archive root
 
@@ -120,10 +108,9 @@ line (`stats_interval_secs`, default 60s). If `metrics_file` is set, check
 the Prometheus textfile output — `objectveil_restores_total` should climb as
 `p4d` (once wired up in the next step) requests cold files.
 
-If the daemon refuses to start, the error is almost always one of:
-missing/wrong keystore bucket (see step 2), a backend field validation
-error (see [`CONFIGURATION.md`](CONFIGURATION.md#validation-rules)), or a
-`depot_path` that doesn't exist yet — create it first.
+If startup fails, check the local archive root, the primary credentials and prefix,
+and the namespace UUID in the primary format marker. A read-only cache needs
+a primary initialized by a writer. [Configuration validation](CONFIGURATION.md#validation-rules)
 
 ## 5. Wire up `p4d`
 

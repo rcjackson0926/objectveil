@@ -49,7 +49,8 @@ with them and ordinary backfill cannot ingest them as archive files.
    durable remote publication.
 
 A dedup catalog entry has `standalone: true` and a `dedup` payload; its object
-key is `blobs/<ciphertext_addr>`. All mappings use the mandatory native version 3 catalog envelope. The writer
+key is `blobs/<ciphertext_addr>`. All mappings use the native envelope for their catalog layout, version 3 for legacy
+or version 4 for partitioned. The writer
 does not publish a second, independently ordered route mapping.
 
 ## Reads and metadata loss

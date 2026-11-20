@@ -1,4 +1,4 @@
-ObjectVeil 7.0.1 — Linux installation and migration
+ObjectVeil 7.1.0-rc.1 — Linux installation and migration
 ====================================================
 
 This release includes the cache daemon, its matching Perforce preload shim,
@@ -10,10 +10,10 @@ installing; incompatible persisted formats require verified conversion.
 
 Requirements
 ------------
-* Linux x86_64. The Debian/Ubuntu .deb and generic tar bundle require
-  glibc 2.39 or newer. The RHEL 9 .rpm is built against glibc 2.34.
-  Check `uname -m` and `getconf GNU_LIBC_VERSION`; select the package for
-  your system. These builds do not support musl/Alpine, ARM, Windows or macOS.
+* Linux x86-64. Run `uname -m` and `getconf GNU_LIBC_VERSION`.
+  Choose the glibc2.39 tarball on hosts with glibc 2.39 or newer. Use the
+  glibc2.17 tarball on hosts with glibc 2.17 through 2.38, including RHEL 9
+  (glibc 2.34). Both archives contain the same tools and configuration.
 * A signed license for production or continued use. No license, credentials
   or private configuration is included. Use a vendor-signed version 2 license,
   or request an evaluation license at https://rcjacksonconsulting.com/objectveil-product.html.
@@ -21,7 +21,8 @@ Requirements
   (1 TiB, expiring 30 days after the release build date), which is meant
   only for a short first trial; see docs/LICENSING.md.
 * Access to the physical Perforce archive tree and the configured storage.
-  S3, Azure and GCS need separate data and keystore buckets/containers.
+  A new cloud deployment needs one Azure container, S3 bucket or GCS bucket
+  for the Perforce version files, their catalog and the deployment marker.
   Cloud backends verify TLS against the system trust store: the .deb and
   .rpm depend on ca-certificates; install it yourself for a tar installation.
 * Write-mode caching needs fanotify/CAP_SYS_ADMIN and coordinated archive
@@ -34,97 +35,34 @@ Requirements
 Download and verify
 -------------------
 Use a new empty download directory. The release page is:
-  https://github.com/rcjackson0926/objectveil/releases/tag/v7.0.1
+  https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.1
 
-Download SHA256SUMS and the .deb, .rpm or tar.gz asset from that release.
-Download all assets listed in SHA256SUMS to check them together, or verify
-only the files you downloaded:
+Download SHA256SUMS and the named tar.gz asset for your glibc version.
+In that directory, set abi to 2.17 or 2.39 to match the downloaded file:
 
-  sha256sum --ignore-missing -c SHA256SUMS
+  abi=2.17
+  bundle="objectveil-7.1.0-rc.1-linux-x86_64-glibc${abi}"
+  awk -v file="${bundle}.tar.gz" '$2 == file {print}' SHA256SUMS | sha256sum -c -
 
-Require an OK result for every selected asset. Do not proceed on a mismatch.
-Only checksum files downloaded from the expected release establish this
-comparison; checksums are not a detached signature or a hosted attestation.
-
-Debian/Ubuntu package (preferred where supported)
--------------------------------------------------
-The .deb includes all eight executables, the matching shim, a systemd unit,
-an example configuration and documentation. Its dependency check enforces
-the required glibc version. From the download directory:
-
-  sudo apt install ./objectveil_7.0.1_amd64.deb
-
-For BOTH a first package installation and an upgrade, complete the
-coordinated stop described below BEFORE running apt. The package refuses
-installation while p4d or objectveil is running; it does not stop services or
-restart Perforce for you. To add the migration tool to a server that must
-remain online, use the verified tar bundle side by side and run only its
-bin/objectveil-migrate. Defer package installation and cache writer activation
-until the coordinated handoff; copying archives itself can remain online.
-
-Removal (apt remove/purge) needs the same coordinated stop: the package
-refuses to be removed while p4d or objectveil is running and never stops a
-service for you. The actual config.json, license, archives, state and key
-material are operator-owned and are retained.
-
-Executables: /usr/bin/objectveil and /usr/bin/objectveil-*
-Shim:        /usr/lib/objectveil/libobjectveil_shim.so
-Docs:        /usr/share/doc/objectveil/
-
-The package does not create a new Perforce account or enable the cache.
-Its unit uses the existing `perforce` account by default; adjust the unit
-if your server uses a different archive-owner account. The service expects
-/etc/objectveil/config.json, with daemon=false. A license.lic beside that
-configuration is an accepted search path. Protect configuration and license
-permissions while allowing the service account to read them.
-
-Fresh default cache state is private (0700); the packaged same-UID deployment
-works with this default. The packaged /var/lib/objectveil is created by systemd
-with mode 0755, and the example config writes the collector-readable
-objectveil.prom there; the daemon keeps its own files in it, including the
-manifest database, owner-only.
-Run serving applications under the same UID
-as the daemon: restored files remain daemon-owned and private. Socket groups
-and UID allowlists alone do not support cross-UID archive serving. Existing
-and precreated state modes/groups are preserved. Follow "Socket access across Linux users" in
-docs/OPERATIONS.md and verify an actual cold read as the application's UID.
-Do not broaden all state/license permissions to fix socket access.
-
-Red Hat Enterprise Linux 9 package
----------------------------------
-Use objectveil-7.0.1-1.el9.x86_64.rpm on RHEL 9 x86_64. It contains
-all eight tools, the matching shim, a systemd unit, examples and documentation.
-Complete the same coordinated writer/service stop required above, then run:
-
-  sudo dnf install ./objectveil-7.0.1-1.el9.x86_64.rpm
-
-The executable, shim and documentation paths match the .deb paths above;
-the RPM unit is /usr/lib/systemd/system/objectveil.service. Installation
-never enables/starts the service and never creates configuration, licenses,
-archive markers or state. Configure the archive-owner account and follow
-the initialization and startup procedure below. Read docs/redhat.md for
-SELinux checks, package verification, upgrades and removal. Do not disable
-SELinux or assume a container test certifies your host's policy.
-
-The RPM preserves edits to config.json.example using RPM's noreplace rules.
-The actual config.json, license, archive files, state and key material are
-operator-owned and are retained during upgrades and removal. Removal also
-requires the coordinated stop; it refuses while p4d or ObjectVeil is running.
-For migration on a server that must stay online, do not use the Ubuntu tar
-bundle on RHEL 9: first extract the verified RHEL RPM into a separate empty
-directory as described in docs/redhat.md and run only its migration tool.
+Require an OK result for the selected tarball before extracting it.
 
 Tar installation
 ----------------
-Verify the tarball first, then unpack it into a new directory:
+Extract the verified tarball in a new directory and check its contents:
 
-  tar -xzf objectveil-7.0.1-linux-x86_64.tar.gz
-  cd objectveil-7.0.1
+  tar -xzf "${bundle}.tar.gz"
+  cd "${bundle}"
   sha256sum -c SHA256SUMS
+  ov_bin="$PWD/bin"
+  export PATH="$ov_bin:$PATH"
+
+Stable 7.0.1 users installing the Debian package or RHEL 9 RPM can find
+those packages and their installation guide at
+https://github.com/rcjackson0926/objectveil/releases/tag/v7.0.1
 
 Run bin/objectveil-migrate --help to confirm the migration command is present.
 For a system installation, keep each release in its own directory, for
-example /opt/objectveil/7.0.1. Copy this verified bundle there only if that
+example /opt/objectveil/7.1.0-rc.1. Copy this verified bundle there only if that
 destination does not already contain another installation. Use absolute
 paths to that release's executables and shim in your service configuration.
 
@@ -153,9 +91,11 @@ read-only clients require identity markers already created by a native writer.
 1. Select a backend example from docs/examples/. Replace every REPLACE-ME
    value. Examples ending in .jsonc contain comments for documentation;
    produce a valid JSON configuration before launching the tools.
-2. Set depot_path to the physical archive-only root. Establish explicit
-   cloud prefixes and separate data/key namespaces. Follow the keystore
-   retention requirements in docs/disaster-recovery.md and docs/LICENSING.md.
+2. Set depot_path to the physical archive-only root. Set primary to your
+   version-file bucket or container and a dedicated empty path_prefix. The
+   Azure package example uses managed identity. Omit secondary and keystore
+   for a new plaintext cloud deployment. Keep an existing encrypted
+   deployment's original keystore and catalog layout when upgrading.
 3. For an existing populated server, follow the migration procedure below
    before handing the namespace to a cache writer. Do not start another
    writer against a namespace owned by an active migration job.
@@ -165,8 +105,8 @@ read-only clients require identity markers already created by a native writer.
    this release's matching shim. This also applies to FIRST enablement
    after an online migration, not just an upgrade. A separately owned
    read-only reader cache must not be used as an active submit server.
-5. Start the daemon as the configured archive-owner account. For .deb or .rpm,
-   place the readable license beside the configuration and use the unit:
+5. Start the daemon as the configured archive-owner account. After installing the adapted systemd unit,
+   place the readable license beside the configuration and run:
 
      sudo systemctl daemon-reload
      sudo systemctl start objectveil
@@ -179,7 +119,7 @@ read-only clients require identity markers already created by a native writer.
 6. Start/restart every managed p4d with this release's matching shim, then
    release the writer fence:
 
-     LD_PRELOAD=/usr/lib/objectveil/libobjectveil_shim.so \
+     LD_PRELOAD="$ov_bin/libobjectveil_shim.so" \
      OBJECTVEIL_DEPOT=/p4/1/depots \
      OBJECTVEIL_SOCK=/p4/1/depots/.objectveil/shim.sock \
      OBJECTVEIL_ACCESS_SOCK=/p4/1/depots/.objectveil/access.sock \
@@ -202,7 +142,7 @@ not require a full local copy of that tree. Files open for writing, changed
 during capture or removed during the pass are skipped and reported.
 The original files are preserved. Run as their owner or with CAP_LEASE.
 
-Use a dedicated empty data/key namespace and a private job directory whose
+Use a dedicated empty primary namespace and a private job directory whose
 parent already exists outside the archive and cache trees. Provision actual
 free staging space for the chosen budget. These examples use the existing
 archive-owner account `perforce`; substitute your actual account if different.
@@ -210,9 +150,9 @@ Prepare its private job parent once:
 
   sudo install -d -o perforce -g perforce -m 0700 /var/lib/objectveil-migration
 
-Then run the tool as that account (Debian install example):
+Then run the tool as that account, using its absolute path to the verified migration tool:
 
-  sudo -u perforce objectveil-migrate /etc/objectveil/config.json --license /secure/license.lic \
+  sudo -u perforce "$ov_bin/objectveil-migrate" /etc/objectveil/config.json --license /secure/license.lic \
     --archive-root /p4/1/depots --source-kind live \
     --source-id existing-server-import \
     --state-dir /var/lib/objectveil-migration/job-001 --jobs 4 --spool-budget-gb 64 --plan
@@ -242,7 +182,7 @@ the configured live cache root. For an unused restore destination:
 
 Then, using the private job parent prepared above:
 
-  sudo -u perforce objectveil-migrate /etc/objectveil/config.json --license /secure/license.lic \
+  sudo -u perforce "$ov_bin/objectveil-migrate" /etc/objectveil/config.json --license /secure/license.lic \
     --download --archive-root /restore/depots \
     --state-dir /var/lib/objectveil-migration/download-001 --jobs 4 --spool-budget-gb 64
 
@@ -292,7 +232,8 @@ Durability and recovery
 Uploads are asynchronous: a successful Perforce submit does not prove that
 the newest bytes are already durable remotely. Preserve independent
 Perforce checkpoints/journals and the required archive recovery point.
-Retain primary data/catalog history and current keystore state according
-to the policies in docs/disaster-recovery.md. A secondary is a read fallback,
+Retain the primary payloads and catalog together. For ObjectVeil-encrypted
+deployments, also preserve the live keystore under the separate revocation
+policy in docs/disaster-recovery.md. A secondary is a read fallback,
 not synchronous replication. The download command restores archive bytes;
 it does not restore Perforce databases, checkpoints or journals.

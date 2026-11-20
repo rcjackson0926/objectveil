@@ -1,7 +1,7 @@
 # Object-store requirements and bounded transfers
 
-ObjectVeil uses cloud object storage as durable archive backing, with separate
-catalog authority and key custody. This document describes the native runtime
+ObjectVeil keeps archive payloads and their authoritative catalog in the same
+cloud primary. ObjectVeil encryption adds separate key custody. This document describes the native runtime
 contract; [configuration](../CONFIGURATION.md) lists accepted provider options.
 Release qualification requires the exact build's evidence and is not established
 by this design description.
@@ -9,12 +9,14 @@ by this design description.
 ## Namespace ownership
 
 Configuration requires `format: "objectveil/1"` and a canonical non-nil
-`namespace_id`. Primary and keystore each contain a role-specific marker at
-`catalog/objectveil-format-v1.json`, with format `objectveil-native-storage`,
-version 1 and the same namespace UUID. Native wrappers validate the paired
-identities during operations. A writer can initialize only empty namespaces;
-a missing partner marker can be completed only while both sides are empty or
-marker-only. Read-only clients never initialize stores.
+`namespace_id`. In a plaintext deployment the primary contains one marker at
+`catalog/objectveil-format-v1.json` with format `objectveil-native-storage`.
+Its version identifies the storage mode and catalog layout. The default
+plaintext partitioned primary uses version 4. Encrypted deployments have a
+second, keystore-role marker with the same UUID. Native wrappers validate the
+configured roles during operations. A writer can initialize an empty namespace.
+For an encrypted pair, it can complete a missing marker only while both sides
+are empty or marker-only. Read-only clients never initialize stores.
 
 Missing, malformed or mismatched identity is an error, not an empty cache.
 Populated incompatible storage requires the separately controlled conversion
@@ -23,13 +25,13 @@ opaque storage identities; they must not be decoded into user filesystem paths.
 
 ## Data and key durability
 
-Cloud primary storage requires a separate keystore. The configuration refuses
+A new plaintext cloud primary holds data and catalog together. Cloud storage using ObjectVeil encryption requires a separate keystore. The configuration refuses
 ambiguous same-bucket arrangements. Primary data retention may preserve immutable
 payloads and catalog history. Keystore policies must permit effective revocation:
 versioning, soft-delete, immutable retention, historical key backups and replication
 that retains revoked keys can defeat crypto-shred.
 
-Startup probes test the create-once and overwrite behavior visible through the
+For encrypted namespaces, keystore probes test the create-once and overwrite behavior visible through the
 storage interface and examine exposed version identifiers. They do not establish
 that provider backups, retention, replication or administrator copies are absent.
 The operator must verify those policies for every provider. GCS attestation is
@@ -64,15 +66,15 @@ fallbacks or mutations outside the migration destination.
 
 ## Multipart and local resource limits
 
-The shared cloud uploader uses four concurrent 8 MiB part buffers, with at most
+The shared cloud uploader uses a single PUT for a stored object up to 8 MiB.
+For larger objects it uses four concurrent 8 MiB part buffers, with at most
 10,000 parts per object. It verifies the actual source length, refuses an
 oversized stored object before upload and handles short/growing input as failure.
 Cancellation and failed completion attempt to abort the multipart upload.
 SIGKILL, power loss and provider failure can still leave parts; provider lifecycle
 cleanup of incomplete uploads is an operational requirement.
 
-Small objects use a single PUT where the provider multipart minimum requires it.
-Packing is always available for eligible files; thresholds choose packed versus
+Packing is available for eligible files. Thresholds choose packed versus
 standalone publication. Incompressible members can use STORE codecs rather than
 paying for ineffective gzip. Footer size is included in admission and sealing,
 including the bounded single-entry overshoot.

@@ -12,7 +12,7 @@ not an upgrade procedure.
 Generate a UUID once (for example, `python3 -c 'import uuid; print(uuid.uuid4())'`).
 Put it in `namespace_id` and set `format` to `objectveil/1` in the JSON config.
 Use the same UUID on every writer, reader and migration configuration sharing
-that data/key namespace. Keep distinct deployments on distinct namespaces.
+that archive namespace. Keep distinct deployments on distinct namespaces.
 The UUID is public identity, not a password. The nil UUID in templates is a
 placeholder and is deliberately rejected.
 
@@ -30,11 +30,18 @@ The initializer refuses symlinks, special nodes and incompatible ownership. It
 does not copy, upload or delete archives. Its proof and state markers bind the
 root to the configured namespace; preserve them with local recovery state.
 
-A writer can initialize empty data/key namespaces. A read-only cache requires
-existing matching remote identity markers and never initializes remote storage.
-The primary and keystore must both belong to the same namespace, with their
-correct distinct roles. A missing keystore beside populated data is an error,
-not permission to generate replacement keys.
+The initializer scans each directory twice and checks directory identities
+across the tree. Large listings and the index of previously visited
+directories can spill into anonymous files outside the archive root. Provide
+free space on the temporary filesystem for a large existing depot. Its archive
+claim is written only after the complete preflight succeeds.
+
+A new plaintext cloud writer initializes its empty primary namespace. Keep the
+data primary, namespace UUID and original keystore for an existing encrypted
+deployment. Removing the keystore selects a different storage format and cannot
+convert existing archives. To change modes, use a fresh destination namespace
+and local state and migrate from verified readable archives. Read-only caches
+require existing matching remote markers.
 
 ## Updating a compatible installation
 

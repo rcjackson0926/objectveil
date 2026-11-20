@@ -5,7 +5,9 @@ storage even when it appears at several depot paths. Small packed files are
 not deduplicated. Perforce already lazy-copies branches, so measure the
 remaining opportunity before enabling this feature.
 
-The feature is off by default. Enabling it changes deletion semantics:
+Shared-content deduplication requires an ObjectVeil-encrypted namespace with a
+separate keystore. Leave it disabled in a single-location plaintext deployment.
+Enabling it changes deletion semantics:
 **obliterate revokes a path first; destruction of the shared content key waits
 for background garbage collection, even for content with only one referrer.**
 A surviving referrer keeps the shared bytes decryptable.

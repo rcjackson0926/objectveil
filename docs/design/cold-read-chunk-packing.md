@@ -13,6 +13,11 @@ length, plaintext BLAKE3 and a codec. The codecs are gzip, authenticated gzip,
 verbatim storage and authenticated verbatim storage. Already-compressed archive
 names can use the verbatim forms. Empty members are valid.
 
+A fresh plaintext cloud namespace writes an eight-byte `OVPACKU1` signature
+and a random 16-byte publication UUID ahead of the first member. Footer offsets
+include these 24 bytes. Each seal has a distinct immutable address, even when
+all member paths and bytes are identical to an earlier seal.
+
 The enclosing native storage namespace and version 3 catalog identify this
 format generation. No envelope from another catalog generation is accepted.
 Internal names and escaped path keys remain distinct; NFS stores object keys
@@ -66,19 +71,39 @@ cache refresh retains its previous verified inode through remote GET and
 authentication failure. The final replacement window is covered by the local
 eviction/held-inode journal. Existing open descriptors keep their old snapshot.
 
+Loose files directly under the archive root share one physical packer. So do
+the revision files in top-level Perforce `name,d` directories. Other trees
+retain their top-level directory grouping. The existing catalog lookup for
+each archive stays the same when its physical pack group changes.
+
 ## Compaction, backfill and deletion
 
 Compaction identifies members still referenced by complete current authority,
 downloads the old chunk within the actual stream cap, validates bounded local
 reads and hashes, and publishes replacement chunks and catalog pointers.
 Verbatim ciphertext can be repacked without exposing neighboring plaintext.
-Original chunk payloads, seal markers and recovery metadata are retained,
-including fully superseded chunks. A timed-out DELETE can execute after identical
-content is published at the same address; current liveness and process locks do
-not prevent that race. Physical chunk and unknown-blob sweeps therefore perform
-no deletion or inventory requests until a durable address-retirement protocol
-exists. Storage consumption can grow; repacking does not reclaim remote bytes.
-On size refusal or failed publication, original objects remain intact.
+In plaintext cloud mode, obliterate records a durable catalog tombstone and
+removes the member's local catalog reference. The periodic compactor processes
+chunks below `compaction_live_fraction` and fully dead chunks. For each eligible
+uniquely published pack, the writer checks that every original member has a
+durable catalog tombstone or a readable and verified replacement. It records
+the retirement locally, removes the primary seal and payload, and confirms their
+absence. A failed or interrupted delete is retried against the same single-use
+address. Replicas, external backups, provider snapshots and soft-deleted versions
+have separate retention. Restoring a historical catalog requires matching
+historical copies of its referenced objects.
+
+A pending plaintext delete records its originating catalog writer era before
+touching the archive. An ordinary restart checks the immutable tickets and
+publishes the tombstone under that same era. If a later writer already took
+over, reconciliation leaves the old local file and intent intact and reports
+the conflict. Keep the superseded state offline. Check the path on the active
+Perforce writer, issue any still-required deletion there, and recover a cache
+from the current namespace with fresh local state.
+
+Reusable legacy and encrypted pack addresses are retained. A delayed DELETE
+could otherwise remove an identical later publication. Untracked objects and
+missing or incomplete catalog evidence never authorize reclamation.
 
 Backfill imports eligible raw primary objects into packing only within the
 configured native namespace. Both the actual download and local read are bounded
