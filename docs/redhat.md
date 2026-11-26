@@ -1,6 +1,13 @@
 # Red Hat Enterprise Linux installation
 
-For the 7.1.0 release candidate on RHEL 9 x86-64, use the glibc 2.17 tarball. Check `getconf GNU_LIBC_VERSION`, verify the archive against the release checksums and follow its `INSTALL.txt` for a coordinated installation. [7.1.0-rc.1 downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.1)
+The 7.1.0-rc.2 candidate provides a native RHEL 9 x86-64 RPM and a glibc 2.17
+tarball. Verify the selected asset against the release checksums and follow
+`INSTALL.txt` for a coordinated installation. [Candidate downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.2)
+
+The candidate RPM is `objectveil-7.1.0~rc.2-1.el9.x86_64.rpm`. Its package
+version sorts below stable 7.1.0. Substitute that filename and release URL in
+the commands below when installing the candidate. Preserve the namespace,
+keystore and state of an existing encrypted deployment.
 
 ## Stable 7.0.1 RPM
 

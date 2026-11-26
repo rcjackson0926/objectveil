@@ -1,5 +1,22 @@
 # ObjectVeil release changes
 
+## 7.1.0-rc.2
+
+- Update the URL dependency to 2.5.9 to address the upstream
+  [RUSTSEC-2026-0592](https://rustsec.org/advisories/RUSTSEC-2026-0592)
+  denial of service. Refresh the separate fuzz dependency graph as well.
+
+- Restore cold archives through symlinked depot paths even when intermediate
+  local directories are absent. This fixes false missing-file errors for
+  Perforce RCS `,v` archives and other managed archive layouts.
+- Ask the daemon again on each managed read miss. A previous NOTFOUND result
+  can no longer hide an archive published by another process during the
+  absence-record retention interval. Temporary write probes remain local.
+- Preserve directory-only path semantics for reads and deletes, while keeping
+  directory imports and read-only exports inside the writer safety boundary.
+- Support release-candidate Debian and RHEL 9 package versions with correct
+  ordering below the corresponding stable version.
+
 ## 7.1.0-rc.1
 
 - A new cloud deployment can store Perforce version files, packed objects, recovery metadata and the partitioned catalog together in one `primary` Azure container, S3 bucket or GCS bucket. Existing encrypted deployments continue using their original keystore.

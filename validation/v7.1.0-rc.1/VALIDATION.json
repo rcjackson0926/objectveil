@@ -1,0 +1,92 @@
+{
+  "release": "v7.1.0-rc.1",
+  "source_commit": "989cd4e258aeda10af27e09d78f30fc7d50ef180",
+  "stage": "release candidate",
+  "architecture": "Linux x86-64",
+  "archive_validation": [
+    {
+      "actual_glibc_all_tools_loaded_and_shim_preloaded": true,
+      "bytes": 33766080,
+      "exact_integrity_verifications": 3,
+      "file": "objectveil-7.1.0-rc.1-linux-x86_64-glibc2.17.tar.gz",
+      "glibc_baseline": "2.17",
+      "internal_checksums_verified": true,
+      "matches_first_runtime": true,
+      "matches_live_cloud_tested_binaries": true,
+      "max_glibc_symbol": "2.16",
+      "public_member_allowlist_verified": true,
+      "real_glibc217_perforce_workloads_passed": 4,
+      "repack_matches_sha256": true,
+      "runtime_sha256": {
+        "libobjectveil_shim.so": "2c2c557d44f8b7e1d8c09963c8986a13caf05208f6065a11c5ebb1e606429995",
+        "objectveil": "9f67b4a628d1d0aebfdfc482ec96a62536ed3676d1dcb35c63eb7846488bd362",
+        "objectveil-dedup-measure": "7befb7f3d96c5c0f561b81cbddffa06b6f5f3a4a4bbfa472031c2443ffa3d695",
+        "objectveil-initialize": "4381d4233fb0601a8fb002bb8d2f7842051c637410bbc63729c53830863cd784",
+        "objectveil-manifest-summary": "4f0c86c0dd61651298b5dc25890ea7390f30b2c5b5c06bdb1edce4430df1c257",
+        "objectveil-migrate": "400f614e8efcbbb6c17a45db18252cd3a259d9a04e2442084c1a158a3f3a475e",
+        "objectveil-rebuild-catalog": "b9bfa0cd562e33925e9e223d739db3c060e5aec2d81ee8ef9dfcb484ae6d19fd",
+        "objectveil-rescan": "884b9c703741565e06ae8681abf54652f5c18655816cef55fdd776471dbfab76",
+        "objectveil-verify": "5dbf9c8a4f69dc75076305690216618b968eba0a57b7b0c69cb42487ecf7de40"
+      },
+      "sha256": "404880b07286a695ba9b5f911264c7c5b12e6d149f9de060a9f9e8f2570c5db9",
+      "source_commit": "989cd4e258aeda10af27e09d78f30fc7d50ef180",
+      "verified_tar_members": 46,
+      "version": "7.1.0-rc.1"
+    },
+    {
+      "actual_glibc_all_tools_loaded_and_shim_preloaded": true,
+      "bytes": 33804677,
+      "exact_integrity_verifications": 3,
+      "file": "objectveil-7.1.0-rc.1-linux-x86_64-glibc2.39.tar.gz",
+      "glibc_baseline": "2.39",
+      "internal_checksums_verified": true,
+      "matches_first_runtime": true,
+      "matches_live_cloud_tested_binaries": true,
+      "max_glibc_symbol": "2.39",
+      "public_member_allowlist_verified": true,
+      "repack_matches_sha256": true,
+      "runtime_sha256": {
+        "libobjectveil_shim.so": "8b54fb6f8613e8c6a4b76e5d44e7415dc5fb12916574626baf968f1614fb3852",
+        "objectveil": "b9f238f2e02f5a5c02bb62231fb8b85b61541147ed9da720ce698f18a2467e46",
+        "objectveil-dedup-measure": "893a4b364564e37b74dc04c6ed6cdbc47b1656ef7fe83d784b9ae45cd30c874e",
+        "objectveil-initialize": "4e6903cbb665cf27685f77535fd777f840f41f11e19db6e30675329d5a6db9c1",
+        "objectveil-manifest-summary": "da40ea9bf34a340f80043decb292443fd11bda8fa00e7ea1d97ec5fc1550a115",
+        "objectveil-migrate": "20a34301c65d1d612370835a52eb4b4355e4b335bd1ce8961933ccea82fdcf2b",
+        "objectveil-rebuild-catalog": "33834d6288a857f3ab9301d52a57a68a3f460dce50bf6232585208b2b65ad8e3",
+        "objectveil-rescan": "5362885989681d16b256dd8322437e121b9049137690212686013fb51b85ebce",
+        "objectveil-verify": "f2ae0f3d2adc07b17422b1c4a716fa3e5b0cfb4adcaafd8ad0f9f4efe594364a"
+      },
+      "sha256": "56d377a1564f7fd84c73fe5254600b5a30ba29f03dd0f835d8f9b10f679b9051",
+      "source_commit": "989cd4e258aeda10af27e09d78f30fc7d50ef180",
+      "verified_tar_members": 46,
+      "version": "7.1.0-rc.1"
+    }
+  ],
+  "source_gate": {
+    "result": "passed",
+    "workspace_rust_tests_reported_passed": 1793,
+    "workspace_rust_tests_failed": 0,
+    "workspace_rust_tests_ignored": 5,
+    "rustfmt": "passed",
+    "strict_clippy": "passed",
+    "audit_policy_commit": "fdfa9222514a3d8e58967c554111b56223859e2c",
+    "supply_chain": {
+      "cargo_deny": "passed",
+      "cargo_audit_deny_warnings": "passed with reviewed audit policy",
+      "reviewed_runtime_maintenance_advisories": [
+        {
+          "package": "humantime 2.4.0",
+          "url": "https://rustsec.org/advisories/RUSTSEC-2026-0542.html"
+        },
+        {
+          "package": "chrono 0.4.45",
+          "url": "https://rustsec.org/advisories/RUSTSEC-2026-0543.html"
+        }
+      ],
+      "rationale": "The production cloud SDK object_store 0.14.1 requires both packages. The latest published SDK at review, 0.14.2, still requires both. RustSec lists no patched version for either. The separately recorded policy revision changes only rust/.cargo/audit.toml. The source tag and both tested archives use source_commit."
+    },
+    "privileged_fanotify": "passed",
+    "sigkill_recovery": "three queued archives replayed byte-identically"
+  },
+  "live_provider_checks": "CLOUD_VALIDATION.json covers independent cold restores and cleanup for both published runtimes."
+}

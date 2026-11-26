@@ -1,0 +1,184 @@
+{
+  "format_version": 1,
+  "release": "7.1.0-rc.1",
+  "commit": "989cd4e258aeda10af27e09d78f30fc7d50ef180",
+  "status": "passed",
+  "verified_at_utc": "2026-11-20T22:43:57.290845+00:00",
+  "scope": "A fresh isolated primary Azure container prefix, S3 bucket prefix or GCS bucket prefix per test. Application configurations contain only primary storage and no keystore, deduplication or secondary storage.",
+  "platforms": {
+    "glibc2.17": {
+      "glibc_build": "2.17",
+      "test_host_glibc": "glibc 2.39",
+      "runtime_sha256": {
+        "objectveil": "9f67b4a628d1d0aebfdfc482ec96a62536ed3676d1dcb35c63eb7846488bd362",
+        "objectveil-initialize": "4381d4233fb0601a8fb002bb8d2f7842051c637410bbc63729c53830863cd784",
+        "objectveil-migrate": "400f614e8efcbbb6c17a45db18252cd3a259d9a04e2442084c1a158a3f3a475e",
+        "libobjectveil_shim.so": "2c2c557d44f8b7e1d8c09963c8986a13caf05208f6065a11c5ebb1e606429995"
+      },
+      "tested_utc": "2026-11-20T22:35:12.419183+00:00",
+      "providers": {
+        "azure": {
+          "status": "passed",
+          "cache_scenario": "One fresh Azure container prefix and one primary role. Three concurrent Perforce clients with four parallel submit workers each, cold lookup through the cache shim and a cold restore into an empty destination.",
+          "migrated_packed_seed": true,
+          "parallel_clients": 3,
+          "parallel_submit_threads": 4,
+          "perforce_physical_archives": 12,
+          "verified_files": 13,
+          "full_restore": {
+            "files_downloaded": 13,
+            "files_already_present": 0,
+            "bytes_verified": 100677656,
+            "packs_downloaded": 2,
+            "packed_members_verified": 7
+          },
+          "primary_only": {
+            "configured_storage_locations": 1,
+            "marker_version": 4,
+            "marker_role": "primary",
+            "keys_objects": 0
+          },
+          "cleanup": {
+            "role": "primary",
+            "active": 0,
+            "uncommitted": 0,
+            "retained_records": 33,
+            "retained_bytes": 100691386
+          },
+          "soft_delete_retention_days": 7
+        },
+        "s3": {
+          "status": "passed",
+          "scenario": "Snapshot migration and cold restore using a single primary bucket prefix. Includes independent paths containing identical bytes, packed members, and an 18 MiB multipart file.",
+          "verified_files": 35,
+          "primary_only": {
+            "configured_storage_locations": 1,
+            "marker_version": 4,
+            "marker_role": "primary",
+            "keys_objects": 0
+          },
+          "download": {
+            "status": "download_complete",
+            "packs_downloaded": 11,
+            "packed_members_verified": 34
+          },
+          "cleanup": {
+            "versions_or_markers_removed": 62,
+            "remaining_versions": 0,
+            "remaining_multipart_uploads": 0
+          }
+        },
+        "gcs": {
+          "status": "passed",
+          "scenario": "Snapshot migration and cold restore using a single primary bucket prefix. Includes independent paths containing identical bytes, packed members, and an 18 MiB multipart file.",
+          "verified_files": 35,
+          "primary_only": {
+            "configured_storage_locations": 1,
+            "marker_version": 4,
+            "marker_role": "primary",
+            "keys_objects": 0
+          },
+          "download": {
+            "status": "download_complete",
+            "packs_downloaded": 11,
+            "packed_members_verified": 34
+          },
+          "cleanup": {
+            "versions_removed": 62,
+            "remaining_active_or_noncurrent": 0,
+            "provider_retained_soft_deleted": 62
+          }
+        }
+      },
+      "live_migration_runtime_all_providers": "glibc 2.17 container",
+      "azure_cache_and_perforce_runtime": "glibc 2.39"
+    },
+    "glibc2.39": {
+      "glibc_build": "2.39",
+      "test_host_glibc": "glibc 2.39",
+      "runtime_sha256": {
+        "objectveil": "b9f238f2e02f5a5c02bb62231fb8b85b61541147ed9da720ce698f18a2467e46",
+        "objectveil-initialize": "4e6903cbb665cf27685f77535fd777f840f41f11e19db6e30675329d5a6db9c1",
+        "objectveil-migrate": "20a34301c65d1d612370835a52eb4b4355e4b335bd1ce8961933ccea82fdcf2b",
+        "libobjectveil_shim.so": "8b54fb6f8613e8c6a4b76e5d44e7415dc5fb12916574626baf968f1614fb3852"
+      },
+      "tested_utc": "2026-11-20T22:43:56.906143+00:00",
+      "providers": {
+        "azure": {
+          "status": "passed",
+          "cache_scenario": "One fresh Azure container prefix and one primary role. Three concurrent Perforce clients with four parallel submit workers each, cold lookup through the cache shim and a cold restore into an empty destination.",
+          "migrated_packed_seed": true,
+          "parallel_clients": 3,
+          "parallel_submit_threads": 4,
+          "perforce_physical_archives": 12,
+          "verified_files": 13,
+          "full_restore": {
+            "files_downloaded": 13,
+            "files_already_present": 0,
+            "bytes_verified": 100677656,
+            "packs_downloaded": 2,
+            "packed_members_verified": 7
+          },
+          "primary_only": {
+            "configured_storage_locations": 1,
+            "marker_version": 4,
+            "marker_role": "primary",
+            "keys_objects": 0
+          },
+          "cleanup": {
+            "role": "primary",
+            "active": 0,
+            "uncommitted": 0,
+            "retained_records": 33,
+            "retained_bytes": 100691478
+          },
+          "soft_delete_retention_days": 7
+        },
+        "s3": {
+          "status": "passed",
+          "scenario": "Snapshot migration and cold restore using a single primary bucket prefix. Includes independent paths containing identical bytes, packed members, and an 18 MiB multipart file.",
+          "verified_files": 35,
+          "primary_only": {
+            "configured_storage_locations": 1,
+            "marker_version": 4,
+            "marker_role": "primary",
+            "keys_objects": 0
+          },
+          "download": {
+            "status": "download_complete",
+            "packs_downloaded": 10,
+            "packed_members_verified": 34
+          },
+          "cleanup": {
+            "versions_or_markers_removed": 60,
+            "remaining_versions": 0,
+            "remaining_multipart_uploads": 0
+          }
+        },
+        "gcs": {
+          "status": "passed",
+          "scenario": "Snapshot migration and cold restore using a single primary bucket prefix. Includes independent paths containing identical bytes, packed members, and an 18 MiB multipart file.",
+          "verified_files": 35,
+          "primary_only": {
+            "configured_storage_locations": 1,
+            "marker_version": 4,
+            "marker_role": "primary",
+            "keys_objects": 0
+          },
+          "download": {
+            "status": "download_complete",
+            "packs_downloaded": 12,
+            "packed_members_verified": 34
+          },
+          "cleanup": {
+            "versions_removed": 64,
+            "remaining_active_or_noncurrent": 0,
+            "provider_retained_soft_deleted": 64
+          }
+        }
+      },
+      "azure_cache_and_perforce_runtime": "glibc 2.39",
+      "live_migration_runtime_all_providers": "glibc 2.39"
+    }
+  }
+}

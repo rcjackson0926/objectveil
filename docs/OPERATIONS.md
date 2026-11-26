@@ -26,7 +26,7 @@ migration tool and initializer check their own integrity seal at startup.
 Preserve native state and follow [upgrading](upgrading.md) for format
 compatibility requirements.
 
-The 7.1.0-rc.1 release provides two Linux x86-64 tarballs. Run
+The 7.1.0-rc.2 release provides two Linux x86-64 tarballs. Run
 `getconf GNU_LIBC_VERSION` and choose the glibc 2.39 build on hosts with 2.39
 or newer, or the glibc 2.17 build on hosts with 2.17 through 2.38. Follow
 `INSTALL.txt` to verify and extract the archive. All executables and
@@ -43,14 +43,14 @@ version files. Use a dedicated prefix. The same location holds `chunks/`,
 single-location setup leaves `keystore` and `secondary` absent. All three
 cloud providers and NFS use the same release binaries.
 
-## Stable 7.0.1 Debian and RHEL packages
+## Debian and RHEL packages
 
-The following layout and lifecycle instructions apply to the stable 7.0.1
-Debian/Ubuntu package and RHEL 9 RPM. Use that release's installation guide
+The following layout and lifecycle instructions apply to the Debian/Ubuntu
+package and RHEL 9 RPM. Use the selected release's installation guide
 and complete the coordinated writer stop before a package change.
 [Red Hat installation](redhat.md) covers the RPM.
 
-The stable packages install these files:
+The packages install these files:
 
 - all eight executables in `/usr/bin` (`objectveil` and the seven `objectveil-*` tools)
 - `/usr/lib/objectveil/libobjectveil_shim.so`

@@ -1,4 +1,4 @@
-# ObjectVeil 7.1.0-rc.1
+# ObjectVeil 7.1.0-rc.2
 
 This Linux release contains the cache daemon, its matching Perforce preload
 shim, the migration uploader/downloader, and the verification and recovery
@@ -15,7 +15,9 @@ Run `getconf GNU_LIBC_VERSION` on your x86-64 Linux server. Choose the
 `glibc2.39` archive on glibc 2.39 or newer, or `glibc2.17` on glibc
 2.17 through 2.38. Verify the download against the release’s `SHA256SUMS`
 and keep the daemon and preload library from the same archive together.
-[Release downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.1) · [Installation](INSTALL.txt)
+A Debian/Ubuntu package (glibc 2.39) and native RHEL 9 RPM (glibc 2.34)
+are also available. Their candidate version is `7.1.0~rc.2`; see `INSTALL.txt`.
+[Release downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.2) · [Installation](INSTALL.txt)
 
 This page and its configuration examples describe the release candidate.
 For an installed 7.0.1 server, use the [7.0.1 documentation](https://github.com/rcjackson0926/objectveil/tree/v7.0.1/docs).

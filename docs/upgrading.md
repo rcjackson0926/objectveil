@@ -58,6 +58,16 @@ require existing matching remote markers.
 5. Restart the matching daemon and application under the archive-owner UID.
    Verify warm/cold reads and recoverability before authorizing eviction.
 
+## From 7.1.0-rc.1 to 7.1.0-rc.2
+
+This update changes no configuration, native namespace, license, catalog or
+manifest format. Preserve all existing settings and state and follow the
+coordinated procedure above. Restart every Perforce process with the matching
+new shim so its path resolution and missing-file behavior are updated. The
+RCS fix does not require rewriting or re-uploading correctly published archives.
+Package managers display this candidate as `7.1.0~rc.2` so it orders below the
+future stable `7.1.0` release.
+
 ## From 7.0.0 to 7.0.1
 
 7.0.1 belongs to the same format generation as 7.0.0. It converts nothing:
