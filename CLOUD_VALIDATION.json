@@ -1,7 +1,7 @@
 {
   "product": "ObjectVeil",
-  "release": "7.1.0-rc.2",
-  "source_commit": "a855ec7fbfd1af97fc475f5eccb0c8c6299b452e",
+  "release": "7.1.0",
+  "source_commit": "ff59285a2fe76951cd58fbd80f95f30a872e5cad",
   "status": "passed",
   "provider": "Azure Blob Storage",
   "scope": "Actual Perforce text+D RCS archives published through native migration ingest and restored through the exact packaged daemon and preload library",
@@ -18,19 +18,19 @@
   "cloud_objects_preserved_by_reads": true,
   "platforms": {
     "glibc2.17": {
-      "commit": "a855ec7fbfd1af97fc475f5eccb0c8c6299b452e",
+      "commit": "ff59285a2fe76951cd58fbd80f95f30a872e5cad",
       "status": "passed",
       "runtime_glibc_baseline": "2.17",
       "runtime_sha256": {
-        "objectveil-initialize": "dcdc35cecdcc7dd0f3d84c014f217fbbb6043a19d5c7e35cc8b629126d3f4204",
-        "objectveil-migrate": "070ac7ae88f02c0d824eccae44f8fe25fbb3278d64d5c6171b248fb3048b1e47",
-        "objectveil-manifest-summary": "32edbdeb1c0b112c0d416c2f093bde8ee756a8353abc82f6fe4e0312a060bf05",
-        "objectveil-rescan": "b7321cd9550bb77b9f19f717aee8b75cf5148693c33bfb6e70c740dc5ebe45a4",
-        "objectveil-verify": "39b74af858982a35c097ecab357f940d61b72b1ecb32fc6fec9b170869622298",
-        "objectveil": "250839e9772563396f41a206eafc76a92d3627d6ada1777a84d3f9c1d391e4cb",
-        "libobjectveil_shim.so": "ca1bad151e417925fad95be069859a920157fde6a3b9b66cf9215a518c49c294",
-        "objectveil-rebuild-catalog": "aa62af31f9ff85c1c38242703dac3adcc5dd1fc9ee36900384f991d4813d48fb",
-        "objectveil-dedup-measure": "71fcc6c9aefad51efd3a95fcddac288df06d90dcd27b1164c690f04dd277efc4"
+        "objectveil-initialize": "ce7c8c42a3a40444b9bfafa2769bc6a92bf5655a6dba17aa7d8aa8ca85ecf54b",
+        "objectveil-migrate": "2a1171abed3f7ad02ef41f19d6ac29b63b6be3ed1007ed169ad96fa3e72bca71",
+        "objectveil-manifest-summary": "720266018c44e2589599823a872199867582883d80e4f4c0f2f40604f1eae073",
+        "objectveil-rescan": "a1434216bd6658bcdee33044052a271b1a1cc975a24ea4677831c57b1d59ff54",
+        "objectveil-verify": "04eb7d7f1dcb3ae949530a7d37fdea941d4557d97a9c8d14028d8f9f2f5ecb24",
+        "objectveil": "5f89f27b3e4135e443d77a27a29133153a0ee7bbe56f37bd40abcccfc73968b8",
+        "libobjectveil_shim.so": "56a1e3c7f5bed5143382f33c36eebb66b8e018d5817e601421b75d64fb29fa89",
+        "objectveil-rebuild-catalog": "07f56695f6c57523e1e5c91d8df9ac59bd111c61ab39dbc394b3366166bc53d7",
+        "objectveil-dedup-measure": "f312f074d76e3a6b39775647b28e6f381357a2ebc3c2ce203bf072282f0e43b8"
       },
       "rcs_revisions": 3,
       "depot_maps": 2,
@@ -45,19 +45,19 @@
       "test_host_glibc": "2.39"
     },
     "glibc2.39": {
-      "commit": "a855ec7fbfd1af97fc475f5eccb0c8c6299b452e",
+      "commit": "ff59285a2fe76951cd58fbd80f95f30a872e5cad",
       "status": "passed",
       "runtime_glibc_baseline": "2.39",
       "runtime_sha256": {
-        "objectveil-initialize": "d0df62d9fdf315328daa8442647a2142e3e08e9931f2670ac6b218afdf53903b",
-        "objectveil-migrate": "4905a8db8a5637ce774347384f2ab9d10e007326252951c0dec61f433dafe6df",
-        "objectveil-manifest-summary": "afb5d3af30be8f66244d35b770e914cdaeddf4d50d20516994d6a84b71ed1522",
-        "objectveil-rescan": "389831085ba55e6295c7f3619af46596e13430d3a938012f2a77bfb779e40a9c",
-        "objectveil-verify": "5676ff3c50e5e768bf01fb8ed0882fbe0f023d5c12c8735429d9323b68410667",
-        "objectveil": "bc5f3e5563784e403b90e07c656cb234b2d1a6204ad9fc9f4081075ce30c33a9",
-        "libobjectveil_shim.so": "d458f63e265332caecf3b4acca4b0450ecf8c367b7e9c56b7938ad4159090c95",
-        "objectveil-rebuild-catalog": "8c62ca497cf12e80c3b4a328565fff6bfb29fd558a464c1f546d903faf97b4c5",
-        "objectveil-dedup-measure": "6ab81678dfe8ab1964dc10b39d4a81b5d202dc9b1fecb9475520b7d6ebdbb7b5"
+        "objectveil-initialize": "497aed821bdf2f778aa9f5eb8c532864f84c351f459f8a16e9875bd6bfd5862c",
+        "objectveil-migrate": "d9ae54cd0160704fd32bb69a281e000fc9d8ae31bc90fd509c6243e48f10e0d1",
+        "objectveil-manifest-summary": "6922ca84c83f0bc81117ea5ae0bfe4388e9c728159ce5b16ebb67aa6b94de093",
+        "objectveil-rescan": "bd3fb0b38c254dd3dc6bd8148c0e95ef0eadecc99890bc9e047209a81f2cd0b0",
+        "objectveil-verify": "090aec9c93d426dcd100dbb962d044a52b8569bb536e8c30ccd068884c6b785d",
+        "objectveil": "2f14f5efe3295e8bea6d2d87ebf13592e30526c87b5bce0d428aad3e09e27531",
+        "libobjectveil_shim.so": "de372b6c054bc18f1b50ac6f0d41b8a24a1ef2c68961f74d887e046cbdd808a3",
+        "objectveil-rebuild-catalog": "12bf40448be8c291f067b33c88694d8fead43fbd3941b172cb34f358d3c050b2",
+        "objectveil-dedup-measure": "aed57f768d8d47180a7ef503fd5599847820b055692f82b19a544ef8d5c9387d"
       },
       "rcs_revisions": 3,
       "depot_maps": 2,
@@ -72,19 +72,19 @@
       "test_host_glibc": "2.39"
     },
     "rhel9": {
-      "commit": "a855ec7fbfd1af97fc475f5eccb0c8c6299b452e",
+      "commit": "ff59285a2fe76951cd58fbd80f95f30a872e5cad",
       "status": "passed",
       "platform": "RHEL9 user space, glibc2.34",
       "runtime_sha256": {
-        "objectveil-initialize": "21b77f3a920382070febc56147326eaaced11d1b615e23029c60b0a25d911ac8",
-        "objectveil-migrate": "9d4613a1954a8718f439219586145c76e597da63e3b5f3bc0e061055868e7b5a",
-        "objectveil-manifest-summary": "4c95cfbc6cec08ab4d93ce894f79ed4b12fc0d13b28ebd966bc1dbc6d6cb324d",
-        "objectveil-rescan": "dc285ab551ce7c1a275800d8faf224031d675afa08a591249600c1744fb26224",
-        "objectveil-verify": "d0db5bb7033ee9b1dbba7ede4af5b00356b60b4ed5e99859126b5a37e0fdd702",
-        "objectveil": "8f04ca9cc00ff3b7f8578aef04839349532d24d84fd65a39ba597c2f01f1a316",
-        "libobjectveil_shim.so": "12149a40b0267c50bf0fd04b25bcb8dd232451487b5f353f2c27a40f188dfc47",
-        "objectveil-rebuild-catalog": "71e0bd5dd01772480efd1e991a4be64cc209d22d6a2508e39b5eb5002c8c72b6",
-        "objectveil-dedup-measure": "2c52e73c12005535f476e36e14c6dddc1846642095c520d3a7f4615f7331d235"
+        "objectveil-initialize": "cc4ba336b3037e26137ee2bce29eb5060fd76b7c17316506c2f4f974dfb7b9ca",
+        "objectveil-migrate": "0ed610ab77d3ab21b8bbb487846386d97c1524147cb814009d574f5d63bf0295",
+        "objectveil-manifest-summary": "a7dacdb3d1747b5d4562c3ff89b53fc62042a494c4abfcdc246259d1b727892f",
+        "objectveil-rescan": "6455e0fdb1c2d13cda6d14856c42558e106b09fd5e47d0cdccede1a97f471a57",
+        "objectveil-verify": "a3d809ea5764699b4177f1caec0e09affb1df8974520a520e572dba9527e05c6",
+        "objectveil": "847ead990c6a64e425b1ccc3d925fd0e86f8932b26d5639bbcbb6d519ef69b3b",
+        "libobjectveil_shim.so": "d2eac2c69e6dcfb51847595f44919a26ad1fe25aeead96bf1a6d8aa9dde23a32",
+        "objectveil-rebuild-catalog": "d69ecfb6dd9f4ee9b80e0389d11b0a0db56f441d098f3428cb30f313a103cc2d",
+        "objectveil-dedup-measure": "5a4e75424077fed48fa28d66372e2cd3d12289e24fb1275c9f433523b835ad58"
       },
       "rcs_revisions": 3,
       "depot_maps": 2,
@@ -95,13 +95,13 @@
       "azure_cold_cycles": 16,
       "writer_and_readonly_coherence_tests": 2,
       "cloud_live_cleanup_verified": true,
-      "prerelease_sorts_before_stable": true
+      "stable_sorts_after_prerelease": true
     }
   },
   "cleanup": {
-    "owned_prefixes": 14,
+    "owned_prefixes": 6,
     "live_test_objects_remaining": 0,
-    "soft_deleted_records_retained": 70,
+    "soft_deleted_records_retained": 30,
     "soft_delete_retention_days": 7,
     "permanent_delete_allowed": false,
     "scope": "Only the fresh prefixes owned by this task"

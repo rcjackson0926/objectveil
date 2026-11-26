@@ -1,4 +1,4 @@
-ObjectVeil 7.1.0-rc.2 — Linux installation and migration
+ObjectVeil 7.1.0 — Linux installation and migration
 ====================================================
 
 This release includes the cache daemon, its matching Perforce preload shim,
@@ -35,13 +35,13 @@ Requirements
 Download and verify
 -------------------
 Use a new empty download directory. The release page is:
-  https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.2
+  https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0
 
 Download SHA256SUMS and the named tar.gz asset for your glibc version.
 In that directory, set abi to 2.17 or 2.39 to match the downloaded file:
 
   abi=2.17
-  bundle="objectveil-7.1.0-rc.2-linux-x86_64-glibc${abi}"
+  bundle="objectveil-7.1.0-linux-x86_64-glibc${abi}"
   awk -v file="${bundle}.tar.gz" '$2 == file {print}' SHA256SUMS | sha256sum -c -
 
 Require an OK result for the selected tarball before extracting it.
@@ -59,7 +59,7 @@ Extract the verified tarball in a new directory and check its contents:
 
 Run bin/objectveil-migrate --help to confirm the migration command is present.
 For a system installation, keep each release in its own directory, for
-example /opt/objectveil/7.1.0-rc.2. Copy this verified bundle there only if that
+example /opt/objectveil/7.1.0. Copy this verified bundle there only if that
 destination does not already contain another installation. Use absolute
 paths to that release's executables and shim in your service configuration.
 
@@ -73,7 +73,7 @@ different releases.
 Package installation
 --------------------
 The Debian/Ubuntu package requires glibc 2.39; the native RHEL 9 x86-64 RPM
-requires glibc 2.34. The package version for this candidate is 7.1.0~rc.2.
+requires glibc 2.34. The package version is 7.1.0.
 Download the selected package and SHA256SUMS into an empty directory and
 require an OK checksum for that exact package before proceeding.
 
@@ -81,8 +81,8 @@ Stop and fence all Perforce writers, the ObjectVeil daemon and automatic
 restarts before installation, upgrade or removal. Preserve configuration,
 licenses, keys, namespace identities and local state. Then use one of:
 
-  sudo apt install './objectveil_7.1.0~rc.2_amd64.deb'
-  sudo dnf install './objectveil-7.1.0~rc.2-1.el9.x86_64.rpm'
+  sudo apt install './objectveil_7.1.0_amd64.deb'
+  sudo dnf install './objectveil-7.1.0-1.el9.x86_64.rpm'
 
 Packages refuse changes while a writer or daemon is active. They do not start
 the service, initialize state or install a license. Tools are in /usr/bin;

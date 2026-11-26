@@ -1,4 +1,4 @@
-# ObjectVeil 7.1.0-rc.2
+# ObjectVeil 7.1.0
 
 This Linux release contains the cache daemon, its matching Perforce preload
 shim, the migration uploader/downloader, and the verification and recovery
@@ -9,22 +9,17 @@ is bundled. Without a license file, the binary's developer fallback permits
 1 TiB for 30 days from its build date. Production deployments must override it;
 see [Licensing](docs/LICENSING.md).
 
-## Download the release candidate
+## Download the release
 
 Run `getconf GNU_LIBC_VERSION` on your x86-64 Linux server. Choose the
 `glibc2.39` archive on glibc 2.39 or newer, or `glibc2.17` on glibc
 2.17 through 2.38. Verify the download against the release’s `SHA256SUMS`
 and keep the daemon and preload library from the same archive together.
 A Debian/Ubuntu package (glibc 2.39) and native RHEL 9 RPM (glibc 2.34)
-are also available. Their candidate version is `7.1.0~rc.2`; see `INSTALL.txt`.
-[Release downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.2) · [Installation](INSTALL.txt)
+are also available. Their package version is `7.1.0`; see `INSTALL.txt`.
+[Release downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0) · [Installation](INSTALL.txt)
 
-GitHub normalizes the Debian and RPM download filenames. Follow
-[DOWNLOADS.txt](DOWNLOADS.txt) to verify the downloaded files and rename them
-to the local filenames used by `INSTALL.txt`. Package bytes and internal
-versions are unchanged.
-
-This page and its configuration examples describe the release candidate.
+This page and its configuration examples describe the 7.1.0 release.
 For an installed 7.0.1 server, use the [7.0.1 documentation](https://github.com/rcjackson0926/objectveil/tree/v7.0.1/docs).
 
 GitHub also displays automatic **Source code (zip)** and **Source code (tar.gz)** links. Those archives contain only this public repository’s documentation and configuration templates. The Rust implementation is maintained privately and is not included in those archives. Download the named Linux release assets for the executable tools.

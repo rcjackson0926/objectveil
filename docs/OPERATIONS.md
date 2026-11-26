@@ -26,7 +26,7 @@ migration tool and initializer check their own integrity seal at startup.
 Preserve native state and follow [upgrading](upgrading.md) for format
 compatibility requirements.
 
-The 7.1.0-rc.2 release provides two Linux x86-64 tarballs. Run
+The 7.1.0 release provides two Linux x86-64 tarballs. Run
 `getconf GNU_LIBC_VERSION` and choose the glibc 2.39 build on hosts with 2.39
 or newer, or the glibc 2.17 build on hosts with 2.17 through 2.38. Follow
 `INSTALL.txt` to verify and extract the archive. All executables and
@@ -741,7 +741,11 @@ shim's `rpc_timeout`) restore successfully instead of the shim giving
 up and p4d reporting "Error opening librarian file." An absolute
 `OBJECTVEIL_RESTORE_MAX_WAIT_MS` deadline (default 5 min) bounds the entire
 exchange, including a healthy restore that is still progressing. Progress does
-not reset the deadline; a silent or erroring daemon fails on the first transient.
+not reset the deadline. Temporary transport errors and the exact native
+backend-unavailable response share two retries across role negotiation,
+metadata lookup and the final open. Other protocol errors and integrity
+failures are terminal. The default deadline is five minutes; persistent
+backend failures can exhaust the retry allowance earlier.
 
 **Authenticated metadata can also require a cold restore.** The current shim
 starts a fresh `STATSTART` operation. Quick checks return ordinary metadata;
@@ -751,7 +755,21 @@ requests for the same archive. The daemon bounds the total admitted operations
 and retained results to 64, with at most 16 executing. Completed results expire
 after 60 seconds and are consumed once. The shim's absolute
 `OBJECTVEIL_RESTORE_MAX_WAIT_MS` deadline also bounds metadata polling; errors do
-not restart the operation automatically.
+not reset its deadline or replenish its retry allowance. A temporary error
+while polling discards the old token and starts a fresh metadata request,
+because the previous result may already have been consumed.
+
+Read-only ENSURE validation also admits at most 64 jobs with 16 active workers.
+An exact `BUSY` reply indicates local admission pressure; the shim backs off
+within the existing operation deadline without consuming transport retries.
+Cancelled blocking validation retains its permits until the work finishes.
+The socket listener reserves accepted-queue capacity before accepting another
+connection. Excess connections wait in the finite kernel backlog rather than
+being accepted and reset. A full Unix connection backlog also uses bounded
+capacity backoff rather than consuming transport retries. Backlog limits and
+client deadlines still apply.
+A restored archive evicted before the caller opens it is retried within the
+same deadline; exhaustion reports a temporary error rather than false absence.
 
 The versioned `STAT` endpoint remains synchronous, but the current shim uses
 `STATSTART`/`STATPOLL` and does not fall back on a protocol-unsupported response.

@@ -1,19 +1,19 @@
 {
   "product": "ObjectVeil",
-  "release": "7.1.0-rc.2",
-  "source_commit": "a855ec7fbfd1af97fc475f5eccb0c8c6299b452e",
+  "release": "7.1.0",
+  "source_commit": "ff59285a2fe76951cd58fbd80f95f30a872e5cad",
   "status": "passed",
   "required_linux_gate": {
     "exit_code": 0,
-    "log_sha256": "cd8d49be29b69e43afdbf26b29e1df9227c94b9d87aa5c3931bd8259a24c18ef",
-    "rust_test_passes": 1801,
+    "log_sha256": "e512f3c47bbfbc1f0e492663f1aa63fd8575395a9ed95f0e738d999d0e08ac66",
+    "rust_test_passes": 1825,
     "rust_ignored_tests": 5,
     "offline_operational_tests": 101,
     "toolchain": "1.96.1",
     "host": "Ubuntu24.04 x86_64 glibc2.39"
   },
   "adversarial_review": {
-    "scope": "Cold path resolution, absence caching, read/delete path semantics, writer import boundaries, package versioning and the patched dependency locks",
+    "scope": "Bounded validation admission and permit ownership, native BUSY classification, cumulative shim retry deadlines, terminal protocol/integrity errors, stat/open eviction handoff, regression fixtures and release provenance",
     "result": "No remaining concrete blocker found in the reviewed delta"
   },
   "pre_fix_regressions_reproduced": [
@@ -22,100 +22,750 @@
   ],
   "tar_archives": [
     {
-      "bytes": 33778493,
-      "file": "objectveil-7.1.0-rc.2-linux-x86_64-glibc2.17.tar.gz",
+      "bytes": 33779179,
+      "file": "objectveil-7.1.0-linux-x86_64-glibc2.17.tar.gz",
       "glibc_baseline": "2.17",
       "internal_checksums_verified": true,
       "matches_first_runtime": true,
       "max_glibc_symbol": "2.16",
       "public_member_allowlist_verified": true,
       "runtime_sha256": {
-        "libobjectveil_shim.so": "ca1bad151e417925fad95be069859a920157fde6a3b9b66cf9215a518c49c294",
-        "objectveil": "250839e9772563396f41a206eafc76a92d3627d6ada1777a84d3f9c1d391e4cb",
-        "objectveil-dedup-measure": "71fcc6c9aefad51efd3a95fcddac288df06d90dcd27b1164c690f04dd277efc4",
-        "objectveil-initialize": "dcdc35cecdcc7dd0f3d84c014f217fbbb6043a19d5c7e35cc8b629126d3f4204",
-        "objectveil-manifest-summary": "32edbdeb1c0b112c0d416c2f093bde8ee756a8353abc82f6fe4e0312a060bf05",
-        "objectveil-migrate": "070ac7ae88f02c0d824eccae44f8fe25fbb3278d64d5c6171b248fb3048b1e47",
-        "objectveil-rebuild-catalog": "aa62af31f9ff85c1c38242703dac3adcc5dd1fc9ee36900384f991d4813d48fb",
-        "objectveil-rescan": "b7321cd9550bb77b9f19f717aee8b75cf5148693c33bfb6e70c740dc5ebe45a4",
-        "objectveil-verify": "39b74af858982a35c097ecab357f940d61b72b1ecb32fc6fec9b170869622298"
+        "libobjectveil_shim.so": "56a1e3c7f5bed5143382f33c36eebb66b8e018d5817e601421b75d64fb29fa89",
+        "objectveil": "5f89f27b3e4135e443d77a27a29133153a0ee7bbe56f37bd40abcccfc73968b8",
+        "objectveil-dedup-measure": "f312f074d76e3a6b39775647b28e6f381357a2ebc3c2ce203bf072282f0e43b8",
+        "objectveil-initialize": "ce7c8c42a3a40444b9bfafa2769bc6a92bf5655a6dba17aa7d8aa8ca85ecf54b",
+        "objectveil-manifest-summary": "720266018c44e2589599823a872199867582883d80e4f4c0f2f40604f1eae073",
+        "objectveil-migrate": "2a1171abed3f7ad02ef41f19d6ac29b63b6be3ed1007ed169ad96fa3e72bca71",
+        "objectveil-rebuild-catalog": "07f56695f6c57523e1e5c91d8df9ac59bd111c61ab39dbc394b3366166bc53d7",
+        "objectveil-rescan": "a1434216bd6658bcdee33044052a271b1a1cc975a24ea4677831c57b1d59ff54",
+        "objectveil-verify": "04eb7d7f1dcb3ae949530a7d37fdea941d4557d97a9c8d14028d8f9f2f5ecb24"
       },
-      "sha256": "da13e10d7853bfbe939ec7ab7a7b8ed52b7aad640d7ecb28ce989817c02b4173",
-      "source_commit": "a855ec7fbfd1af97fc475f5eccb0c8c6299b452e",
+      "sha256": "7aa4c405f1b77b437a99700fe985d7fa657eb3c679f775ef69823d11532b7f57",
+      "source_commit": "ff59285a2fe76951cd58fbd80f95f30a872e5cad",
       "verified_tar_members": 47,
-      "version": "7.1.0-rc.2"
+      "version": "7.1.0"
     },
     {
-      "bytes": 33812009,
-      "file": "objectveil-7.1.0-rc.2-linux-x86_64-glibc2.39.tar.gz",
+      "bytes": 33816038,
+      "file": "objectveil-7.1.0-linux-x86_64-glibc2.39.tar.gz",
       "glibc_baseline": "2.39",
       "internal_checksums_verified": true,
       "matches_first_runtime": true,
       "max_glibc_symbol": "2.39",
       "public_member_allowlist_verified": true,
       "runtime_sha256": {
-        "libobjectveil_shim.so": "d458f63e265332caecf3b4acca4b0450ecf8c367b7e9c56b7938ad4159090c95",
-        "objectveil": "bc5f3e5563784e403b90e07c656cb234b2d1a6204ad9fc9f4081075ce30c33a9",
-        "objectveil-dedup-measure": "6ab81678dfe8ab1964dc10b39d4a81b5d202dc9b1fecb9475520b7d6ebdbb7b5",
-        "objectveil-initialize": "d0df62d9fdf315328daa8442647a2142e3e08e9931f2670ac6b218afdf53903b",
-        "objectveil-manifest-summary": "afb5d3af30be8f66244d35b770e914cdaeddf4d50d20516994d6a84b71ed1522",
-        "objectveil-migrate": "4905a8db8a5637ce774347384f2ab9d10e007326252951c0dec61f433dafe6df",
-        "objectveil-rebuild-catalog": "8c62ca497cf12e80c3b4a328565fff6bfb29fd558a464c1f546d903faf97b4c5",
-        "objectveil-rescan": "389831085ba55e6295c7f3619af46596e13430d3a938012f2a77bfb779e40a9c",
-        "objectveil-verify": "5676ff3c50e5e768bf01fb8ed0882fbe0f023d5c12c8735429d9323b68410667"
+        "libobjectveil_shim.so": "de372b6c054bc18f1b50ac6f0d41b8a24a1ef2c68961f74d887e046cbdd808a3",
+        "objectveil": "2f14f5efe3295e8bea6d2d87ebf13592e30526c87b5bce0d428aad3e09e27531",
+        "objectveil-dedup-measure": "aed57f768d8d47180a7ef503fd5599847820b055692f82b19a544ef8d5c9387d",
+        "objectveil-initialize": "497aed821bdf2f778aa9f5eb8c532864f84c351f459f8a16e9875bd6bfd5862c",
+        "objectveil-manifest-summary": "6922ca84c83f0bc81117ea5ae0bfe4388e9c728159ce5b16ebb67aa6b94de093",
+        "objectveil-migrate": "d9ae54cd0160704fd32bb69a281e000fc9d8ae31bc90fd509c6243e48f10e0d1",
+        "objectveil-rebuild-catalog": "12bf40448be8c291f067b33c88694d8fead43fbd3941b172cb34f358d3c050b2",
+        "objectveil-rescan": "bd3fb0b38c254dd3dc6bd8148c0e95ef0eadecc99890bc9e047209a81f2cd0b0",
+        "objectveil-verify": "090aec9c93d426dcd100dbb962d044a52b8569bb536e8c30ccd068884c6b785d"
       },
-      "sha256": "8e3e65a9e13a6916eaf35d45f5f50415d9e777566e94a312576c22d8103eef8e",
-      "source_commit": "a855ec7fbfd1af97fc475f5eccb0c8c6299b452e",
+      "sha256": "91551b35f15cbd5c1b8c84eb53f9f9718f0e0528d72d4ea82c9a6912e97d2963",
+      "source_commit": "ff59285a2fe76951cd58fbd80f95f30a872e5cad",
       "verified_tar_members": 47,
-      "version": "7.1.0-rc.2"
+      "version": "7.1.0"
     }
   ],
   "debian_package": {
-    "file": "objectveil_7.1.0~rc.2_amd64.deb",
-    "sha256": "2e651746a6a26da526509bd90b52ab8929496f2d6ac9011d8d71d260ee3e4019",
+    "file": "objectveil_7.1.0_amd64.deb",
+    "sha256": "7d4e5c417ff02283a77e0665f030ccd3bf80e6968af08c599af6020b48d0d025",
     "runtime_matches_glibc239_tar": true,
     "lifecycle_checks": 104,
-    "status": "passed",
-    "download_asset": "objectveil_7.1.0.rc.2_amd64.deb",
-    "package_version": "7.1.0~rc.2"
+    "status": "passed"
   },
   "rhel9_package": {
-    "file": "objectveil-7.1.0~rc.2-1.el9.x86_64.rpm",
-    "sha256": "2454e809798c36447b40c0a3c6bcdb3f4f7db0c76989f79db3c5d7102fee932d",
+    "file": "objectveil-7.1.0-1.el9.x86_64.rpm",
+    "sha256": "534a9ba82467ae388d2283161a92a6addf9420220ea37dd3cb093f4930d1917c",
     "runtime_sha256": {
-      "objectveil-initialize": "21b77f3a920382070febc56147326eaaced11d1b615e23029c60b0a25d911ac8",
-      "objectveil-migrate": "9d4613a1954a8718f439219586145c76e597da63e3b5f3bc0e061055868e7b5a",
-      "objectveil-manifest-summary": "4c95cfbc6cec08ab4d93ce894f79ed4b12fc0d13b28ebd966bc1dbc6d6cb324d",
-      "objectveil-rescan": "dc285ab551ce7c1a275800d8faf224031d675afa08a591249600c1744fb26224",
-      "objectveil-verify": "d0db5bb7033ee9b1dbba7ede4af5b00356b60b4ed5e99859126b5a37e0fdd702",
-      "objectveil": "8f04ca9cc00ff3b7f8578aef04839349532d24d84fd65a39ba597c2f01f1a316",
-      "libobjectveil_shim.so": "12149a40b0267c50bf0fd04b25bcb8dd232451487b5f353f2c27a40f188dfc47",
-      "objectveil-rebuild-catalog": "71e0bd5dd01772480efd1e991a4be64cc209d22d6a2508e39b5eb5002c8c72b6",
-      "objectveil-dedup-measure": "2c52e73c12005535f476e36e14c6dddc1846642095c520d3a7f4615f7331d235"
+      "objectveil-initialize": "cc4ba336b3037e26137ee2bce29eb5060fd76b7c17316506c2f4f974dfb7b9ca",
+      "objectveil-migrate": "0ed610ab77d3ab21b8bbb487846386d97c1524147cb814009d574f5d63bf0295",
+      "objectveil-manifest-summary": "a7dacdb3d1747b5d4562c3ff89b53fc62042a494c4abfcdc246259d1b727892f",
+      "objectveil-rescan": "6455e0fdb1c2d13cda6d14856c42558e106b09fd5e47d0cdccede1a97f471a57",
+      "objectveil-verify": "a3d809ea5764699b4177f1caec0e09affb1df8974520a520e572dba9527e05c6",
+      "objectveil": "847ead990c6a64e425b1ccc3d925fd0e86f8932b26d5639bbcbb6d519ef69b3b",
+      "libobjectveil_shim.so": "d2eac2c69e6dcfb51847595f44919a26ad1fe25aeead96bf1a6d8aa9dde23a32",
+      "objectveil-rebuild-catalog": "d69ecfb6dd9f4ee9b80e0389d11b0a0db56f441d098f3428cb30f313a103cc2d",
+      "objectveil-dedup-measure": "5a4e75424077fed48fa28d66372e2cd3d12289e24fb1275c9f433523b835ad58"
     },
     "lifecycle_checks": 174,
-    "status": "passed",
-    "download_asset": "objectveil-7.1.0.rc.2-1.el9.x86_64.rpm",
-    "package_version": "7.1.0~rc.2"
+    "status": "passed"
   },
   "cloud_validation": "CLOUD_VALIDATION.json",
   "limitations": [
     "Required gate was unprivileged; skipped optional capability/provider legs are not production validation.",
     "See CLOUD_VALIDATION.json for exact live-cloud and platform scope."
   ],
-  "distribution": {
-    "provider": "GitHub Releases",
-    "scope": "Provider asset names and download instructions only; tested package bytes, internal package versions, runtime source and frozen INSTALL.txt are unchanged.",
-    "asset_to_local_install_filename": {
-      "objectveil_7.1.0.rc.2_amd64.deb": "objectveil_7.1.0~rc.2_amd64.deb",
-      "objectveil-7.1.0.rc.2-1.el9.x86_64.rpm": "objectveil-7.1.0~rc.2-1.el9.x86_64.rpm"
+  "bulk_read_regression": {
+    "azure_compressed_archive_fixture": {
+      "bulk_individual_and_print_checks_passed": true,
+      "canonical_and_alias_maps": true,
+      "cleanup": {
+        "deleted_live_objects": 43,
+        "owned_prefixes": 1,
+        "remaining_live_objects": 0,
+        "retained_history_records": 43
+      },
+      "cloud_bytes_and_etags_preserved": true,
+      "cold_and_warm_reads": true,
+      "compressed_archive_bytes": 35869,
+      "files": 2,
+      "physical_archives": 24,
+      "provider": "Azure Blob Storage",
+      "range_eligible_archives": 0,
+      "range_scope": "Eligibility measured only; no transport-branch claim.",
+      "ranged_transport_proven": false,
+      "revisions_per_file": 12,
+      "runtime": "glibc2.39",
+      "storage_route": "native packed"
     },
-    "download_instructions": "DOWNLOADS.txt",
-    "order": [
-      "Download using the actual GitHub asset name",
-      "Verify SHA256SUMS before renaming",
-      "Rename without replacing an existing destination",
-      "Follow INSTALL.txt"
-    ]
+    "limitations": [
+      "Controlled isolated-fixture failures reproduce an error class; the cause on the inaccessible work server remains unproven.",
+      "All bulk probes run on the Ubuntu host; package ABI labels do not claim these workloads ran on their minimum supported libc.",
+      "Cloud range eligibility is distinct from demonstrated ranged transport."
+    ],
+    "platforms": {
+      "glibc2.17": {
+        "admission_pressure": {
+          "active_workers": 16,
+          "admitted_jobs": 64,
+          "archive_bytes_unchanged": true,
+          "archives_checked": 54,
+          "bad_or_missing": false,
+          "overflow_count": 1,
+          "overflow_reply": "BUSY",
+          "p4_verify_exit": 0,
+          "work_drained": true
+        },
+        "controlled_faults": [
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "unavailable",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "ENSURE",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          },
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "unavailable",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "STATSTART",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          },
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "close",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "ENSURE",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          },
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "delay",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "ENSURE",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          }
+        ],
+        "runtime_sha256": {
+          "libobjectveil_shim.so": "56a1e3c7f5bed5143382f33c36eebb66b8e018d5817e601421b75d64fb29fa89",
+          "objectveil": "5f89f27b3e4135e443d77a27a29133153a0ee7bbe56f37bd40abcccfc73968b8",
+          "objectveil-dedup-measure": "f312f074d76e3a6b39775647b28e6f381357a2ebc3c2ce203bf072282f0e43b8",
+          "objectveil-initialize": "ce7c8c42a3a40444b9bfafa2769bc6a92bf5655a6dba17aa7d8aa8ca85ecf54b",
+          "objectveil-manifest-summary": "720266018c44e2589599823a872199867582883d80e4f4c0f2f40604f1eae073",
+          "objectveil-migrate": "2a1171abed3f7ad02ef41f19d6ac29b63b6be3ed1007ed169ad96fa3e72bca71",
+          "objectveil-rebuild-catalog": "07f56695f6c57523e1e5c91d8df9ac59bd111c61ab39dbc394b3366166bc53d7",
+          "objectveil-rescan": "a1434216bd6658bcdee33044052a271b1a1cc975a24ea4677831c57b1d59ff54",
+          "objectveil-verify": "04eb7d7f1dcb3ae949530a7d37fdea941d4557d97a9c8d14028d8f9f2f5ecb24"
+        }
+      },
+      "glibc2.39": {
+        "admission_pressure": {
+          "active_workers": 16,
+          "admitted_jobs": 64,
+          "archive_bytes_unchanged": true,
+          "archives_checked": 54,
+          "bad_or_missing": false,
+          "overflow_count": 1,
+          "overflow_reply": "BUSY",
+          "p4_verify_exit": 0,
+          "work_drained": true
+        },
+        "controlled_faults": [
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "unavailable",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "ENSURE",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          },
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "unavailable",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "STATSTART",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          },
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "close",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "ENSURE",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          },
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "delay",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "ENSURE",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          }
+        ],
+        "runtime_sha256": {
+          "libobjectveil_shim.so": "de372b6c054bc18f1b50ac6f0d41b8a24a1ef2c68961f74d887e046cbdd808a3",
+          "objectveil": "2f14f5efe3295e8bea6d2d87ebf13592e30526c87b5bce0d428aad3e09e27531",
+          "objectveil-dedup-measure": "aed57f768d8d47180a7ef503fd5599847820b055692f82b19a544ef8d5c9387d",
+          "objectveil-initialize": "497aed821bdf2f778aa9f5eb8c532864f84c351f459f8a16e9875bd6bfd5862c",
+          "objectveil-manifest-summary": "6922ca84c83f0bc81117ea5ae0bfe4388e9c728159ce5b16ebb67aa6b94de093",
+          "objectveil-migrate": "d9ae54cd0160704fd32bb69a281e000fc9d8ae31bc90fd509c6243e48f10e0d1",
+          "objectveil-rebuild-catalog": "12bf40448be8c291f067b33c88694d8fead43fbd3941b172cb34f358d3c050b2",
+          "objectveil-rescan": "bd3fb0b38c254dd3dc6bd8148c0e95ef0eadecc99890bc9e047209a81f2cd0b0",
+          "objectveil-verify": "090aec9c93d426dcd100dbb962d044a52b8569bb536e8c30ccd068884c6b785d"
+        }
+      },
+      "rpm": {
+        "admission_pressure": {
+          "active_workers": 16,
+          "admitted_jobs": 64,
+          "archive_bytes_unchanged": true,
+          "archives_checked": 54,
+          "bad_or_missing": false,
+          "overflow_count": 1,
+          "overflow_reply": "BUSY",
+          "p4_verify_exit": 0,
+          "work_drained": true
+        },
+        "controlled_faults": [
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "unavailable",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "ENSURE",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          },
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "unavailable",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "STATSTART",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          },
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "close",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "ENSURE",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          },
+          {
+            "bad_or_missing": false,
+            "bulk_verify_exit": 0,
+            "fault": "delay",
+            "individual_verify_exit": 0,
+            "injections": 1,
+            "operation": "ENSURE",
+            "repeat_verify_exit": 0,
+            "selected_archive_unchanged": true
+          }
+        ],
+        "runtime_sha256": {
+          "libobjectveil_shim.so": "d2eac2c69e6dcfb51847595f44919a26ad1fe25aeead96bf1a6d8aa9dde23a32",
+          "objectveil": "847ead990c6a64e425b1ccc3d925fd0e86f8932b26d5639bbcbb6d519ef69b3b",
+          "objectveil-dedup-measure": "5a4e75424077fed48fa28d66372e2cd3d12289e24fb1275c9f433523b835ad58",
+          "objectveil-initialize": "cc4ba336b3037e26137ee2bce29eb5060fd76b7c17316506c2f4f974dfb7b9ca",
+          "objectveil-manifest-summary": "a7dacdb3d1747b5d4562c3ff89b53fc62042a494c4abfcdc246259d1b727892f",
+          "objectveil-migrate": "0ed610ab77d3ab21b8bbb487846386d97c1524147cb814009d574f5d63bf0295",
+          "objectveil-rebuild-catalog": "d69ecfb6dd9f4ee9b80e0389d11b0a0db56f441d098f3428cb30f313a103cc2d",
+          "objectveil-rescan": "6455e0fdb1c2d13cda6d14856c42558e106b09fd5e47d0cdccede1a97f471a57",
+          "objectveil-verify": "a3d809ea5764699b4177f1caec0e09affb1df8974520a520e572dba9527e05c6"
+        }
+      }
+    },
+    "product": "ObjectVeil",
+    "release": "7.1.0",
+    "source_commit": "ff59285a2fe76951cd58fbd80f95f30a872e5cad",
+    "status": "passed"
+  },
+  "writer_mode_regression": {
+    "azure_writer": {
+      "daemon_role": "WRITER",
+      "no_submissions_during_verify": true,
+      "provider": "Azure Blob Storage",
+      "routes": {
+        "packed": {
+          "actual_lru_evictions_during_matrix": 397.0,
+          "all_archives_resident_warm_reads": true,
+          "all_bulk_and_individual_verifies_passed": true,
+          "all_prints_exact": true,
+          "backend_bytes_and_catalog_preserved": true,
+          "canonical_and_alias_maps": true,
+          "cloud_bytes_and_etags_preserved_per_phase": true,
+          "cold_reads": true,
+          "deleted_live_objects": 70,
+          "every_payload_below_restore_cap": true,
+          "largest_payload_bytes": 290220,
+          "lru_cache_limit_bytes": 1310720,
+          "lru_low_watermark_bytes": 1048576,
+          "lru_repeats_may_be_partially_cold": true,
+          "matrix_cases": 8,
+          "owned_prefixes": 1,
+          "physical_archives": 54,
+          "ranged_transport_proven": false,
+          "referenced_payload_objects": 7,
+          "remaining_live_objects": 0,
+          "retained_history_records": 70,
+          "status": "passed"
+        },
+        "standalone": {
+          "actual_lru_evictions_during_matrix": 380.0,
+          "all_archives_resident_warm_reads": true,
+          "all_bulk_and_individual_verifies_passed": true,
+          "all_prints_exact": true,
+          "backend_bytes_and_catalog_preserved": true,
+          "canonical_and_alias_maps": true,
+          "cloud_bytes_and_etags_preserved_per_phase": true,
+          "cold_reads": true,
+          "deleted_live_objects": 164,
+          "every_payload_below_restore_cap": true,
+          "largest_payload_bytes": 35869,
+          "lru_cache_limit_bytes": 1310720,
+          "lru_low_watermark_bytes": 1048576,
+          "lru_repeats_may_be_partially_cold": true,
+          "matrix_cases": 8,
+          "owned_prefixes": 1,
+          "physical_archives": 54,
+          "ranged_transport_proven": false,
+          "referenced_payload_objects": 54,
+          "remaining_live_objects": 0,
+          "retained_history_records": 164,
+          "status": "passed"
+        }
+      },
+      "runtime": "glibc2.39",
+      "runtime_sha256": {
+        "libobjectveil_shim.so": "de372b6c054bc18f1b50ac6f0d41b8a24a1ef2c68961f74d887e046cbdd808a3",
+        "objectveil": "2f14f5efe3295e8bea6d2d87ebf13592e30526c87b5bce0d428aad3e09e27531",
+        "objectveil-dedup-measure": "aed57f768d8d47180a7ef503fd5599847820b055692f82b19a544ef8d5c9387d",
+        "objectveil-initialize": "497aed821bdf2f778aa9f5eb8c532864f84c351f459f8a16e9875bd6bfd5862c",
+        "objectveil-manifest-summary": "6922ca84c83f0bc81117ea5ae0bfe4388e9c728159ce5b16ebb67aa6b94de093",
+        "objectveil-migrate": "d9ae54cd0160704fd32bb69a281e000fc9d8ae31bc90fd509c6243e48f10e0d1",
+        "objectveil-rebuild-catalog": "12bf40448be8c291f067b33c88694d8fead43fbd3941b172cb34f358d3c050b2",
+        "objectveil-rescan": "bd3fb0b38c254dd3dc6bd8148c0e95ef0eadecc99890bc9e047209a81f2cd0b0",
+        "objectveil-verify": "090aec9c93d426dcd100dbb962d044a52b8569bb536e8c30ccd068884c6b785d"
+      },
+      "status": "passed"
+    },
+    "limitations": [
+      "This reproduces selected failure classes; it does not establish the cause on the inaccessible work server.",
+      "No concurrent submits were performed. Writer LRU remained active during its pressure phase.",
+      "Transient and controlled handoff faults use standalone NFS; normal NFS and Azure exercise both storage routes.",
+      "The glibc2.17 bundle workload ran on Ubuntu glibc2.39; this is not an old-distribution workload certification.",
+      "Packed transport was not instrumented; no HTTP Range branch claim.",
+      "Fresh private plaintext namespaces were used; encrypted keystores are outside this matrix."
+    ],
+    "platforms": {
+      "glibc2.17": {
+        "controlled_faults": {
+          "all_54_final_prints_and_individual_verifies_passed": true,
+          "cases": [
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "unavailable",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "STATSTART",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            },
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "unavailable",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "FETCH",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            },
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "close",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "FETCH",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            },
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "delay",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "FETCH",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            }
+          ],
+          "status": "passed",
+          "storage_route": "standalone"
+        },
+        "daemon_role": "WRITER",
+        "eviction_handoff": {
+          "bulk_individual_and_repeat_verifies_passed": true,
+          "post_fetch_local_removals": 3,
+          "scope": "Controlled verified local cache removals; actual LRU measured separately.",
+          "selected_archive_and_backend_unchanged": true,
+          "selected_print_exact": true,
+          "status": "passed",
+          "storage_route": "standalone"
+        },
+        "no_submissions_during_verify": true,
+        "normal_bulk": {
+          "provider": "NFS",
+          "routes": {
+            "packed": {
+              "actual_lru_evictions_during_matrix": 769.0,
+              "all_archives_resident_warm_reads": true,
+              "all_bulk_and_individual_verifies_passed": true,
+              "all_prints_exact": true,
+              "backend_bytes_and_catalog_preserved": true,
+              "canonical_and_alias_maps": true,
+              "cold_reads": true,
+              "every_payload_below_restore_cap": true,
+              "largest_payload_bytes": 290167,
+              "lru_cache_limit_bytes": 1310720,
+              "lru_low_watermark_bytes": 1048576,
+              "lru_repeats_may_be_partially_cold": true,
+              "matrix_cases": 8,
+              "physical_archives": 54,
+              "referenced_payload_objects": 7,
+              "status": "passed"
+            },
+            "standalone": {
+              "actual_lru_evictions_during_matrix": 380.0,
+              "all_archives_resident_warm_reads": true,
+              "all_bulk_and_individual_verifies_passed": true,
+              "all_prints_exact": true,
+              "backend_bytes_and_catalog_preserved": true,
+              "canonical_and_alias_maps": true,
+              "cold_reads": true,
+              "every_payload_below_restore_cap": true,
+              "largest_payload_bytes": 35869,
+              "lru_cache_limit_bytes": 1310720,
+              "lru_low_watermark_bytes": 1048576,
+              "lru_repeats_may_be_partially_cold": true,
+              "matrix_cases": 8,
+              "physical_archives": 54,
+              "referenced_payload_objects": 54,
+              "status": "passed"
+            }
+          },
+          "status": "passed"
+        },
+        "runtime_sha256": {
+          "libobjectveil_shim.so": "56a1e3c7f5bed5143382f33c36eebb66b8e018d5817e601421b75d64fb29fa89",
+          "objectveil": "5f89f27b3e4135e443d77a27a29133153a0ee7bbe56f37bd40abcccfc73968b8",
+          "objectveil-dedup-measure": "f312f074d76e3a6b39775647b28e6f381357a2ebc3c2ce203bf072282f0e43b8",
+          "objectveil-initialize": "ce7c8c42a3a40444b9bfafa2769bc6a92bf5655a6dba17aa7d8aa8ca85ecf54b",
+          "objectveil-manifest-summary": "720266018c44e2589599823a872199867582883d80e4f4c0f2f40604f1eae073",
+          "objectveil-migrate": "2a1171abed3f7ad02ef41f19d6ac29b63b6be3ed1007ed169ad96fa3e72bca71",
+          "objectveil-rebuild-catalog": "07f56695f6c57523e1e5c91d8df9ac59bd111c61ab39dbc394b3366166bc53d7",
+          "objectveil-rescan": "a1434216bd6658bcdee33044052a271b1a1cc975a24ea4677831c57b1d59ff54",
+          "objectveil-verify": "04eb7d7f1dcb3ae949530a7d37fdea941d4557d97a9c8d14028d8f9f2f5ecb24"
+        }
+      },
+      "glibc2.39": {
+        "controlled_faults": {
+          "all_54_final_prints_and_individual_verifies_passed": true,
+          "cases": [
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "unavailable",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "STATSTART",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            },
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "unavailable",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "FETCH",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            },
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "close",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "FETCH",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            },
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "delay",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "FETCH",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            }
+          ],
+          "status": "passed",
+          "storage_route": "standalone"
+        },
+        "daemon_role": "WRITER",
+        "eviction_handoff": {
+          "bulk_individual_and_repeat_verifies_passed": true,
+          "post_fetch_local_removals": 3,
+          "scope": "Controlled verified local cache removals; actual LRU measured separately.",
+          "selected_archive_and_backend_unchanged": true,
+          "selected_print_exact": true,
+          "status": "passed",
+          "storage_route": "standalone"
+        },
+        "no_submissions_during_verify": true,
+        "normal_bulk": {
+          "provider": "NFS",
+          "routes": {
+            "packed": {
+              "actual_lru_evictions_during_matrix": 633.0,
+              "all_archives_resident_warm_reads": true,
+              "all_bulk_and_individual_verifies_passed": true,
+              "all_prints_exact": true,
+              "backend_bytes_and_catalog_preserved": true,
+              "canonical_and_alias_maps": true,
+              "cold_reads": true,
+              "every_payload_below_restore_cap": true,
+              "largest_payload_bytes": 290171,
+              "lru_cache_limit_bytes": 1310720,
+              "lru_low_watermark_bytes": 1048576,
+              "lru_repeats_may_be_partially_cold": true,
+              "matrix_cases": 8,
+              "physical_archives": 54,
+              "referenced_payload_objects": 7,
+              "status": "passed"
+            },
+            "standalone": {
+              "actual_lru_evictions_during_matrix": 380.0,
+              "all_archives_resident_warm_reads": true,
+              "all_bulk_and_individual_verifies_passed": true,
+              "all_prints_exact": true,
+              "backend_bytes_and_catalog_preserved": true,
+              "canonical_and_alias_maps": true,
+              "cold_reads": true,
+              "every_payload_below_restore_cap": true,
+              "largest_payload_bytes": 35869,
+              "lru_cache_limit_bytes": 1310720,
+              "lru_low_watermark_bytes": 1048576,
+              "lru_repeats_may_be_partially_cold": true,
+              "matrix_cases": 8,
+              "physical_archives": 54,
+              "referenced_payload_objects": 54,
+              "status": "passed"
+            }
+          },
+          "status": "passed"
+        },
+        "runtime_sha256": {
+          "libobjectveil_shim.so": "de372b6c054bc18f1b50ac6f0d41b8a24a1ef2c68961f74d887e046cbdd808a3",
+          "objectveil": "2f14f5efe3295e8bea6d2d87ebf13592e30526c87b5bce0d428aad3e09e27531",
+          "objectveil-dedup-measure": "aed57f768d8d47180a7ef503fd5599847820b055692f82b19a544ef8d5c9387d",
+          "objectveil-initialize": "497aed821bdf2f778aa9f5eb8c532864f84c351f459f8a16e9875bd6bfd5862c",
+          "objectveil-manifest-summary": "6922ca84c83f0bc81117ea5ae0bfe4388e9c728159ce5b16ebb67aa6b94de093",
+          "objectveil-migrate": "d9ae54cd0160704fd32bb69a281e000fc9d8ae31bc90fd509c6243e48f10e0d1",
+          "objectveil-rebuild-catalog": "12bf40448be8c291f067b33c88694d8fead43fbd3941b172cb34f358d3c050b2",
+          "objectveil-rescan": "bd3fb0b38c254dd3dc6bd8148c0e95ef0eadecc99890bc9e047209a81f2cd0b0",
+          "objectveil-verify": "090aec9c93d426dcd100dbb962d044a52b8569bb536e8c30ccd068884c6b785d"
+        }
+      },
+      "rpm": {
+        "controlled_faults": {
+          "all_54_final_prints_and_individual_verifies_passed": true,
+          "cases": [
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "unavailable",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "STATSTART",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            },
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "unavailable",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "FETCH",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            },
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "close",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "FETCH",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            },
+            {
+              "bad_or_missing": false,
+              "bulk_verify_exit": 0,
+              "fault": "delay",
+              "individual_verify_exit": 0,
+              "injections": 1,
+              "operation": "FETCH",
+              "repeat_verify_exit": 0,
+              "selected_archive_and_backend_unchanged": true,
+              "selected_print_exact": true
+            }
+          ],
+          "status": "passed",
+          "storage_route": "standalone"
+        },
+        "daemon_role": "WRITER",
+        "eviction_handoff": {
+          "bulk_individual_and_repeat_verifies_passed": true,
+          "post_fetch_local_removals": 3,
+          "scope": "Controlled verified local cache removals; actual LRU measured separately.",
+          "selected_archive_and_backend_unchanged": true,
+          "selected_print_exact": true,
+          "status": "passed",
+          "storage_route": "standalone"
+        },
+        "no_submissions_during_verify": true,
+        "normal_bulk": {
+          "provider": "NFS",
+          "routes": {
+            "packed": {
+              "actual_lru_evictions_during_matrix": 654.0,
+              "all_archives_resident_warm_reads": true,
+              "all_bulk_and_individual_verifies_passed": true,
+              "all_prints_exact": true,
+              "backend_bytes_and_catalog_preserved": true,
+              "canonical_and_alias_maps": true,
+              "cold_reads": true,
+              "every_payload_below_restore_cap": true,
+              "largest_payload_bytes": 290174,
+              "lru_cache_limit_bytes": 1310720,
+              "lru_low_watermark_bytes": 1048576,
+              "lru_repeats_may_be_partially_cold": true,
+              "matrix_cases": 8,
+              "physical_archives": 54,
+              "referenced_payload_objects": 7,
+              "status": "passed"
+            },
+            "standalone": {
+              "actual_lru_evictions_during_matrix": 377.0,
+              "all_archives_resident_warm_reads": true,
+              "all_bulk_and_individual_verifies_passed": true,
+              "all_prints_exact": true,
+              "backend_bytes_and_catalog_preserved": true,
+              "canonical_and_alias_maps": true,
+              "cold_reads": true,
+              "every_payload_below_restore_cap": true,
+              "largest_payload_bytes": 35869,
+              "lru_cache_limit_bytes": 1310720,
+              "lru_low_watermark_bytes": 1048576,
+              "lru_repeats_may_be_partially_cold": true,
+              "matrix_cases": 8,
+              "physical_archives": 54,
+              "referenced_payload_objects": 54,
+              "status": "passed"
+            }
+          },
+          "status": "passed"
+        },
+        "runtime_sha256": {
+          "libobjectveil_shim.so": "d2eac2c69e6dcfb51847595f44919a26ad1fe25aeead96bf1a6d8aa9dde23a32",
+          "objectveil": "847ead990c6a64e425b1ccc3d925fd0e86f8932b26d5639bbcbb6d519ef69b3b",
+          "objectveil-dedup-measure": "5a4e75424077fed48fa28d66372e2cd3d12289e24fb1275c9f433523b835ad58",
+          "objectveil-initialize": "cc4ba336b3037e26137ee2bce29eb5060fd76b7c17316506c2f4f974dfb7b9ca",
+          "objectveil-manifest-summary": "a7dacdb3d1747b5d4562c3ff89b53fc62042a494c4abfcdc246259d1b727892f",
+          "objectveil-migrate": "0ed610ab77d3ab21b8bbb487846386d97c1524147cb814009d574f5d63bf0295",
+          "objectveil-rebuild-catalog": "d69ecfb6dd9f4ee9b80e0389d11b0a0db56f441d098f3428cb30f313a103cc2d",
+          "objectveil-rescan": "6455e0fdb1c2d13cda6d14856c42558e106b09fd5e47d0cdccede1a97f471a57",
+          "objectveil-verify": "a3d809ea5764699b4177f1caec0e09affb1df8974520a520e572dba9527e05c6"
+        }
+      }
+    },
+    "product": "ObjectVeil",
+    "release": "7.1.0",
+    "schema": "objectveil-writer-acceptance/v1",
+    "source_commit": "ff59285a2fe76951cd58fbd80f95f30a872e5cad",
+    "status": "passed"
   }
 }

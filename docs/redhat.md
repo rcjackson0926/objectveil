@@ -1,19 +1,13 @@
 # Red Hat Enterprise Linux installation
 
-The 7.1.0-rc.2 candidate provides a native RHEL 9 x86-64 RPM and a glibc 2.17
+The 7.1.0 release provides a native RHEL 9 x86-64 RPM and a glibc 2.17
 tarball. Verify the selected asset against the release checksums and follow
-`INSTALL.txt` for a coordinated installation. [Candidate downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.2)
+`INSTALL.txt` for a coordinated installation. [Release downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0)
 
-The candidate RPM is `objectveil-7.1.0~rc.2-1.el9.x86_64.rpm`. Its package
-version sorts below stable 7.1.0. Substitute that filename and release URL in
-the commands below when installing the candidate. Preserve the namespace,
-keystore and state of an existing encrypted deployment.
-
-## Stable 7.0.1 RPM
-
-Use `objectveil-7.0.1-1.el9.x86_64.rpm` for RHEL 9 on Intel/AMD 64-bit.
-This native build uses glibc 2.34. The Debian/Ubuntu package and generic Linux
-tarball are separate builds requiring glibc 2.39; do not use those on RHEL 9.
+Use `objectveil-7.1.0-1.el9.x86_64.rpm` for RHEL 9 on Intel/AMD 64-bit.
+Preserve the namespace, keystore and state of an existing encrypted deployment.
+This native build uses glibc 2.34. The Debian/Ubuntu package requires glibc 2.39; do not use it on RHEL 9.
+For tar installations on RHEL 9, use the glibc 2.17 bundle.
 RPM resolves the generated ELF dependencies, including glibc and libgcc,
 plus systemd, procps-ng and ca-certificates for public-cloud HTTPS trust. No source implementation, license, credentials
 or vendor signing/stamping utility is included.
@@ -22,11 +16,11 @@ or vendor signing/stamping utility is included.
 
 Download the RPM and `SHA256SUMS` from the official release into an empty
 directory, verify each downloaded asset, and complete the coordinated stop
-in [release installation instructions](https://github.com/rcjackson0926/objectveil/releases/download/v7.0.1/INSTALL.txt) before installing:
+in [release installation instructions](https://github.com/rcjackson0926/objectveil/releases/download/v7.1.0/INSTALL.txt) before installing:
 
 ```sh
 sha256sum --ignore-missing -c SHA256SUMS
-sudo dnf install ./objectveil-7.0.1-1.el9.x86_64.rpm
+sudo dnf install ./objectveil-7.1.0-1.el9.x86_64.rpm
 rpm -q objectveil
 rpm -V objectveil
 ```
@@ -68,7 +62,7 @@ private directory and extract the trusted payload there (requires rpm2cpio/cpio)
 ```sh
 mkdir -m 700 objectveil-rhel9-migration
 cd objectveil-rhel9-migration
-rpm2cpio ../objectveil-7.0.1-1.el9.x86_64.rpm | cpio -idm --no-absolute-filenames
+rpm2cpio ../objectveil-7.1.0-1.el9.x86_64.rpm | cpio -idm --no-absolute-filenames
 ./usr/bin/objectveil-migrate --help
 ```
 
@@ -83,7 +77,7 @@ deduplication are optional.
 ## Upgrade and removal
 
 Fence automatic restarts, stop all p4d/writers and ObjectVeil, then install
-with `dnf upgrade ./objectveil-7.0.1-1.el9.x86_64.rpm`. Follow the same matching
+with `dnf upgrade ./objectveil-7.1.0-1.el9.x86_64.rpm`. Follow the same matching
 shim restart and recovery checks as a fresh install. Consult [upgrading.md](upgrading.md)
 for format/identity preservation and rollback requirements.
 

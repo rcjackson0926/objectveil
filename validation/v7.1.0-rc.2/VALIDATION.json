@@ -1,0 +1,121 @@
+{
+  "product": "ObjectVeil",
+  "release": "7.1.0-rc.2",
+  "source_commit": "a855ec7fbfd1af97fc475f5eccb0c8c6299b452e",
+  "status": "passed",
+  "required_linux_gate": {
+    "exit_code": 0,
+    "log_sha256": "cd8d49be29b69e43afdbf26b29e1df9227c94b9d87aa5c3931bd8259a24c18ef",
+    "rust_test_passes": 1801,
+    "rust_ignored_tests": 5,
+    "offline_operational_tests": 101,
+    "toolchain": "1.96.1",
+    "host": "Ubuntu24.04 x86_64 glibc2.39"
+  },
+  "adversarial_review": {
+    "scope": "Cold path resolution, absence caching, read/delete path semantics, writer import boundaries, package versioning and the patched dependency locks",
+    "result": "No remaining concrete blocker found in the reviewed delta"
+  },
+  "pre_fix_regressions_reproduced": [
+    "Actual p4 print returned ENOENT for a cold RCS archive through a symlinked depot Map with absent intermediate directories.",
+    "A persistent preloaded process returned ENOENT after another process published the previously absent archive."
+  ],
+  "tar_archives": [
+    {
+      "bytes": 33778493,
+      "file": "objectveil-7.1.0-rc.2-linux-x86_64-glibc2.17.tar.gz",
+      "glibc_baseline": "2.17",
+      "internal_checksums_verified": true,
+      "matches_first_runtime": true,
+      "max_glibc_symbol": "2.16",
+      "public_member_allowlist_verified": true,
+      "runtime_sha256": {
+        "libobjectveil_shim.so": "ca1bad151e417925fad95be069859a920157fde6a3b9b66cf9215a518c49c294",
+        "objectveil": "250839e9772563396f41a206eafc76a92d3627d6ada1777a84d3f9c1d391e4cb",
+        "objectveil-dedup-measure": "71fcc6c9aefad51efd3a95fcddac288df06d90dcd27b1164c690f04dd277efc4",
+        "objectveil-initialize": "dcdc35cecdcc7dd0f3d84c014f217fbbb6043a19d5c7e35cc8b629126d3f4204",
+        "objectveil-manifest-summary": "32edbdeb1c0b112c0d416c2f093bde8ee756a8353abc82f6fe4e0312a060bf05",
+        "objectveil-migrate": "070ac7ae88f02c0d824eccae44f8fe25fbb3278d64d5c6171b248fb3048b1e47",
+        "objectveil-rebuild-catalog": "aa62af31f9ff85c1c38242703dac3adcc5dd1fc9ee36900384f991d4813d48fb",
+        "objectveil-rescan": "b7321cd9550bb77b9f19f717aee8b75cf5148693c33bfb6e70c740dc5ebe45a4",
+        "objectveil-verify": "39b74af858982a35c097ecab357f940d61b72b1ecb32fc6fec9b170869622298"
+      },
+      "sha256": "da13e10d7853bfbe939ec7ab7a7b8ed52b7aad640d7ecb28ce989817c02b4173",
+      "source_commit": "a855ec7fbfd1af97fc475f5eccb0c8c6299b452e",
+      "verified_tar_members": 47,
+      "version": "7.1.0-rc.2"
+    },
+    {
+      "bytes": 33812009,
+      "file": "objectveil-7.1.0-rc.2-linux-x86_64-glibc2.39.tar.gz",
+      "glibc_baseline": "2.39",
+      "internal_checksums_verified": true,
+      "matches_first_runtime": true,
+      "max_glibc_symbol": "2.39",
+      "public_member_allowlist_verified": true,
+      "runtime_sha256": {
+        "libobjectveil_shim.so": "d458f63e265332caecf3b4acca4b0450ecf8c367b7e9c56b7938ad4159090c95",
+        "objectveil": "bc5f3e5563784e403b90e07c656cb234b2d1a6204ad9fc9f4081075ce30c33a9",
+        "objectveil-dedup-measure": "6ab81678dfe8ab1964dc10b39d4a81b5d202dc9b1fecb9475520b7d6ebdbb7b5",
+        "objectveil-initialize": "d0df62d9fdf315328daa8442647a2142e3e08e9931f2670ac6b218afdf53903b",
+        "objectveil-manifest-summary": "afb5d3af30be8f66244d35b770e914cdaeddf4d50d20516994d6a84b71ed1522",
+        "objectveil-migrate": "4905a8db8a5637ce774347384f2ab9d10e007326252951c0dec61f433dafe6df",
+        "objectveil-rebuild-catalog": "8c62ca497cf12e80c3b4a328565fff6bfb29fd558a464c1f546d903faf97b4c5",
+        "objectveil-rescan": "389831085ba55e6295c7f3619af46596e13430d3a938012f2a77bfb779e40a9c",
+        "objectveil-verify": "5676ff3c50e5e768bf01fb8ed0882fbe0f023d5c12c8735429d9323b68410667"
+      },
+      "sha256": "8e3e65a9e13a6916eaf35d45f5f50415d9e777566e94a312576c22d8103eef8e",
+      "source_commit": "a855ec7fbfd1af97fc475f5eccb0c8c6299b452e",
+      "verified_tar_members": 47,
+      "version": "7.1.0-rc.2"
+    }
+  ],
+  "debian_package": {
+    "file": "objectveil_7.1.0~rc.2_amd64.deb",
+    "sha256": "2e651746a6a26da526509bd90b52ab8929496f2d6ac9011d8d71d260ee3e4019",
+    "runtime_matches_glibc239_tar": true,
+    "lifecycle_checks": 104,
+    "status": "passed",
+    "download_asset": "objectveil_7.1.0.rc.2_amd64.deb",
+    "package_version": "7.1.0~rc.2"
+  },
+  "rhel9_package": {
+    "file": "objectveil-7.1.0~rc.2-1.el9.x86_64.rpm",
+    "sha256": "2454e809798c36447b40c0a3c6bcdb3f4f7db0c76989f79db3c5d7102fee932d",
+    "runtime_sha256": {
+      "objectveil-initialize": "21b77f3a920382070febc56147326eaaced11d1b615e23029c60b0a25d911ac8",
+      "objectveil-migrate": "9d4613a1954a8718f439219586145c76e597da63e3b5f3bc0e061055868e7b5a",
+      "objectveil-manifest-summary": "4c95cfbc6cec08ab4d93ce894f79ed4b12fc0d13b28ebd966bc1dbc6d6cb324d",
+      "objectveil-rescan": "dc285ab551ce7c1a275800d8faf224031d675afa08a591249600c1744fb26224",
+      "objectveil-verify": "d0db5bb7033ee9b1dbba7ede4af5b00356b60b4ed5e99859126b5a37e0fdd702",
+      "objectveil": "8f04ca9cc00ff3b7f8578aef04839349532d24d84fd65a39ba597c2f01f1a316",
+      "libobjectveil_shim.so": "12149a40b0267c50bf0fd04b25bcb8dd232451487b5f353f2c27a40f188dfc47",
+      "objectveil-rebuild-catalog": "71e0bd5dd01772480efd1e991a4be64cc209d22d6a2508e39b5eb5002c8c72b6",
+      "objectveil-dedup-measure": "2c52e73c12005535f476e36e14c6dddc1846642095c520d3a7f4615f7331d235"
+    },
+    "lifecycle_checks": 174,
+    "status": "passed",
+    "download_asset": "objectveil-7.1.0.rc.2-1.el9.x86_64.rpm",
+    "package_version": "7.1.0~rc.2"
+  },
+  "cloud_validation": "CLOUD_VALIDATION.json",
+  "limitations": [
+    "Required gate was unprivileged; skipped optional capability/provider legs are not production validation.",
+    "See CLOUD_VALIDATION.json for exact live-cloud and platform scope."
+  ],
+  "distribution": {
+    "provider": "GitHub Releases",
+    "scope": "Provider asset names and download instructions only; tested package bytes, internal package versions, runtime source and frozen INSTALL.txt are unchanged.",
+    "asset_to_local_install_filename": {
+      "objectveil_7.1.0.rc.2_amd64.deb": "objectveil_7.1.0~rc.2_amd64.deb",
+      "objectveil-7.1.0.rc.2-1.el9.x86_64.rpm": "objectveil-7.1.0~rc.2-1.el9.x86_64.rpm"
+    },
+    "download_instructions": "DOWNLOADS.txt",
+    "order": [
+      "Download using the actual GitHub asset name",
+      "Verify SHA256SUMS before renaming",
+      "Rename without replacing an existing destination",
+      "Follow INSTALL.txt"
+    ]
+  }
+}

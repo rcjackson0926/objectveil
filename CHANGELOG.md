@@ -1,6 +1,19 @@
 # ObjectVeil release changes
 
-## 7.1.0-rc.2
+## 7.1.0
+
+Includes RCS archive fixes, bounded read retries and queued validation under
+bulk-read load, alongside single-location storage and migration improvements.
+No stored-data conversion or archive re-upload is required.
+
+- Queue read-only validation behind 16 workers with up to 64 admitted ENSURE
+  operations. Report capacity pressure separately from backend failures and
+  retain capacity until cancelled blocking validation actually finishes.
+- Reserve socket queue capacity before accepting connections, allowing bounded
+  bursts to wait in the kernel backlog instead of resetting accepted requests.
+- Retry temporary transport and backend-unavailable read errors twice within
+  one operation deadline. Admission pressure and restore/open eviction races
+  wait within that same deadline; protocol and integrity failures remain terminal.
 
 - Update the URL dependency to 2.5.9 to address the upstream
   [RUSTSEC-2026-0592](https://rustsec.org/advisories/RUSTSEC-2026-0592)
