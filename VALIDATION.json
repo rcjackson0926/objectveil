@@ -75,7 +75,9 @@
     "sha256": "2e651746a6a26da526509bd90b52ab8929496f2d6ac9011d8d71d260ee3e4019",
     "runtime_matches_glibc239_tar": true,
     "lifecycle_checks": 104,
-    "status": "passed"
+    "status": "passed",
+    "download_asset": "objectveil_7.1.0.rc.2_amd64.deb",
+    "package_version": "7.1.0~rc.2"
   },
   "rhel9_package": {
     "file": "objectveil-7.1.0~rc.2-1.el9.x86_64.rpm",
@@ -92,11 +94,28 @@
       "objectveil-dedup-measure": "2c52e73c12005535f476e36e14c6dddc1846642095c520d3a7f4615f7331d235"
     },
     "lifecycle_checks": 174,
-    "status": "passed"
+    "status": "passed",
+    "download_asset": "objectveil-7.1.0.rc.2-1.el9.x86_64.rpm",
+    "package_version": "7.1.0~rc.2"
   },
   "cloud_validation": "CLOUD_VALIDATION.json",
   "limitations": [
     "Required gate was unprivileged; skipped optional capability/provider legs are not production validation.",
     "See CLOUD_VALIDATION.json for exact live-cloud and platform scope."
-  ]
+  ],
+  "distribution": {
+    "provider": "GitHub Releases",
+    "scope": "Provider asset names and download instructions only; tested package bytes, internal package versions, runtime source and frozen INSTALL.txt are unchanged.",
+    "asset_to_local_install_filename": {
+      "objectveil_7.1.0.rc.2_amd64.deb": "objectveil_7.1.0~rc.2_amd64.deb",
+      "objectveil-7.1.0.rc.2-1.el9.x86_64.rpm": "objectveil-7.1.0~rc.2-1.el9.x86_64.rpm"
+    },
+    "download_instructions": "DOWNLOADS.txt",
+    "order": [
+      "Download using the actual GitHub asset name",
+      "Verify SHA256SUMS before renaming",
+      "Rename without replacing an existing destination",
+      "Follow INSTALL.txt"
+    ]
+  }
 }

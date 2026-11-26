@@ -1,0 +1,34 @@
+ObjectVeil 7.1.0-rc.2 -- GitHub download filenames
+
+GitHub replaces "~" with "." in uploaded asset names. The Debian and RHEL
+packages still contain version 7.1.0~rc.2, and their tested bytes are unchanged.
+The tarball filenames are unchanged.
+
+1. Download your selected package and SHA256SUMS into a new empty directory,
+   keeping GitHub's download filename. Verify BEFORE renaming:
+
+     sha256sum --ignore-missing -c SHA256SUMS
+
+   Require an OK result for your selected package; missing or failed files
+   are not verified. Download INSTALL.txt and use it for the coordinated
+   installation. Its own checksum is also in SHA256SUMS.
+
+2. For a Debian or RPM download, rename it to the local filename expected
+   by INSTALL.txt. Run only the command for the package you downloaded:
+
+     mv -nT -- 'objectveil_7.1.0.rc.2_amd64.deb' 'objectveil_7.1.0~rc.2_amd64.deb'
+     mv -nT -- 'objectveil-7.1.0.rc.2-1.el9.x86_64.rpm' 'objectveil-7.1.0~rc.2-1.el9.x86_64.rpm'
+
+   These GNU mv options preserve an existing destination and prevent moving
+   into a destination directory. If the destination already exists, stop
+   and inspect it; do not install an older or unverified file. After a
+   successful rename, the original download filename should be absent.
+   The checksum file names the downloaded file, so use it before this step.
+
+3. Follow INSTALL.txt, including stopping/fencing writers and restarting
+   every managed Perforce process with the matching new preload library.
+   Replacing a library on disk does not update a running process.
+
+VALIDATION.json preserves the tested build filenames and records each
+GitHub asset-to-local-install filename mapping. No package was rebuilt or
+modified to accommodate this hosting-service naming rule.

@@ -19,6 +19,11 @@ A Debian/Ubuntu package (glibc 2.39) and native RHEL 9 RPM (glibc 2.34)
 are also available. Their candidate version is `7.1.0~rc.2`; see `INSTALL.txt`.
 [Release downloads](https://github.com/rcjackson0926/objectveil/releases/tag/v7.1.0-rc.2) · [Installation](INSTALL.txt)
 
+GitHub normalizes the Debian and RPM download filenames. Follow
+[DOWNLOADS.txt](DOWNLOADS.txt) to verify the downloaded files and rename them
+to the local filenames used by `INSTALL.txt`. Package bytes and internal
+versions are unchanged.
+
 This page and its configuration examples describe the release candidate.
 For an installed 7.0.1 server, use the [7.0.1 documentation](https://github.com/rcjackson0926/objectveil/tree/v7.0.1/docs).
 
